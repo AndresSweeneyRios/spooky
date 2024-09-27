@@ -55,25 +55,25 @@ export class ViewSync {
     this.TimeMS = Date.now() - this.startTime
 
     for (const view of this.depthSortedViews) {
-      view.Draw(simulation, lerpFactor)
+      view.Draw?.(simulation, lerpFactor)
     }
   }
 
   public Update(simulation: Simulation) {
     for (const view of this.depthSortedViews) {
-      view.Update(simulation)
+      view.Update?.(simulation)
     }
   }
 
   public Cleanup(simulation: Simulation) {
     for (const view of this.depthSortedViews) {
-      view.Cleanup(simulation)
+      view.Cleanup?.(simulation)
     }
   }
 
   public CameraUpdate(simulation: Simulation) {
     for (const view of this.depthSortedViews) {
-      view.CameraUpdate(simulation)
+      view.CameraUpdate?.(simulation)
     }
   }
 
@@ -81,7 +81,7 @@ export class ViewSync {
     const view = this.entityViews.get(entId)
 
     if (view) {
-      view.Cleanup(simulation)
+      view.Cleanup?.(simulation)
       this.entityViews.delete(entId)
     }
   }
@@ -90,7 +90,7 @@ export class ViewSync {
     const view = this.auxiliaryViews.get(symbol)
 
     if (view) {
-      view.Cleanup(simulation)
+      view.Cleanup?.(simulation)
       this.auxiliaryViews.delete(symbol)
     }
   }

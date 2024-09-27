@@ -4,3 +4,14 @@
   box-sizing: border-box;
   font-family: sans-serif;
 }
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+canvas {
+  background-color: black;
+  flex: 1;
+}

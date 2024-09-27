@@ -6,11 +6,11 @@ export abstract class View {
 
   public Depth = 0
 
-  public abstract Draw(simulation: Simulation, lerpFactor: number): void
+  public Draw?(simulation: Simulation, lerpFactor: number): void
 
-  public abstract Update(simulation: Simulation): void
+  public Update?(simulation: Simulation): void
 
-  public abstract Cleanup(simulation: Simulation): void
+  public Cleanup?(simulation: Simulation): void
 
-  public abstract CameraUpdate(simulation: Simulation): void
+  public CameraUpdate?(simulation: Simulation): void
 }

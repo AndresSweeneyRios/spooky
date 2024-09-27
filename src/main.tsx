@@ -5,12 +5,13 @@ import {
   RouterProvider,
 } from "react-router-dom"
 import './index.css'
+import { Viewport } from './components/Viewport'
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
-    element: <></>,
+    element: <Viewport />,
   },
 
   // 404
@@ -26,3 +27,5 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 )
+
+import("./scenes")
