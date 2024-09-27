@@ -13,5 +13,8 @@ html, body, #root {
 
 canvas {
   background-color: black;
-  flex: 1;
+  flex: 1 0;
+  image-rendering: pixelated;
+  height: 100vh !important;
+  width: 100vw !important;
 }

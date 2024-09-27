@@ -1,8 +1,12 @@
 import * as React from "react"
 import * as THREE from "three"
 
+import { RENDERER } from "../../constants"
+
 export let canvas: HTMLCanvasElement = null!
 export let renderer: THREE.WebGLRenderer = null!
+
+
 
 export const Viewport: React.FC = () => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
@@ -15,14 +19,14 @@ export const Viewport: React.FC = () => {
 
     renderer = new THREE.WebGLRenderer({
       canvas,
+      antialias: RENDERER.antialias,
     })
 
-    renderer.autoClear = false;
-
     const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      renderer.setSize(window.innerWidth, window.innerHeight)
+      canvas.width = RENDERER.width
+      canvas.height = window.innerHeight * (RENDERER.width / window.innerWidth)
+
+      renderer.setSize(canvas.width, canvas.height)
     }
 
     window.addEventListener("resize", resize)
