@@ -22,7 +22,7 @@ export class ThroneView extends View {
     this.scene.add(this.throne.scene);
   }
 
-  constructor(scene: THREE.Scene) {
+  constructor(scene: THREE.Scene, camera: THREE.Camera) {
     super()
     this.scene = scene
     this.init().catch(console.error)

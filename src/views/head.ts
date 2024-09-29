@@ -14,22 +14,10 @@ export class HeadView extends View {
 
     this.head.scene.rotateY(Math.PI / -2)
 
-    this.scene.add(this.head.scene);
-  }
-
-  particles: THREE.InstancedMesh
-  particlePositions: THREE.Vector3[];
-  particleRotations: THREE.Quaternion[];
-
-  constructor(scene: THREE.Scene) {
-    super()
-    this.scene = scene
-    this.init().catch(console.error)
-
-    const textureLoader = new THREE.TextureLoader()
-    const texture = textureLoader.load("./3d/textures/smoke1.png")
-
     {
+      const textureLoader = new THREE.TextureLoader()
+      const texture = textureLoader.load("./3d/textures/smoke1.png")
+
       const geometry = new THREE.PlaneGeometry(1, 1)
       const material = particleMaterial(texture)
       const plane = new THREE.InstancedMesh(geometry, material, 7)
@@ -38,7 +26,7 @@ export class HeadView extends View {
 
       this.particles = plane
 
-      scene.add(plane)
+      this.scene.add(plane)
 
       this.particlePositions = [];
       this.particleRotations = [];
@@ -47,6 +35,23 @@ export class HeadView extends View {
         this.particlePositions.push(new THREE.Vector3(0, -0.3 * i, 0));
       }
     }
+
+    this.scene.add(this.head.scene);
+  }
+
+  particles: THREE.InstancedMesh = null!
+  particlePositions: THREE.Vector3[] = null!
+  particleRotations: THREE.Quaternion[] = null!
+
+  position: THREE.Vector3 = new THREE.Vector3(0, 0, 0)
+
+  camera: THREE.Camera
+
+  constructor(scene: THREE.Scene, camera: THREE.Camera) {
+    super()
+    this.scene = scene
+    this.camera = camera
+    this.init().catch(console.error)
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void { 
@@ -54,7 +59,12 @@ export class HeadView extends View {
       return
     }
 
-    this.head.scene.rotateY(0.005)
+    this.head.scene.rotation.y += 0.005
+
+    this.head.scene.position.set(this.position.x, this.position.y, this.position.z)
+    this.head.scene.position.y += ((Math.sin(simulation.ViewSync.TimeMS / 150) + 1) / 2) * 0.03
+
+    this.particles.position.copy(this.head.scene.position)
 
     const instanceAlpha = new Float32Array(this.particles.count);
 
