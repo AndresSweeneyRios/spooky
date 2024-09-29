@@ -11,6 +11,7 @@ const config = defineConfig({
   build: {
     target: 'esnext',
     assetsInlineLimit: 4096 * 1024,
+    sourcemap: true,
   },
   preview: {
     port: 3000,

@@ -2,11 +2,10 @@ import * as React from "react"
 import * as THREE from "three"
 
 import { RENDERER } from "../../constants"
+import { stopGameLoop } from "../simulation/loop"
 
 export let canvas: HTMLCanvasElement = null!
 export let renderer: THREE.WebGLRenderer = null!
-
-
 
 export const Viewport: React.FC = () => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
@@ -34,6 +33,16 @@ export const Viewport: React.FC = () => {
 
     return () => {
       window.removeEventListener("resize", resize)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    return () => {
+      if (renderer) {
+        renderer.dispose()
+      }
+
+      stopGameLoop()
     }
   }, [])
 
