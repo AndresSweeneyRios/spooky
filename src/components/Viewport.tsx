@@ -21,6 +21,8 @@ export const Viewport: React.FC = () => {
       antialias: RENDERER.antialias,
     })
 
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+
     const resize = () => {
       canvas.width = RENDERER.width
       canvas.height = window.innerHeight * (RENDERER.width / window.innerWidth)
