@@ -6,6 +6,7 @@ import { startGameLoop } from '../simulation/loop';
 import { ThroneView } from '../views/throne';
 import { HeadView } from '../views/head';
 import { loadPMREM } from '../graphics/loaders';
+import { ReliquaryView } from '../views/reliquary';
 
 const simulation = new Simulation()
 
@@ -29,8 +30,9 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 }, false);
 
-// simulation.ViewSync.AddAuxiliaryView(new ThroneView(scene, camera))
-simulation.ViewSync.AddAuxiliaryView(new HeadView(scene, camera))
+simulation.ViewSync.AddAuxiliaryView(new ThroneView(scene, camera))
+// simulation.ViewSync.AddAuxiliaryView(new HeadView(scene, camera))
+// simulation.ViewSync.AddAuxiliaryView(new ReliquaryView(scene, camera))
 
 simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
   public Draw(): void {
