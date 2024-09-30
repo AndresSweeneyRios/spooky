@@ -30,9 +30,9 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 }, false);
 
-simulation.ViewSync.AddAuxiliaryView(new ThroneView(scene, camera))
+// simulation.ViewSync.AddAuxiliaryView(new ThroneView(scene, camera))
 // simulation.ViewSync.AddAuxiliaryView(new HeadView(scene, camera))
-// simulation.ViewSync.AddAuxiliaryView(new ReliquaryView(scene, camera))
+simulation.ViewSync.AddAuxiliaryView(new ReliquaryView(scene, camera))
 
 simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
   public Draw(): void {
@@ -46,7 +46,7 @@ simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
 
 startGameLoop(simulation)
 
-loadPMREM("/3d/hdr/forest.hdr").then((texture) => {
+loadPMREM("/3d/hdr/sky.hdr").then((texture) => {
   scene.background = texture
   scene.environment = texture
   scene.environmentIntensity = 1.0
