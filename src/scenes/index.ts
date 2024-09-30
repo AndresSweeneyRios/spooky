@@ -30,9 +30,9 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 }, false);
 
-// simulation.ViewSync.AddAuxiliaryView(new ThroneView(scene, camera))
+simulation.ViewSync.AddAuxiliaryView(new ThroneView(scene, camera))
 // simulation.ViewSync.AddAuxiliaryView(new HeadView(scene, camera))
-simulation.ViewSync.AddAuxiliaryView(new ReliquaryView(scene, camera))
+// simulation.ViewSync.AddAuxiliaryView(new ReliquaryView(scene, camera))
 
 simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
   public Draw(): void {
