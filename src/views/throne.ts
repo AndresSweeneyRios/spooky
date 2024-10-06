@@ -11,8 +11,6 @@ export class ThroneView extends View {
   async init () {
     this.throne = await loadGltf("./3d/throne.glb")
 
-    console.log(this.throne)
-
     const circles = this.throne.scene.children[0].children.slice(0, 4)
 
     for (let i = 0; i < 4; i++) {
@@ -22,7 +20,7 @@ export class ThroneView extends View {
     this.scene.add(this.throne.scene);
   }
 
-  constructor(scene: THREE.Scene, camera: THREE.Camera) {
+  constructor(scene: THREE.Scene) {
     super()
     this.scene = scene
     this.init().catch(console.error)

@@ -12,19 +12,25 @@ import {
 } from "gl-matrix"
 
 class TransformComponent extends SimulationComponent {
+  public previousPosition = vec3.create()
   public position = vec3.create()
 }
 
 export class TransformRepository extends SimulationRepository<TransformComponent> {
-  public static readonly Id = 'Transform'
-  public GetId = () => TransformRepository.Id
-
   public SetPosition(entId: EntId, position: vec3) {
     this.entities.get(entId)!.position = position
   }
 
   public GetPosition(entId: EntId) {
     return vec3.clone(this.entities.get(entId)!.position)
+  }
+
+  public SetPreviousPosition(entId: EntId, position: vec3) {
+    this.entities.get(entId)!.previousPosition = position
+  }
+
+  public GetPreviousPosition(entId: EntId) {
+    return vec3.clone(this.entities.get(entId)!.previousPosition)
   }
 
   public static Factory() {

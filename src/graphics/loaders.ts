@@ -66,8 +66,6 @@ float quantize(float value, float bits) {
 
 void main`)
 
-      console.log(shader.fragmentShader)
-
       shader.fragmentShader = shader.fragmentShader.replace(
         /}\s*$/,
         /*glsl*/`

@@ -3,6 +3,7 @@ import * as THREE from "three"
 
 import { RENDERER } from "../../constants"
 import { stopGameLoop } from "../simulation/loop"
+import { loadAppropriateScene, unloadScene } from "../scenes"
 
 export let canvas: HTMLCanvasElement = null!
 export let renderer: THREE.WebGLRenderer = null!
@@ -33,7 +34,11 @@ export const Viewport: React.FC = () => {
     window.addEventListener("resize", resize)
     resize()
 
+    loadAppropriateScene()
+
     return () => {
+      unloadScene()
+
       window.removeEventListener("resize", resize)
     }
   }, [])
@@ -50,6 +55,7 @@ export const Viewport: React.FC = () => {
 
   return (
     <canvas
+      id="viewport"
       ref={canvasRef}
     />
   )

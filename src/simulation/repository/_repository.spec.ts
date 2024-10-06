@@ -31,7 +31,7 @@ describe('SimulationDb', () => {
     const entId = simulation.Create()
     repository.CreateComponent(entId)
 
-    expect(repository.entities.has(entId)).toBeTruthy()
+    expect([...repository.Entities].includes(entId)).toBeTruthy()
   })
 
   test('RemoveComponent', () => {
@@ -42,6 +42,6 @@ describe('SimulationDb', () => {
     repository.CreateComponent(entId)
     repository.RemoveComponent(entId)
 
-    expect(repository.entities.has(entId)).toBeFalsy()
+    expect([...repository.Entities].includes(entId)).toBeFalsy()
   })
 })
