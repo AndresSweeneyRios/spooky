@@ -2,7 +2,7 @@ import type { Simulation } from ".";
 import { Tick } from "./systems";
 
 // Define the FPS constant
-const FPS = 1000 / 30;
+const FPS = 1000 / 60;
 
 // Variables to keep track of the game loop
 let isRunning = false;
@@ -37,6 +37,8 @@ function gameLoop(simulation: Simulation) {
   while (accumulatedTime >= FPS) {
     // Update game logic here
     accumulatedTime -= FPS;
+
+    simulation.SimulationState.DeltaTime = FPS / 1000;
 
     Tick(simulation.SimulationState);
 
