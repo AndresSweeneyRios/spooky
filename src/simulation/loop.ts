@@ -2,7 +2,8 @@ import type { Simulation } from ".";
 import { Tick } from "./systems";
 
 // Define the FPS constant
-const FPS = 1000 / 60;
+const FPS = 1000 / 120;
+const MAX_ALLOWED_PAUSE = 1000;
 
 // Variables to keep track of the game loop
 let isRunning = false;
@@ -29,9 +30,16 @@ function gameLoop(simulation: Simulation) {
   
   const currentTime = Date.now();
   const deltaTime = (currentTime - lastFrameTime)
+
+  // If the pause is too long, reset the accumulated time
+  if (deltaTime > MAX_ALLOWED_PAUSE) {
+      accumulatedTime = 0; // Reset accumulated time
+      lastFrameTime = currentTime;
+      requestAnimationFrame(() => gameLoop(simulation));
+      return;
+  }
   
   // Update game logic here
-
   accumulatedTime += deltaTime;
 
   while (accumulatedTime >= FPS) {
@@ -48,7 +56,6 @@ function gameLoop(simulation: Simulation) {
   simulation.ViewSync.Draw(simulation, accumulatedTime / FPS);
   
   // Render game graphics here
-  
   lastFrameTime = currentTime;
   
   // Call the game loop again

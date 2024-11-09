@@ -94,3 +94,244 @@ export const particleMaterial = (
   fragmentShader: particleFrag,
   transparent: true,
 })
+
+export enum VERTEX_MARKER {
+  UNIFORM = "@@@UNIFORM@@@",
+  CONSTANT = "@@@CONSTANT@@@",
+  PRE_QUANTIZATION = "@@@PRE_QUANTIZATION@@@",
+  POST_QUANTIZATION = "@@@POST_QUANTIZATION@@@",
+}
+
+export enum FRAGMENT_MARKER {
+  UNIFORM = "@@@UNIFORM@@@",
+  CONSTANT = "@@@CONSTANT@@@",
+  PRE_QUANTIZATION = "@@@PRE_QUANTIZATION@@@",
+  POST_QUANTIZATION = "@@@POST_QUANTIZATION@@@",
+}
+
+export interface Injection {
+  uuidFilter?: string[]
+
+  vertex?: {
+    raw?: (shader: THREE.WebGLProgramParametersWithUniforms) => void
+    marker?: VERTEX_MARKER
+    value?: string
+  }[]
+
+  fragment?: {
+    raw?: (shader: THREE.WebGLProgramParametersWithUniforms) => void
+    marker?: FRAGMENT_MARKER
+    value?: string
+  }[]
+
+  uniforms?: {
+    [key: string]: THREE.IUniform
+  }
+}
+
+export const getShader = (mesh: THREE.Mesh) => (mesh as any).shader as THREE.WebGLProgramParametersWithUniforms
+
+const onBeforeCompile = (
+  mesh: THREE.Mesh, 
+  material: THREE.Material, 
+  injections: Injection[] = []
+) => (shader: THREE.WebGLProgramParametersWithUniforms) => {
+  const uuid = mesh.uuid
+
+  ;(mesh as any).shader = shader
+
+  shader.uniforms.vertexBits = { value: RENDERER.vertexBits }
+  
+  const bits = getRGBBits(RENDERER.colorBits)
+
+  shader.uniforms.colorBitsR = { value: bits.r }
+  shader.uniforms.colorBitsG = { value: bits.g }
+  shader.uniforms.colorBitsB = { value: bits.b }
+  shader.uniforms.cutoutTexture = { value: false }
+  shader.uniforms.disableShadows = { value: false }
+
+  const resize = () => {
+    if (!shader?.uniforms) {
+      return
+    }
+
+    shader.uniforms.resolution = { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+  }
+  
+  resize()
+
+  window.addEventListener('resize', resize)
+
+  let newVertexShader = shader.vertexShader.replace(
+    /*glsl*/`void main`, 
+    /*glsl*/`
+uniform float vertexBits;
+${VERTEX_MARKER.UNIFORM}
+
+${VERTEX_MARKER.CONSTANT}
+
+void main`)
+
+newVertexShader = newVertexShader.replace(
+  /*glsl*/`#include <project_vertex>`,
+  /*glsl*/`#include <project_vertex>
+${VERTEX_MARKER.PRE_QUANTIZATION}
+float quantizationFactor = pow(2.0, vertexBits);
+
+mvPosition.xyz = round(mvPosition.xyz * quantizationFactor) / quantizationFactor;
+
+gl_Position = projectionMatrix * mvPosition;
+${VERTEX_MARKER.POST_QUANTIZATION}
+`)
+
+  let newFragmentShader = shader.fragmentShader.replace(
+    /*glsl*/`void main`,
+    /*glsl*/`
+uniform float colorBitsR;
+uniform float colorBitsG;
+uniform float colorBitsB;
+
+uniform vec2 resolution;
+
+uniform bool cutoutTexture;
+uniform bool disableShadows;
+
+${FRAGMENT_MARKER.UNIFORM}
+
+float quantize(float value, float bits) {
+return floor(value * (pow(2.0, bits) - 1.0)) / (pow(2.0, bits) - 1.0);
+}
+
+${FRAGMENT_MARKER.CONSTANT}
+
+void main`)
+
+  newFragmentShader = newFragmentShader.replace(
+    /*glsl*/`#include <opaque_fragment>`,
+    /*glsl*/`
+if (disableShadows) {
+outgoingLight = diffuseColor.rgb;
+}
+
+#include <opaque_fragment>
+`)
+
+  newFragmentShader = newFragmentShader.replace(
+    /*glsl*/`#include <map_fragment>`,
+    /*glsl*/`#include <map_fragment>
+#ifdef USE_MAP
+if (cutoutTexture) {
+  vec2 screenSpaceCoords = gl_FragCoord.xy / resolution.xy;
+
+	sampledDiffuseColor = texture2D( map, screenSpaceCoords );
+
+	#ifdef DECODE_VIDEO_TEXTURE
+		sampledDiffuseColor = sRGBTransferEOTF( sampledDiffuseColor );
+
+	#endif
+
+	diffuseColor = sampledDiffuseColor;
+}
+#endif
+`)
+
+  newFragmentShader = newFragmentShader.replace(
+    /}\s*$/,
+    /*glsl*/`
+${FRAGMENT_MARKER.PRE_QUANTIZATION}
+float r = quantize(gl_FragColor.r, colorBitsR);
+float g = quantize(gl_FragColor.g, colorBitsG);
+float b = quantize(gl_FragColor.b, colorBitsB);
+
+gl_FragColor = vec4(r, g, b, gl_FragColor.a); 
+
+${FRAGMENT_MARKER.POST_QUANTIZATION}
+` + `}`)
+
+  for (const injection of injections) {
+    if (injection.uuidFilter && !injection.uuidFilter.includes(uuid)) {
+      continue
+    }
+
+    if (injection.uniforms) {
+      for (const [key, value] of Object.entries(injection.uniforms)) {
+        shader.uniforms[key] = value
+      }
+    }
+
+    if (injection.vertex) {
+      for (const step of injection.vertex) {
+        if (step.raw) {
+          step.raw(shader)
+        }
+
+        if (step.marker && step.value) {
+          newVertexShader = newVertexShader.replace(step.marker, step.value.toString() + '\n' + step.marker)
+        }
+      }
+    }
+
+    if (injection.fragment) {
+      for (const step of injection.fragment) {
+        if (step.raw) {
+          step.raw(shader)
+        }
+        
+        if (step.marker && step.value) {
+          newFragmentShader = newFragmentShader.replace(step.marker, step.value.toString() + '\n' + step.marker)
+        }
+      }
+    }
+  }
+
+  for (const marker of Object.values(VERTEX_MARKER)) {
+    newVertexShader = newVertexShader.replace(marker, "")
+  }
+
+  for (const marker of Object.values(FRAGMENT_MARKER)) {
+    newFragmentShader = newFragmentShader.replace(marker, "")
+  }
+
+  shader.vertexShader = newVertexShader
+  shader.fragmentShader = newFragmentShader
+}
+
+let injections: Injection[] = []
+
+export const inject = (injection: Injection) => {
+  injections.push(injection)
+}
+
+export const applyInjectedMaterials = (object: THREE.Object3D) => {
+  object.traverse((child) => {
+    if (child.type !== "Mesh") {
+      return
+    }
+
+    const mesh = child as THREE.Mesh
+
+    if (!mesh.material) {
+      return
+    }
+
+    let materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+
+    materials = materials.map((_material) => {
+      const material = _material.clone()
+
+      material.onBeforeCompile = onBeforeCompile(mesh, material, injections)
+
+      material.uuid = THREE.MathUtils.generateUUID()
+      material.version++
+      material.needsUpdate = true
+
+      return material
+    })
+
+    if (Array.isArray(mesh.material)) {
+      mesh.material = materials
+    } else {
+      mesh.material = materials[0]
+    }
+  })
+}

@@ -3,9 +3,11 @@ import { renderer } from '../components/Viewport';
 import { Simulation } from '../simulation';
 import { View } from '../simulation/View';
 import { ThroneView } from '../views/throne';
-import { loadGltf, loadPMREM } from '../graphics/loaders';
+import { loadGltf, loadPMREM, loadTexture, loadVideoTexture } from '../graphics/loaders';
 import { createPlayer } from '../entities/player';
 import { vec3 } from 'gl-matrix';
+import * as shaders from '../graphics/shaders';
+import { NoiseMaterial } from '../graphics/noise'; 
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -26,28 +28,30 @@ export const init = async () => {
     }
   })
 
-  const ambientLight = new THREE.AmbientLight(0xff0000, 0.5)
+  const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
   scene.add(ambientLight)
 
-  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
+  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
   
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
   }, false);
 
-  // add red ambient light
-  
   // add sun
-  // const sun = new THREE.DirectionalLight(0xffffff, 10.0)
+  // const sun = new THREE.DirectionalLight(0xffffff, 3.0)
   // sun.position.set(0, 1, 0)
   // scene.add(sun)
 
   const [, sceneGltf] = await Promise.all([
     loadPMREM("/3d/hdr/sky.hdr").then((texture) => {
       scene.background = texture
+      scene.backgroundIntensity = 1.0
       scene.environment = texture
       scene.environmentIntensity = 1.0
+
+      scene.environmentRotation.y = Math.PI / 4
+      scene.backgroundRotation.y = Math.PI / 4
     }),
 
     loadGltf("/3d/scenes/stairs/stairs.glb")
@@ -71,6 +75,10 @@ export const init = async () => {
             command.position.x,
             command.position.y,
             command.position.z,
+          ), vec3.fromValues(
+            command.rotation.x,
+            command.rotation.y,
+            command.rotation.z,
           ))
         }
       }
@@ -81,9 +89,32 @@ export const init = async () => {
 
   scene.add(sceneGltf.scene)
 
-  // const throneView = new ThroneView(scene)
-  // throneView.scene.position.set(0, 0, -5)
-  // simulation.ViewSync.AddAuxiliaryView(throneView)
+  shaders.applyInjectedMaterials(sceneGltf.scene)
+
+  // load texture https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/SMPTE_Color_Bars.svg/1280px-SMPTE_Color_Bars.svg.png
+
+  // const smpteTexture = loadTexture("https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/SMPTE_Color_Bars.svg/1280px-SMPTE_Color_Bars.svg.png")
+  // const staticTexture = loadVideoTexture("/3d/videos/static_optimized.webm")
+
+  console.log(sceneGltf.scene)
+
+  sceneGltf.scene.traverse((object) => {
+    if (object.name === "Skull009") {
+      const skull = object as THREE.Mesh
+      skull.material = NoiseMaterial;
+    }
+
+    if (object.name === "Cube001" && object.parent!.name === "stairs") {
+      const cube = object as THREE.Mesh
+
+      requestAnimationFrame(() => {
+        shaders.getShader(cube).uniforms.colorBits = { value: 64 }
+      })
+    }
+  })
+
+  const throneView = new ThroneView(scene)
+  simulation.ViewSync.AddAuxiliaryView(throneView)
 
   simulation.Start()
 

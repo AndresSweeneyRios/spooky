@@ -25,9 +25,14 @@ export const Viewport: React.FC = () => {
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
     const resize = () => {
-      canvas.width = RENDERER.width
-      canvas.height = window.innerHeight * (RENDERER.width / window.innerWidth)
-
+      if (RENDERER.limitResolution) {
+        canvas.width = RENDERER.width
+        canvas.height = window.innerHeight * (canvas.width / window.innerWidth)
+      } else {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      }
+      
       renderer.setSize(canvas.width, canvas.height)
     }
 

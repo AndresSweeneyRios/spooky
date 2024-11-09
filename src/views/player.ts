@@ -72,8 +72,12 @@ export class PlayerView extends EntityView {
     }
   }
 
-  constructor(entId: EntId, public Camera: THREE.Camera) {
+  constructor(entId: EntId, public Camera: THREE.Camera, initialRotation: vec3) {
     super(entId);
+
+    // convert initial rotation to yaw and pitch
+    this.yaw = initialRotation[0];
+    this.pitch = initialRotation[1];
 
     this.canvas = document.querySelector('canvas#viewport')!;
 
