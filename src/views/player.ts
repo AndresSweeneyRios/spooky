@@ -72,7 +72,7 @@ export class PlayerView extends EntityView {
     }
   }
 
-  constructor(entId: EntId, public Camera: THREE.Camera, initialRotation: vec3) {
+  constructor(entId: EntId, simulation: Simulation, initialRotation: vec3) {
     super(entId);
 
     // convert initial rotation to yaw and pitch
@@ -106,13 +106,13 @@ export class PlayerView extends EntityView {
     const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
     const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
 
-    this.Camera.position.set(lerpedPosition[0], lerpedPosition[1] + 2, lerpedPosition[2]);
+    simulation.Camera.position.set(lerpedPosition[0], lerpedPosition[1] + 2, lerpedPosition[2]);
 
-    this.updateCameraRotation();
+    this.updateCameraRotation(simulation);
   }
 
   public Update(simulation: Simulation): void {
-    this.updateCameraRotation();
+    this.updateCameraRotation(simulation);
 
     const state = simulation.SimulationState;
 
@@ -129,13 +129,13 @@ export class PlayerView extends EntityView {
     state.MovementRepository.SetDirection(this.EntId, direction);
   }
 
-  private updateCameraRotation(): void {
+  private updateCameraRotation(simulation: Simulation): void {
     // Convert yaw and pitch angles (in radians) to a rotation matrix
     const rotationMatrix = this.getRotationMatrix();
 
     // Convert the rotation matrix to THREE's Quaternion
     const quaternion = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().fromArray(rotationMatrix));
-    this.Camera.quaternion.copy(quaternion);
+    simulation.Camera.quaternion.copy(quaternion);
   }
 
   private getRotationMatrix(): mat4 {

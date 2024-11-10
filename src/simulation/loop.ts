@@ -33,10 +33,10 @@ function gameLoop(simulation: Simulation) {
 
   // If the pause is too long, reset the accumulated time
   if (deltaTime > MAX_ALLOWED_PAUSE) {
-      accumulatedTime = 0; // Reset accumulated time
-      lastFrameTime = currentTime;
-      requestAnimationFrame(() => gameLoop(simulation));
-      return;
+    accumulatedTime = 0; // Reset accumulated time
+    lastFrameTime = currentTime;
+    requestAnimationFrame(() => gameLoop(simulation));
+    return;
   }
   
   // Update game logic here
@@ -47,6 +47,12 @@ function gameLoop(simulation: Simulation) {
     accumulatedTime -= FPS;
 
     simulation.SimulationState.DeltaTime = FPS / 1000;
+
+    for (const command of simulation.SimulationState.Commands) {
+      command.Execute(simulation)
+    }
+
+    simulation.SimulationState.Commands = []
 
     Tick(simulation.SimulationState);
 

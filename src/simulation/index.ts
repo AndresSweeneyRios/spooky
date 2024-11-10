@@ -1,3 +1,4 @@
+import * as THREE from "three"
 import { EntityRegistry } from "./EntityRegistry"
 import { ViewSync } from "./ViewSync"
 import { SimulationState } from "./SimulationState"
@@ -9,7 +10,10 @@ export class Simulation {
 
   public ViewSync: ViewSync
 
-  constructor() {
+  constructor(
+    public Camera: THREE.Camera, 
+    public ThreeScene: THREE.Scene,
+  ) {
     this.ViewSync = new ViewSync(this)
 
     console.log('SIMULATION', this)

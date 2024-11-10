@@ -41,7 +41,9 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       const position = component.colliders[0].translation()
       return vec3.fromValues(position.x, position.y, position.z)
     } else {
-      throw new Error("No collider or body found")
+      console.error("No collider or body found", JSON.stringify(component, null, 2))
+
+      return vec3.create()
     }
   }
 
@@ -171,7 +173,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     return collider
   }
 
-  public AddSceneColliders(entId: EntId, object: THREE.Object3D) {
+  public AddCollidersFromObject(entId: EntId, object: THREE.Object3D) {
     object.traverse((object) => {
       if (object.type !== "Mesh") {
         return
