@@ -1,27 +1,31 @@
 import { SimulationState } from "../SimulationState";
 import { vec3 } from "gl-matrix";
 
+const GRAVITY = -9.81;
+
 export const movementSystem = (state: SimulationState) => {
-  for (const entId of state.TransformRepository.Entities) {
-    const position = state.TransformRepository.GetPosition(entId)
-    const speed = state.MovementRepository.GetSpeed(entId)
-    const direction = state.MovementRepository.GetDirection(entId)
-    const lockVerticalMovement = state.MovementRepository.GetLockVerticalMovement(entId)
+  for (const entId of state.MovementRepository.Entities) {
+    // state.PhysicsRepository.StopMovement(entId);
+
+    const speed = state.MovementRepository.GetSpeed(entId);
+    const direction = state.MovementRepository.GetDirection(entId);
+    const lockVerticalMovement = state.MovementRepository.GetLockVerticalMovement(entId);
 
     if (speed === 0 || vec3.length(direction) === 0) {
       continue;
     }
 
-    const newPosition = vec3.fromValues(
-      position[0] + direction[0] * speed,
-      position[1] + direction[1] * speed,
-      position[2] + direction[2] * speed,
-    );
+    // Normalize the direction vector to ensure uniform speed
+    const normalizedDirection = vec3.normalize(vec3.create(), direction);
 
+    // If vertical movement is locked, zero out the Y component before scaling
     if (lockVerticalMovement) {
-      newPosition[1] = position[1];
+      normalizedDirection[1] = 0;
+      vec3.normalize(normalizedDirection, normalizedDirection); // Re-normalize after adjustment
     }
 
-    state.TransformRepository.SetPosition(entId, newPosition);
+    const movement = vec3.scale(vec3.create(), normalizedDirection, speed * state.DeltaTime);
+
+    state.PhysicsRepository.TryMoveCharacterController(entId, movement);
   }
-}
+};

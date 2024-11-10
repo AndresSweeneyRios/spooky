@@ -1,8 +1,8 @@
 import type { SimulationState } from "../SimulationState"
 import { movementSystem } from "./movementSystem"
-import { previousPositionSystem } from "./previousPositionSystem"
+import { physicsSystem } from "./physicsSystem"
 
 export const Tick = (state: SimulationState) => {
-  previousPositionSystem(state)
+  physicsSystem(state)
   movementSystem(state)
 }
