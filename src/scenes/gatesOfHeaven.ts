@@ -47,7 +47,7 @@ export const init = async () => {
 
   const [, sceneGltf] = await Promise.all([
     // loadPMREM("/3d/hdr/sky.hdr")
-    loadEquirectangularAsEnvMap("/3d/env/sky_mirror.png", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("/3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
