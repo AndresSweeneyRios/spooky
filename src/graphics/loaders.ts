@@ -49,3 +49,25 @@ export const loadVideoTexture = (path: string) => {
 
   return texture
 }
+
+export const loadEquirectangularAsEnvMap = async (
+  path: string, 
+  minFilter: THREE.MinificationTextureFilter = THREE.NearestFilter, 
+  magFilter: THREE.MagnificationTextureFilter = THREE.NearestFilter
+) => {
+  const env = await new Promise<THREE.CubeTexture>((resolve) => {
+    textureLoader.load(path, (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping
+      texture.colorSpace = THREE.SRGBColorSpace
+      texture.minFilter = minFilter
+      texture.magFilter = magFilter
+
+      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(texture.image.height)
+      cubeRenderTarget.fromEquirectangularTexture(renderer, texture)
+
+      resolve(cubeRenderTarget.texture)
+    })
+  })
+
+  return env
+}
