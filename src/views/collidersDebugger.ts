@@ -62,7 +62,10 @@ export class CollidersDebugger extends View {
           default: continue;
         }
 
-        const material = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true })
+        const isSensor = collider.isSensor()
+        const color = isSensor ? 0xff0000 : 0xffff00
+
+        const material = new THREE.MeshBasicMaterial({ color, wireframe: true })
         const newMesh = new THREE.Mesh(geometry, material)
         this.meshMap.set(symbol, newMesh)
         simulation.ThreeScene.add(newMesh)

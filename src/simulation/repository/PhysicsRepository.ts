@@ -13,6 +13,7 @@ import {
 
 import * as THREE from "three"
 import { traverse, traverseParents } from "../../utils/traverse"
+import { QueryFilterFlags } from "@dimforge/rapier3d"
 
 const TERMINAL_VELOCITY = 50
 const GRAVITY = -9.81
@@ -137,7 +138,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       component.verticalVelocity = TERMINAL_VELOCITY
     }
 
-    character.computeColliderMovement(collider, new RAPIER.Vector3(0, component.verticalVelocity, 0))
+    character.computeColliderMovement(collider, new RAPIER.Vector3(0, component.verticalVelocity, 0), QueryFilterFlags.EXCLUDE_SENSORS)
 
     const computedMovement = character.computedMovement()
 
@@ -169,7 +170,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     const collider = component.GetFirstCollider()!
     const body = component.GetFirstBody()!
 
-    character.computeColliderMovement(collider, desiredMovement)
+    character.computeColliderMovement(collider, desiredMovement, QueryFilterFlags.EXCLUDE_SENSORS)
 
     const computedMovement = character.computedMovement()
 
@@ -209,14 +210,11 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     return collider
   }
 
-  public AddCollidersFromObject(entId: EntId, object: THREE.Object3D, addCharacter: boolean = false) {
+  public AddCollidersFromObject(entId: EntId, object: THREE.Object3D, addCharacter: boolean = false, sensor: boolean = false) {
     const component = this.entities.get(entId)!
 
-    let rigidBody: InstanceType<typeof RAPIER.RigidBody> | undefined = undefined
-    let character: InstanceType<typeof RAPIER.KinematicCharacterController> | undefined = undefined
-
-    if (addCharacter) {
-      rigidBody = this.CreateRigidBody(vec3.fromValues(
+    if (addCharacter && !component.GetFirstCharacter()) {
+      const rigidBody = this.CreateRigidBody(vec3.fromValues(
         object.position.x,
         object.position.y,
         object.position.z
@@ -229,7 +227,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
         object.quaternion.w
       ), true)
 
-      character = this.CreateCharacter(0.1)
+      const character = this.CreateCharacter(0.1)
 
       component.bodies.set(Symbol(), rigidBody)
       component.characters.set(Symbol(), character)
@@ -249,7 +247,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       const scaledScale = new RAPIER.Vector3(child.scale.x, child.scale.y, child.scale.z)
 
       for (const parent of traverseParents(child)) {
-        if (rigidBody && parent.uuid === object.uuid) {
+        if (addCharacter && parent.uuid === object.uuid) {
           continue
         }
 
@@ -286,7 +284,9 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
         vertices[i + 2] += translation.z
       }
 
-      this.AddMeshCollider(entId, vertices, indices, rigidBody)
+      const collider = this.AddMeshCollider(entId, vertices, indices, addCharacter ? component.GetFirstBody() : undefined)
+
+      collider.setSensor(sensor)
     }
   }
 

@@ -55,8 +55,10 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
 
       continue
     } else if (child.name === "SENSORS") {
-      // simulation.SimulationState.PhysicsRepository.AddSensorsFromObject(entId, object)
-  
+      const isSensor = true
+
+      simulation.SimulationState.PhysicsRepository.AddCollidersFromObject(entId, child, addRigidBody, isSensor)
+
       removalList.push(child)
   
       continue
