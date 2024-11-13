@@ -12,6 +12,7 @@ import {
 } from "gl-matrix"
 
 import * as THREE from "three"
+import { traverse, traverseParents } from "../../utils/traverse"
 
 const TERMINAL_VELOCITY = 50
 const GRAVITY = -9.81
@@ -19,9 +20,30 @@ const GRAVITY = -9.81
 const RAPIER = await import("@dimforge/rapier3d")
 
 class PhysicsComponent extends SimulationComponent {
-  public colliders: InstanceType<typeof RAPIER.Collider>[] = []
-  public characters: InstanceType<typeof RAPIER.KinematicCharacterController>[] = []
-  public bodies: InstanceType<typeof RAPIER.RigidBody>[] = []
+  public colliders: Map<symbol, InstanceType<typeof RAPIER.Collider>> = new Map()
+  public characters: Map<symbol, InstanceType<typeof RAPIER.KinematicCharacterController>> = new Map()
+  public bodies: Map<symbol, InstanceType<typeof RAPIER.RigidBody>> = new Map()
+
+  public GetFirstCollider(): InstanceType<typeof RAPIER.Collider> | undefined {
+    for (const collider of this.colliders.values()) {
+      return collider;
+    }
+    return undefined;
+  }
+
+  public GetFirstCharacter(): InstanceType<typeof RAPIER.KinematicCharacterController> | undefined {
+    for (const character of this.characters.values()) {
+      return character;
+    }
+    return undefined;
+  }
+
+  public GetFirstBody(): InstanceType<typeof RAPIER.RigidBody> | undefined {
+    for (const body of this.bodies.values()) {
+      return body;
+    }
+    return undefined;
+  }
 
   public previousPosition: vec3 = vec3.create()
   public verticalVelocity: number = 0
@@ -34,11 +56,11 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
   public GetPosition(entId: EntId): vec3 {
     const component = this.entities.get(entId)!
     
-    if (component.bodies.length > 0) {
-      const position = component.bodies[0].translation()
+    if (component.bodies.size > 0) {
+      const position = component.GetFirstBody()!.translation()
       return vec3.fromValues(position.x, position.y, position.z)
-    } else if (component.colliders.length > 0) {
-      const position = component.colliders[0].translation()
+    } else if (component.colliders.size > 0) {
+      const position = component.GetFirstCollider()!.translation()
       return vec3.fromValues(position.x, position.y, position.z)
     } else {
       console.error("No collider or body found", JSON.stringify(component, null, 2))
@@ -63,25 +85,39 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     this.world.step()
   }
 
-  public CreateCharacterController(entId: EntId, position: vec3, size: number, offset: number) {
+  private CreateCharacter(offset: number) {
     const character = this.world.createCharacterController(offset)
     character.setMaxSlopeClimbAngle(45)
     character.enableAutostep(1, 0.01, true)
     character.disableSnapToGround()
 
+    return character;
+  }
+
+  private CreateRigidBody(position: vec3) {
     const rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
     rigidBodyDesc.setTranslation(position[0], position[1], position[2])
     const rigidBody = this.world.createRigidBody(rigidBodyDesc)
     rigidBody.lockRotations(true, true)
     rigidBody.setLinearDamping(0.0)
     rigidBody.setAngularDamping(0.0)
+
+    return {
+      rigidBody,
+      rigidBodyDesc,
+    }
+  }
+
+  public CreateCharacterControllerWithSphere(entId: EntId, position: vec3, size: number, offset: number) {
+    const character = this.CreateCharacter(offset)
+    const { rigidBody } = this.CreateRigidBody(position)
     const colliderDesc = RAPIER.ColliderDesc.ball(size)
     const collider = this.world.createCollider(colliderDesc, rigidBody)
     collider.setFriction(0.0)
 
-    this.entities.get(entId)!.colliders.push(collider)
-    this.entities.get(entId)!.characters.push(character)
-    this.entities.get(entId)!.bodies.push(rigidBody)
+    this.entities.get(entId)!.colliders.set(Symbol(), collider)
+    this.entities.get(entId)!.characters.set(Symbol(), character)
+    this.entities.get(entId)!.bodies.set(Symbol(), rigidBody)
   }
 
   public ApplyGravity(entId: EntId, deltaTime: number) {
@@ -90,9 +126,9 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     }
 
     const component = this.entities.get(entId)!
-    const collider = component.colliders[0]
-    const character = component.characters[0]
-    const body = component.bodies[0]
+    const collider = component.GetFirstCollider()!
+    const character = component.GetFirstCharacter()!
+    const body = component.GetFirstBody()!
     component.verticalVelocity += GRAVITY * deltaTime
 
     if (component.verticalVelocity < -TERMINAL_VELOCITY) {
@@ -129,9 +165,9 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
 
     const component = this.entities.get(entId)!
 
-    const character = component.characters[0]
-    const collider = component.colliders[0]
-    const body = component.bodies[0]
+    const character = component.GetFirstCharacter()!
+    const collider = component.GetFirstCollider()!
+    const body = component.GetFirstBody()!
 
     character.computeColliderMovement(collider, desiredMovement)
 
@@ -151,42 +187,123 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
   public RemoveComponent(entId: EntId): void {
     super.RemoveComponent(entId)
 
-    for (const collider of this.entities.get(entId)!.colliders) {
+    for (const collider of this.entities.get(entId)!.colliders.values()) {
       this.world.removeCollider(collider, false)
     }
 
-    for (const character of this.entities.get(entId)!.characters) {
+    for (const character of this.entities.get(entId)!.characters.values()) {
       this.world.removeCharacterController(character)
     }
 
-    for (const body of this.entities.get(entId)!.bodies) {
+    for (const body of this.entities.get(entId)!.bodies.values()) {
       this.world.removeRigidBody(body)
     }
   }
 
-  public AddMeshCollider(entId: EntId, vertices: Float32Array, indices: Uint32Array) {
+  public AddMeshCollider(entId: EntId, vertices: Float32Array, indices: Uint32Array, rigidBody?: InstanceType<typeof RAPIER.RigidBody>) {
     const colliderDesc = RAPIER.ColliderDesc.trimesh(vertices, indices)
-    const collider = this.world.createCollider(colliderDesc)
+    const collider = this.world.createCollider(colliderDesc, rigidBody)
 
-    this.entities.get(entId)!.colliders.push(collider)
+    this.entities.get(entId)!.colliders.set(Symbol(), collider)
 
     return collider
   }
 
-  public AddCollidersFromObject(entId: EntId, object: THREE.Object3D) {
-    object.traverse((object) => {
-      if (object.type !== "Mesh") {
-        return
+  public AddCollidersFromObject(entId: EntId, object: THREE.Object3D, addCharacter: boolean = false) {
+    const component = this.entities.get(entId)!
+
+    let rigidBody: InstanceType<typeof RAPIER.RigidBody> | undefined = undefined
+    let character: InstanceType<typeof RAPIER.KinematicCharacterController> | undefined = undefined
+
+    if (addCharacter) {
+      rigidBody = this.CreateRigidBody(vec3.fromValues(
+        object.position.x,
+        object.position.y,
+        object.position.z
+      )).rigidBody
+
+      rigidBody.setRotation(new RAPIER.Quaternion(
+        object.quaternion.x,
+        object.quaternion.y,
+        object.quaternion.z,
+        object.quaternion.w
+      ), true)
+
+      character = this.CreateCharacter(0.1)
+
+      component.bodies.set(Symbol(), rigidBody)
+      component.characters.set(Symbol(), character)
+    } 
+
+    for (const child of traverse(object)) {
+      if (child.type !== "Mesh") {
+        continue
       }
 
-      const geometry = (object as THREE.Mesh).geometry as THREE.BufferGeometry
+      const geometry = (child as THREE.Mesh).geometry as THREE.BufferGeometry
       const vertices = geometry.getAttribute("position").array as Float32Array
       const indices = geometry.getIndex()!.array as Uint32Array
 
-      const collider = this.AddMeshCollider(entId, vertices, indices)
+      const translation = new RAPIER.Vector3(child.position.x, child.position.y, child.position.z)
+      const rotation = new RAPIER.Quaternion(child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w)
+      const scaledScale = new RAPIER.Vector3(child.scale.x, child.scale.y, child.scale.z)
 
-      collider.setTranslation(new RAPIER.Vector3(object.position.x, object.position.y, object.position.z))
-    })
+      for (const parent of traverseParents(child)) {
+        if (rigidBody && parent.uuid === object.uuid) {
+          continue
+        }
+
+        translation.x += parent.position.x
+        translation.y += parent.position.y
+        translation.z += parent.position.z
+
+        scaledScale.x *= parent.scale.x
+        scaledScale.y *= parent.scale.y
+        scaledScale.z *= parent.scale.z
+
+        rotation.x *= parent.quaternion.x
+        rotation.y *= parent.quaternion.y
+        rotation.z *= parent.quaternion.z
+        rotation.w *= parent.quaternion.w
+      }
+
+      for (let i = 0; i < vertices.length; i += 3) {
+        vertices[i] *= scaledScale.x
+        vertices[i + 1] *= scaledScale.y
+        vertices[i + 2] *= scaledScale.z
+
+        // rotate quaternion
+        const vertex = [vertices[i], vertices[i + 1], vertices[i + 2]] as vec3
+        const rotatedVertex = vec3.create()
+        vec3.transformQuat(rotatedVertex, vertex, [rotation.x, rotation.y, rotation.z, rotation.w])
+        vertices[i] = rotatedVertex[0]
+        vertices[i + 1] = rotatedVertex[1]
+        vertices[i + 2] = rotatedVertex[2]
+
+        // translate vertices
+        vertices[i] += translation.x
+        vertices[i + 1] += translation.y
+        vertices[i + 2] += translation.z
+      }
+
+      this.AddMeshCollider(entId, vertices, indices, rigidBody)
+    }
+  }
+
+  public *GetAllColliders() {
+    for (const [entId, component] of this.entities) {
+      for (const [symbol, collider] of component.colliders) {
+        yield {
+          symbol,
+          collider,
+          entId,
+        }
+      }
+    }
+  }
+
+  public GetFirstBody(entId: EntId) {
+    return this.entities.get(entId)!.GetFirstBody()
   }
 
   public static Factory() {

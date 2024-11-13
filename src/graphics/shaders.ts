@@ -131,6 +131,20 @@ export interface Injection {
 
 export const getShader = (mesh: THREE.Mesh) => (mesh as any).shader as THREE.WebGLProgramParametersWithUniforms
 
+export const waitForShader = (mesh: THREE.Mesh) => new Promise<THREE.WebGLProgramParametersWithUniforms>((resolve) => {
+  const check = () => {
+    const shader = getShader(mesh)
+
+    if (shader) {
+      resolve(shader)
+    } else {
+      requestAnimationFrame(check)
+    }
+  }
+
+  check()
+})
+
 const onBeforeCompile = (
   mesh: THREE.Mesh, 
   material: THREE.Material, 

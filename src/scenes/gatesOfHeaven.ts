@@ -8,7 +8,7 @@ import { NoiseMaterial } from '../graphics/noise';
 import { getRGBBits } from '../graphics/quantize';
 import { createParallaxWindowMaterial } from '../graphics/parallaxWindow';
 import { processAttributes } from '../utils/processAttributes';
-import { createThrone } from '../entities/throne';
+import { CollidersDebugger } from '../views/collidersDebugger';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -17,6 +17,9 @@ export const init = async () => {
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
+
+  const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
+  scene.add(ambientLight)
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
@@ -29,11 +32,6 @@ export const init = async () => {
       renderer.dispose()
     }
   })
-
-  const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
-  scene.add(ambientLight)
-
-  simulation.Camera = camera
   
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -54,7 +52,7 @@ export const init = async () => {
     loadGltf("/3d/scenes/stairs/stairs.glb")
   ])
 
-  processAttributes(sceneGltf.scene, simulation, sceneEntId)
+  processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
 
   scene.add(sceneGltf.scene)
 
@@ -69,8 +67,7 @@ export const init = async () => {
     if (object.name === "stairs_1") {
       const cube = object as THREE.Mesh
 
-      requestAnimationFrame(() => {
-        const shader = shaders.getShader(cube)
+      shaders.waitForShader(cube).then((shader) => {
         const bits = getRGBBits(64)
         shader.uniforms.colorBitsR = { value: bits.r }
         shader.uniforms.colorBitsG = { value: bits.g }
@@ -113,9 +110,9 @@ export const init = async () => {
     }
   })
 
-  createThrone(simulation)
-
   simulation.Start()
+
+  simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
   return () => {
     simulation.Stop()

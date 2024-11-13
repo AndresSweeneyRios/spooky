@@ -5,12 +5,21 @@ import { EntId } from "../simulation/EntityRegistry"
 import { traverse } from "./traverse"
 import { commands } from "../simulation/commands"
 
-export const processAttributes = (object: THREE.Object3D, simulation: Simulation, entId: EntId) => {
+export const processAttributes = (object: THREE.Object3D, simulation: Simulation, entId: EntId, addRigidBody: boolean) => {
   let removalList: THREE.Object3D[] = []
 
   for (const child of traverse(object)) {
-    if (child.name === 'COLLIDERS') {
-      simulation.SimulationState.PhysicsRepository.AddCollidersFromObject(entId, child)
+    if (child.name === 'ORIGIN') {
+      // object.position.set(child.position.x, child.position.y, child.position.z)
+      object.translateX(-child.position.x)
+      object.translateY(-child.position.y)
+      object.translateZ(-child.position.z)
+
+      removalList.push(child)
+
+      continue
+    } else if (child.name === 'COLLIDERS') {
+      simulation.SimulationState.PhysicsRepository.AddCollidersFromObject(entId, child, addRigidBody)
 
       removalList.push(child)
 

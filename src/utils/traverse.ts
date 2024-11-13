@@ -7,3 +7,12 @@ export function *traverse(object: THREE.Object3D): Generator<THREE.Object3D> {
     yield* traverse(child)
   }
 }
+
+export function *traverseParents(object: THREE.Object3D): Generator<THREE.Object3D> {
+  let parent = object.parent
+
+  while (parent) {
+    yield parent
+    parent = parent.parent
+  }
+}
