@@ -1,13 +1,12 @@
 import { Simulation } from "../simulation";
-import { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from "three";
-import { View } from "../simulation/View";
 import { loadGltf } from "../graphics/loaders";
 import * as shaders from "../graphics/shaders";
 import { traverse } from "../utils/traverse";
 import { processAttributes } from "../utils/processAttributes";
 import { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
+import { vec3 } from "gl-matrix";
 
 shaders.inject({
   uniforms: {
@@ -37,22 +36,25 @@ gl_FragColor = color;
   ]
 })
 
-const gltf = await loadGltf("./3d/throne.glb")
+const gltfPromise = loadGltf("./3d/throne.glb")
 
 export class ThroneView extends EntityView {
   throne: THREE.Object3D | null = null
   scene: THREE.Scene
   circles: THREE.Mesh[] | null = null
   eye: THREE.Mesh | null = null
+  throneYPosition = 0
 
-  async init (simulation: Simulation, entId: EntId) {
+  async init (simulation: Simulation, entId: EntId, startPosition: vec3) {
+    const gltf = await gltfPromise
+
     this.throne = gltf.scene.clone()
+
+    this.throne.position.set(startPosition[0], startPosition[1], startPosition[2])
 
     shaders.applyInjectedMaterials(this.throne)
 
-    console.log(this.throne)
-
-    processAttributes(this.throne, simulation, entId)
+    processAttributes(this.throne, simulation, entId, true)
 
     for (const child of traverse(this.throne)) {
       if (!this.throne) {
@@ -64,9 +66,9 @@ export class ThroneView extends EntityView {
 
         this.eye = eye
     
-        requestAnimationFrame(() => {
-          // shaders.getShader(eye).uniforms.throneEye = { value: true }
-          // shaders.getShader(eye).uniforms.vertexBits = { value: 0 }
+        shaders.waitForShader(eye).then((shader) => {
+          shader.uniforms.throneEye = { value: true }
+          // shader.uniforms.vertexBits = { value: 0 }
         })
       }
 
@@ -75,20 +77,19 @@ export class ThroneView extends EntityView {
 
         for (let i = 0; i < 4; i++) {
           this.circles[i].rotation.x = Math.PI / 2
+
+          this.circles[i].position.set(0, 0, 0)
         }
       }
     }
 
     this.scene.add(this.throne);
-
-    this.throne.scale.set(4, 4, 4)
-    this.throne.position.set(-8, 12, 0)
   }
 
-  constructor(simulation: Simulation, entId: EntId) {
+  constructor(simulation: Simulation, entId: EntId, startPosition: vec3) {
     super(entId)
     this.scene = simulation.ThreeScene
-    this.init(simulation, entId).catch(console.error)
+    this.init(simulation, entId, startPosition).catch(console.error)
   }
 
   // Rotate it slowly
@@ -104,12 +105,15 @@ export class ThroneView extends EntityView {
       circle.rotation.y += (0.002 * (i+1)) * (i % 2 === 0 ? 1 : -1)
     }
 
+    this.throneYPosition += simulation.SimulationState.DeltaTime * 2
+
     this.circles[0].rotation.x += 0.007
     this.circles[1].rotation.z -= 0.001
     this.circles[2].rotation.x -= 0.003
     this.circles[3].rotation.z += 0.002
 
     this.eye.rotation.y += 0.01
+    this.eye.position.y = Math.sin(this.throneYPosition) * 2
   }
 
   public Cleanup(simulation: Simulation): void {

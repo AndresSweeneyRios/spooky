@@ -12,8 +12,8 @@ const config = defineConfig({
   ],
   build: {
     target: 'esnext',
-    assetsInlineLimit: 4096 * 1024,
     sourcemap: true,
+    assetsInlineLimit: 0,
   },
   preview: {
     port: 3000,
@@ -22,7 +22,7 @@ const config = defineConfig({
     cors: false,
     proxy: {
     },
-  }
+  },
 })
 
 export default config
