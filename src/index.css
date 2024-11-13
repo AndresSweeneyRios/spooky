@@ -1,8 +1,12 @@
+@font-face {
+  font-family: 'HellsCemetery-Regular';
+  src: url('./assets/fonts/HellsCemetery-Regular.ttf') format('truetype');
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: sans-serif;
 }
 
 html, body, #root {

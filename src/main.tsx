@@ -6,12 +6,16 @@ import {
 } from "react-router-dom"
 import './index.css'
 import { Viewport } from './components/Viewport'
+import { DialogueBox } from './components/DialogueBox'
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
-    element: <Viewport />,
+    element: <>
+      <Viewport />
+      <DialogueBox />
+    </>,
   },
 
   // 404
