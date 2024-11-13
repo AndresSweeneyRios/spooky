@@ -112,7 +112,7 @@ export const init = async () => {
 
   simulation.Start()
 
-  simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
+  // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
   return () => {
     simulation.Stop()
