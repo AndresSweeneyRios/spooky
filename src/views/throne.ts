@@ -43,6 +43,7 @@ export class ThroneView extends EntityView {
   scene: THREE.Scene
   circles: THREE.Mesh[] | null = null
   eye: THREE.Mesh | null = null
+  throneYPosition = 0
 
   async init (simulation: Simulation, entId: EntId, startPosition: vec3) {
     const gltf = await gltfPromise
@@ -104,12 +105,15 @@ export class ThroneView extends EntityView {
       circle.rotation.y += (0.002 * (i+1)) * (i % 2 === 0 ? 1 : -1)
     }
 
+    this.throneYPosition += simulation.SimulationState.DeltaTime * 2
+
     this.circles[0].rotation.x += 0.007
     this.circles[1].rotation.z -= 0.001
     this.circles[2].rotation.x -= 0.003
     this.circles[3].rotation.z += 0.002
 
     this.eye.rotation.y += 0.01
+    this.eye.position.y = Math.sin(this.throneYPosition) * 2
   }
 
   public Cleanup(simulation: Simulation): void {
