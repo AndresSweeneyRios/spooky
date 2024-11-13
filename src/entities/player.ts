@@ -7,6 +7,7 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
   const positionAtFeet = vec3.fromValues(position[0], position[1] + size, position[2])
   
   const entId = simulation.EntityRegistry.Create()
+  simulation.SimulationState.SensorTargetRepository.CreateComponent(entId)
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
   simulation.SimulationState.PhysicsRepository.CreateCharacterControllerWithSphere(entId, positionAtFeet, size - offset, offset)
   simulation.SimulationState.PhysicsRepository.SetAffectedByGravity(entId, true)

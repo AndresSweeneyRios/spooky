@@ -1,3 +1,5 @@
+import { rapierFinishedLoading } from '../simulation/repository/PhysicsRepository'
+
 export const scenes = Object.freeze({
   gatesOfHeaven: () => import('./gatesOfHeaven'),
 })
@@ -8,6 +10,8 @@ let sceneCleanup: (() => void) | null = null
 
 export const loadScene = async (scene: typeof DEFAULT_SCENE) => {
   try {
+    await rapierFinishedLoading
+
     unloadScene()
 
     const sceneModule = await scene()

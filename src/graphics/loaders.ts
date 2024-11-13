@@ -1,8 +1,9 @@
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader, RGBELoader } from 'three/examples/jsm/Addons.js';
 import * as THREE from "three";
 import { renderer } from '../components/Viewport';
 import * as shaders from './shaders';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 const gltfLoader = new GLTFLoader();
 

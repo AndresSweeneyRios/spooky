@@ -9,3 +9,7 @@ export abstract class SimulationCommand {
 
   public abstract Execute(simulation: Simulation): void
 }
+
+export abstract class SimulationCommandWithTarget extends SimulationCommand {
+  public TargetEntId: EntId | null = null
+}

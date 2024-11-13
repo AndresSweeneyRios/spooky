@@ -1,7 +1,8 @@
-import { Ball, Capsule, Cuboid, ShapeType, TriMesh } from "@dimforge/rapier3d";
 import { Simulation } from "../simulation";
 import { View } from "../simulation/View";
 import * as THREE from "three";
+import { RAPIER } from "../simulation/repository/PhysicsRepository";
+import type { Capsule, TriMesh, Ball, Cuboid } from "@dimforge/rapier3d-compat"
 
 export class CollidersDebugger extends View {
   meshMap: Map<symbol, THREE.Mesh> = new Map()
@@ -24,21 +25,21 @@ export class CollidersDebugger extends View {
         let geometry: THREE.BufferGeometry
 
         switch (shape.type) {
-          case ShapeType.Cuboid: {
+          case RAPIER.ShapeType.Cuboid: {
             const halfExtents = (shape as Cuboid).halfExtents; // Example for a cuboid
             geometry = new THREE.BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
             
             break;
           }
 
-          case ShapeType.Ball: {
+          case RAPIER.ShapeType.Ball: {
             const radius = (shape as Ball).radius; // Example for a sphere
             geometry = new THREE.SphereGeometry(radius, 16, 16);
 
             break;
           }
 
-          case ShapeType.Capsule: {
+          case RAPIER.ShapeType.Capsule: {
             const radius = (shape as Capsule).radius;
             const halfHeight = (shape as Capsule).halfHeight;
             geometry = new THREE.CapsuleGeometry(radius, halfHeight * 2, 16, 8);
@@ -46,7 +47,7 @@ export class CollidersDebugger extends View {
             break;
           }
 
-          case ShapeType.TriMesh: {
+          case RAPIER.ShapeType.TriMesh: {
             const trimesh = shape as TriMesh;
 
             const vertices = trimesh.vertices;

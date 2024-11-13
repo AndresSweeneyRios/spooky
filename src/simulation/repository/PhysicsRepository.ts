@@ -13,17 +13,25 @@ import {
 
 import * as THREE from "three"
 import { traverse, traverseParents } from "../../utils/traverse"
-import { QueryFilterFlags } from "@dimforge/rapier3d"
+
+export const rapierFinishedLoading = (async () => {
+  const module = await import("@dimforge/rapier3d-compat")
+  RAPIER = module
+  await RAPIER.init()
+})()
+
+export let RAPIER: Awaited<typeof import("@dimforge/rapier3d-compat")> = null!
+
+rapierFinishedLoading
 
 const TERMINAL_VELOCITY = 50
 const GRAVITY = -9.81
 
-const RAPIER = await import("@dimforge/rapier3d")
-
 class PhysicsComponent extends SimulationComponent {
-  public colliders: Map<symbol, InstanceType<typeof RAPIER.Collider>> = new Map()
-  public characters: Map<symbol, InstanceType<typeof RAPIER.KinematicCharacterController>> = new Map()
-  public bodies: Map<symbol, InstanceType<typeof RAPIER.RigidBody>> = new Map()
+  public colliders = new Map<symbol, InstanceType<typeof RAPIER.Collider>>()
+  public colliderUuidMap = new Map<string, symbol>()
+  public characters = new Map<symbol, InstanceType<typeof RAPIER.KinematicCharacterController>>()
+  public bodies = new Map<symbol, InstanceType<typeof RAPIER.RigidBody>>()
 
   public GetFirstCollider(): InstanceType<typeof RAPIER.Collider> | undefined {
     for (const collider of this.colliders.values()) {
@@ -64,8 +72,6 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       const position = component.GetFirstCollider()!.translation()
       return vec3.fromValues(position.x, position.y, position.z)
     } else {
-      console.error("No collider or body found", JSON.stringify(component, null, 2))
-
       return vec3.create()
     }
   }
@@ -138,7 +144,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       component.verticalVelocity = TERMINAL_VELOCITY
     }
 
-    character.computeColliderMovement(collider, new RAPIER.Vector3(0, component.verticalVelocity, 0), QueryFilterFlags.EXCLUDE_SENSORS)
+    character.computeColliderMovement(collider, new RAPIER.Vector3(0, component.verticalVelocity, 0), RAPIER.QueryFilterFlags.EXCLUDE_SENSORS)
 
     const computedMovement = character.computedMovement()
 
@@ -170,7 +176,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     const collider = component.GetFirstCollider()!
     const body = component.GetFirstBody()!
 
-    character.computeColliderMovement(collider, desiredMovement, QueryFilterFlags.EXCLUDE_SENSORS)
+    character.computeColliderMovement(collider, desiredMovement, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS)
 
     const computedMovement = character.computedMovement()
 
@@ -205,7 +211,8 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     const colliderDesc = RAPIER.ColliderDesc.trimesh(vertices, indices)
     const collider = this.world.createCollider(colliderDesc, rigidBody)
 
-    this.entities.get(entId)!.colliders.set(Symbol(), collider)
+    const component = this.entities.get(entId)!
+    component.colliders.set(Symbol(), collider)
 
     return collider
   }
@@ -227,7 +234,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
         object.quaternion.w
       ), true)
 
-      const character = this.CreateCharacter(0.1)
+      const character = this.CreateCharacter(0)
 
       component.bodies.set(Symbol(), rigidBody)
       component.characters.set(Symbol(), character)
@@ -287,19 +294,97 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       const collider = this.AddMeshCollider(entId, vertices, indices, addCharacter ? component.GetFirstBody() : undefined)
 
       collider.setSensor(sensor)
+
+      const symbol = Symbol()
+
+      component.colliderUuidMap.set(child.uuid, symbol)
     }
   }
 
-  public *GetAllColliders() {
+  public GetAllColliders() {
+    const colliders: {
+      symbol: symbol,
+      collider: InstanceType<typeof RAPIER.Collider>,
+      entId: EntId,
+    }[] = []
+
     for (const [entId, component] of this.entities) {
       for (const [symbol, collider] of component.colliders) {
-        yield {
+        colliders.push({
           symbol,
           collider,
           entId,
+        })
+      }
+    }
+
+    return colliders
+  }
+
+  public GetColliderByUuid(uuid: string, entId?: EntId) {
+    if (entId) {
+      const component = this.entities.get(entId)!
+
+      const symbol = component.colliderUuidMap.get(uuid)
+
+      if (symbol) {
+        return {
+          symbol,
+          entId,
+        }
+      }
+    } else {
+      for (const [entId, component] of this.entities) {
+        const symbol = component.colliderUuidMap.get(uuid)
+  
+        if (symbol) {
+          return {
+            symbol,
+            entId,
+          }
         }
       }
     }
+
+    return undefined
+  }
+
+  public GetSensors(entId: EntId) {
+    const component = this.entities.get(entId)!
+
+    const sensors: symbol[] = []
+
+    for (const [symbol, collider] of component.colliders) {
+      if (collider.isSensor()) {
+        sensors.push(symbol)
+      }
+    }
+
+    return sensors
+  }
+
+  public GetIsSensorCollidingWithTarget(entId: EntId, symbol: symbol, target: EntId): boolean {
+    const component = this.entities.get(entId)!
+    const targetComponent = this.entities.get(target)!
+
+    const collider = component.colliders.get(symbol)!
+
+    if (!collider.isSensor()) {
+      return false
+    }
+
+    const targetCharacter = targetComponent.GetFirstCharacter()!
+    const targetCollider = targetComponent.GetFirstCollider()!
+
+    let touching = false
+
+    targetCharacter.computeColliderMovement(targetCollider, new RAPIER.Vector3(0, 0, 0), RAPIER.QueryFilterFlags.EXCLUDE_SOLIDS, undefined, (otherCollider) => {
+      touching = otherCollider.handle === collider.handle
+
+      return false
+    })
+
+    return touching
   }
 
   public GetFirstBody(entId: EntId) {

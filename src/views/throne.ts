@@ -36,7 +36,7 @@ gl_FragColor = color;
   ]
 })
 
-const gltf = await loadGltf("./3d/throne.glb")
+const gltfPromise = loadGltf("./3d/throne.glb")
 
 export class ThroneView extends EntityView {
   throne: THREE.Object3D | null = null
@@ -45,6 +45,8 @@ export class ThroneView extends EntityView {
   eye: THREE.Mesh | null = null
 
   async init (simulation: Simulation, entId: EntId, startPosition: vec3) {
+    const gltf = await gltfPromise
+
     this.throne = gltf.scene.clone()
 
     this.throne.position.set(startPosition[0], startPosition[1], startPosition[2])
@@ -52,8 +54,6 @@ export class ThroneView extends EntityView {
     shaders.applyInjectedMaterials(this.throne)
 
     processAttributes(this.throne, simulation, entId, true)
-
-    console.log(this.throne)
 
     for (const child of traverse(this.throne)) {
       if (!this.throne) {
