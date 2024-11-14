@@ -1,7 +1,7 @@
 import { Simulation } from "../simulation";
 import { View } from "../simulation/View";
 import * as THREE from "three";
-import { RAPIER } from "../simulation/repository/PhysicsRepository";
+import RAPIER from "@dimforge/rapier3d-compat"
 import type { Capsule, TriMesh, Ball, Cuboid } from "@dimforge/rapier3d-compat"
 
 export class CollidersDebugger extends View {

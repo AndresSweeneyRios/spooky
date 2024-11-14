@@ -35,8 +35,6 @@ function gameLoop(simulation: Simulation) {
   if (deltaTime > MAX_ALLOWED_PAUSE) {
     accumulatedTime = 0; // Reset accumulated time
     lastFrameTime = currentTime;
-    requestAnimationFrame(() => gameLoop(simulation));
-    return;
   }
   
   // Update game logic here

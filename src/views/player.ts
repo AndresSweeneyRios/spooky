@@ -1,9 +1,9 @@
-import { Simulation } from "../simulation";
-import { EntId } from "../simulation/EntityRegistry";
+import type { Simulation } from "../simulation";
+import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import * as THREE from "three";
 import * as math from "../utils/math";
-import { mat4, quat, vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 
 const MOUSE_SENSITIVITY = 1000;
 

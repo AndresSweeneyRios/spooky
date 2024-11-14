@@ -1,4 +1,4 @@
-import { Simulation } from "..";
+import type { Simulation } from "..";
 import { createThrone } from "../../entities/throne";
 import { ExecutionMode } from "../repository/SensorCommandRepository";
 import { LogCommand } from "./Log";

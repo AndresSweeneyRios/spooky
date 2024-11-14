@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 
 function createNoiseShaderMaterial() {
-  // Create a clock to update the time uniform
-  const clock = new THREE.Clock();
-
   // Define the custom shader material
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -47,17 +44,12 @@ function createNoiseShaderMaterial() {
     transparent: true // Allow the material to have transparent cutout sections
   });
 
-  // Update the `time` uniform on each frame
-  material.onBeforeCompile = () => {
-    material.uniforms.time.value = clock.getElapsedTime();
-  };
-
-  const updateTime = () => {
-    material.uniforms.time.value = clock.getElapsedTime();
+  const updateTime = (time: number) => {
+    material.uniforms.time.value = time;
     requestAnimationFrame(updateTime);
   }
 
-  updateTime();
+  updateTime(0);
 
   // Update resolution on window resize
   window.addEventListener('resize', () => {
