@@ -2,6 +2,7 @@ import { rapierFinishedLoading } from '../simulation/repository/PhysicsRepositor
 
 export const scenes = Object.freeze({
   gatesOfHeaven: () => import('./gatesOfHeaven'),
+  city: () => import('./city'),
 })
 
 const DEFAULT_SCENE = scenes.gatesOfHeaven
@@ -30,5 +31,17 @@ export const unloadScene = () => {
 }
 
 export const loadAppropriateScene = () => {
+  const url = new URL(window.location.href)
+  const scene = url.searchParams.get('scene')
+
+  if (scene) {
+    const sceneFn = scenes[scene as keyof typeof scenes]
+
+    if (sceneFn) {
+      loadScene(sceneFn)
+      return
+    }
+  }
+
   void loadScene(DEFAULT_SCENE)
 }
