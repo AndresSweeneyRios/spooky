@@ -12,7 +12,20 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
   simulation.SimulationState.PhysicsRepository.CreateCharacterControllerWithSphere(entId, positionAtFeet, size - offset, offset)
   simulation.SimulationState.PhysicsRepository.SetAffectedByGravity(entId, true)
   simulation.SimulationState.MovementRepository.CreateComponent(entId)
-  simulation.SimulationState.MovementRepository.SetSpeed(entId, 10)
+  simulation.SimulationState.MovementRepository.SetSpeed(entId, 5)
+
+  // shift to set speed to 8, and then release to set back to 4
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift') {
+      simulation.SimulationState.MovementRepository.SetSpeed(entId, 10)
+    }
+  })
+
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') {
+      simulation.SimulationState.MovementRepository.SetSpeed(entId, 5)
+    }
+  })
 
   import("../views/player").then(({ PlayerView }) => {
     const view = new PlayerView(entId, simulation, rotation)

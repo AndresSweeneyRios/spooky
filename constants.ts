@@ -3,5 +3,5 @@ export const RENDERER = Object.freeze({
   width: 829,
   colorBits: 11,
   vertexBits: 64,
-  antialias: false,
+  antialias: true,
 })

@@ -6,6 +6,7 @@ import { loadEquirectangularAsEnvMap, loadGltf } from '../graphics/loaders';
 import * as shaders from '../graphics/shaders';
 import { processAttributes } from '../utils/processAttributes';
 import { CollidersDebugger } from '../views/collidersDebugger';
+import { traverse } from '../utils/traverse';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -15,8 +16,25 @@ export const init = async () => {
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
 
-  const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
+  const ambientLight = new THREE.AmbientLight(0xff44444, 0.0)
   scene.add(ambientLight)
+
+  // add sun
+  // const sun = new THREE.DirectionalLight(0xffffff, 1.0)
+  // sun.position.set(0, 1, 0)
+  // sun.castShadow = true
+  // scene.add(sun)
+
+  // sun.shadow.mapSize.width = 1024; // Higher values provide better shadow quality
+  // sun.shadow.mapSize.height = 1024;
+  // sun.shadow.camera.near = 0.5; // Adjust as needed
+  // sun.shadow.camera.far = 500;  // Adjust as needed
+
+  // // For directional lights, configure the shadow camera frustum
+  // sun.shadow.camera.left = -10;
+  // sun.shadow.camera.right = 10;
+  // sun.shadow.camera.top = 10;
+  // sun.shadow.camera.bottom = -10;
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
@@ -37,7 +55,7 @@ export const init = async () => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
-      scene.environmentIntensity = 1.0
+      scene.environmentIntensity = 0.6
 
       scene.environmentRotation.y = Math.PI / -4
       scene.backgroundRotation.y = Math.PI / -4
@@ -46,7 +64,12 @@ export const init = async () => {
     loadGltf("/3d/scenes/startscene/starterscene.glb")
   ])
 
-  console.log(sceneGltf)
+  for (const child of traverse(sceneGltf.scene)) {
+    if (child instanceof THREE.Mesh) {
+      child.castShadow = true
+      child.receiveShadow = true
+    }
+  }
 
   processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
 

@@ -21,6 +21,9 @@ export const Viewport: React.FC = () => {
       canvas,
       antialias: RENDERER.antialias,
     })
+    
+    renderer.shadowMap.enabled = false;
+    renderer.shadowMap.type = THREE.BasicShadowMap; 
 
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
