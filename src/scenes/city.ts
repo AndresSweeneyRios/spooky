@@ -51,7 +51,7 @@ export const init = async () => {
     camera.updateProjectionMatrix();
   }, false);
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap("/3d/env/cityscape.jpg", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("/3d/env/cityscape.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
