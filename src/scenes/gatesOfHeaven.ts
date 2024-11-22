@@ -8,7 +8,6 @@ import { NoiseMaterial } from '../graphics/noise';
 import { getRGBBits } from '../graphics/quantize';
 import { createParallaxWindowMaterial } from '../graphics/parallaxWindow';
 import { processAttributes } from '../utils/processAttributes';
-import { CollidersDebugger } from '../views/collidersDebugger';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -53,8 +52,6 @@ export const init = async () => {
   ])
 
   processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
-
-  scene.add(sceneGltf.scene)
 
   shaders.applyInjectedMaterials(sceneGltf.scene)
 
@@ -109,6 +106,8 @@ export const init = async () => {
       })
     }
   })
+
+  scene.add(sceneGltf.scene)
 
   simulation.Start()
 

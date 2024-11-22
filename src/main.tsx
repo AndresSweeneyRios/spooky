@@ -17,6 +17,9 @@ import type { EntId } from './simulation/EntityRegistry'
 class A extends EntityView {}
 new A(0 as EntId)
 
+import "./graphics/shaders"
+import "./graphics/injections"
+
 const router = createBrowserRouter([
   // Home
   {
