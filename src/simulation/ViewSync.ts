@@ -7,8 +7,6 @@ export class ViewSync {
   private entityViews = new Map<EntId, EntityView>()
   private auxiliaryViews = new Map<symbol, View>()
 
-  private depthSortedViews: View[] = []
-
   private shouldSortViews = false
 
   private startTime = Date.now()
@@ -31,48 +29,44 @@ export class ViewSync {
     this.shouldSortViews = true
   }
 
-  public SortViewsIfNeeded() {
-    if (this.shouldSortViews) {
-      this.depthSortedViews.length = 0
-
-      for (const view of this.entityViews.values()) {
-        this.depthSortedViews.push(view)
-      }
-
-      for (const view of this.auxiliaryViews.values()) {
-        this.depthSortedViews.push(view)
-      }
-
-      this.depthSortedViews.sort((a, b) => a.Depth - b.Depth)
-
-      this.shouldSortViews = false
-    }
-  }
-
   public Draw(simulation: Simulation, lerpFactor: number) {
-    this.SortViewsIfNeeded()
-
     this.TimeMS = Date.now() - this.startTime
 
-    for (const view of this.depthSortedViews) {
+    for (const view of this.entityViews.values()) {
+      view.Draw?.(simulation, lerpFactor)
+    }
+
+    for (const view of this.auxiliaryViews.values()) {
       view.Draw?.(simulation, lerpFactor)
     }
   }
 
   public Update(simulation: Simulation) {
-    for (const view of this.depthSortedViews) {
+    for (const view of this.entityViews.values()) {
+      view.Update?.(simulation)
+    }
+
+    for (const view of this.auxiliaryViews.values()) {
       view.Update?.(simulation)
     }
   }
 
   public Cleanup(simulation: Simulation) {
-    for (const view of this.depthSortedViews) {
+    for (const view of this.entityViews.values()) {
+      view.Cleanup?.(simulation)
+    }
+
+    for (const view of this.auxiliaryViews.values()) {
       view.Cleanup?.(simulation)
     }
   }
 
   public CameraUpdate(simulation: Simulation) {
-    for (const view of this.depthSortedViews) {
+    for (const view of this.entityViews.values()) {
+      view.CameraUpdate?.(simulation)
+    }
+
+    for (const view of this.auxiliaryViews.values()) {
       view.CameraUpdate?.(simulation)
     }
   }
@@ -93,10 +87,6 @@ export class ViewSync {
       view.Cleanup?.(simulation)
       this.auxiliaryViews.delete(symbol)
     }
-  }
-
-  public GetDepthSortedViews() {
-    return [...this.depthSortedViews]
   }
 
   constructor(simulation: Simulation) {

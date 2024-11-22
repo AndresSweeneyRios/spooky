@@ -1,4 +1,4 @@
-import { Simulation } from "..";
+import type { Simulation } from "..";
 import { createPlayer } from "../../entities/player";
 import { SimulationCommand } from "./_command";
 

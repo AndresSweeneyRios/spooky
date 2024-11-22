@@ -1,7 +1,6 @@
 import type * as THREE from "three"
-import { Simulation } from "../simulation"
-import { vec3 } from "gl-matrix"
-import { EntId } from "../simulation/EntityRegistry"
+import type { Simulation } from "../simulation"
+import type { EntId } from "../simulation/EntityRegistry"
 import { traverse } from "./traverse"
 import { commands } from "../simulation/commands"
 
@@ -32,17 +31,17 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
 
             const commandInstance = new commandClass()
 
-            commandInstance.Position = vec3.fromValues(
+            commandInstance.Position = [
               command.position.x,
               command.position.y,
               command.position.z,
-            )
+            ]
 
-            commandInstance.Rotation = vec3.fromValues(
+            commandInstance.Rotation = [
               command.rotation.x,
               command.rotation.y,
               command.rotation.z,
-            )
+            ]
 
             commandInstance.EntId = entId
 

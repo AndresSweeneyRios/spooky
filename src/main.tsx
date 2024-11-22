@@ -8,6 +8,15 @@ import './index.css'
 import { Viewport } from './components/Viewport'
 import { DialogueBox } from './components/DialogueBox'
 
+// Preload
+import { processAttributes } from "./utils/processAttributes"
+processAttributes
+
+import { EntityView } from "./simulation/EntityView"
+import type { EntId } from './simulation/EntityRegistry'
+class A extends EntityView {}
+new A(0 as EntId)
+
 const router = createBrowserRouter([
   // Home
   {
@@ -31,5 +40,3 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 )
-
-import("./scenes")

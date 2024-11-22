@@ -13,19 +13,14 @@ import {
 
 import * as THREE from "three"
 import { traverse, traverseParents } from "../../utils/traverse"
+import RAPIER from "@dimforge/rapier3d-compat"
 
 export const rapierFinishedLoading = (async () => {
-  const module = await import("@dimforge/rapier3d-compat")
-  RAPIER = module
   await RAPIER.init()
 })()
 
-export let RAPIER: Awaited<typeof import("@dimforge/rapier3d-compat")> = null!
-
-rapierFinishedLoading
-
 const TERMINAL_VELOCITY = 50
-const GRAVITY = -9.81
+const GRAVITY = -1
 
 class PhysicsComponent extends SimulationComponent {
   public colliders = new Map<symbol, InstanceType<typeof RAPIER.Collider>>()
