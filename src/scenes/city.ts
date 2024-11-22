@@ -20,11 +20,15 @@ export const init = async () => {
   // scene.add(ambientLight)
 
   // add sun
-  const sun = new THREE.DirectionalLight(0xddccee, 0.2)
+  const sun = new THREE.DirectionalLight(0xddccee, 0.6)
   sun.position.set(0, 1000, 0)
   sun.target.position.set(0, 0, 0)
   sun.castShadow = true
   scene.add(sun)
+
+  // add ambient light
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4)
+  scene.add(ambientLight)
 
   sun.shadow.mapSize.width = 1920; // Higher values provide better shadow quality
   sun.shadow.mapSize.height = 1920;
@@ -37,7 +41,7 @@ export const init = async () => {
   sun.shadow.bias = -0.001;
 
   // scene.fog = new THREE.Fog( 0x000000, 0.1, 10 );
-  // scene.fog = new THREE.FogExp2( 0x000000, 0.1 );
+  // scene.fog = new THREE.FogExp2( 0x000000, 0.02 );
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
@@ -58,13 +62,13 @@ export const init = async () => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
-      scene.environmentIntensity = 0.5
+      scene.environmentIntensity = 1.0
     }),
 
     loadGltf("/3d/scenes/startscene/starterscene.glb")
   ])
 
-  processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
+  const scale = 0.6
 
   for (const child of traverse(sceneGltf.scene)) {
     if (child instanceof THREE.Mesh) {
@@ -72,8 +76,31 @@ export const init = async () => {
       child.receiveShadow = true
       const material = child.material as THREE.Material
       material.shadowSide = THREE.DoubleSide
+
+      const geometry = child.geometry as THREE.BufferGeometry;
+
+      if (geometry && geometry.attributes.position) {
+        const positions = geometry.attributes.position.array; // Float32Array of positions
+
+        // Scale down all vertices by scale
+        for (let i = 0; i < positions.length; i++) {
+          positions[i] *= scale;
+        }
+
+        // Mark the position attribute as needing an update
+        geometry.attributes.position.needsUpdate = true;
+
+        // Optionally, recompute bounding volumes
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+      }
+
+      // Adjust the object's position (if needed, avoid double-scaling!)
+      child.position.multiplyScalar(scale);
     }
   }
+
+  processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
 
   scene.add(sceneGltf.scene)
 
