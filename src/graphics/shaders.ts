@@ -145,10 +145,26 @@ export const waitForShader = (mesh: THREE.Mesh) => new Promise<THREE.WebGLProgra
   check()
 })
 
+export const recursivelyManipulateMaterial = (mesh: THREE.Mesh, callback: (material: THREE.Material) => THREE.Material | void) => {
+  if (!mesh.material) {
+    return
+  }
+
+  let materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+
+  for (let i = 0; i < materials.length; i++) {
+    const material = callback(materials[i])
+
+    if (!material) {
+      continue
+    }
+
+    materials[i] = material
+  }
+}
+
 const onBeforeCompile = (
-  mesh: THREE.Mesh, 
-  material: THREE.Material, 
-  injections: Injection[] = []
+  mesh: THREE.Mesh
 ) => (shader: THREE.WebGLProgramParametersWithUniforms) => {
   const uuid = mesh.uuid
 
@@ -176,7 +192,7 @@ const onBeforeCompile = (
 
   window.addEventListener('resize', resize)
 
-  let newVertexShader = shader.vertexShader.replace(
+  let newVertexShader = String(shader.vertexShader).replace(
     /*glsl*/`void main`, 
     /*glsl*/`
 uniform float vertexBits;
@@ -198,7 +214,7 @@ gl_Position = projectionMatrix * mvPosition;
 ${VERTEX_MARKER.POST_QUANTIZATION}
 `)
 
-  let newFragmentShader = shader.fragmentShader.replace(
+  let newFragmentShader = String(shader.fragmentShader).replace(
     /*glsl*/`void main`,
     /*glsl*/`
 uniform float colorBitsR;
@@ -306,11 +322,13 @@ ${FRAGMENT_MARKER.POST_QUANTIZATION}
     newFragmentShader = newFragmentShader.replace(marker, "")
   }
 
+  console.log(0)
+
   shader.vertexShader = newVertexShader
   shader.fragmentShader = newFragmentShader
 }
 
-let injections: Injection[] = []
+const injections: Injection[] = []
 
 export const inject = (injection: Injection) => {
   injections.push(injection)
@@ -330,22 +348,10 @@ export const applyInjectedMaterials = (object: THREE.Object3D) => {
 
     let materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
 
-    materials = materials.map((_material) => {
-      const material = _material.clone()
+    materials.forEach((_material) => {
+      _material.onBeforeCompile = onBeforeCompile(mesh)
 
-      material.onBeforeCompile = onBeforeCompile(mesh, material, injections)
-
-      material.uuid = THREE.MathUtils.generateUUID()
-      material.version++
-      material.needsUpdate = true
-
-      return material
+      return _material
     })
-
-    if (Array.isArray(mesh.material)) {
-      mesh.material = materials
-    } else {
-      mesh.material = materials[0]
-    }
   })
 }

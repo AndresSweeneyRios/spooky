@@ -8,34 +8,6 @@ import { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import { vec3 } from "gl-matrix";
 
-shaders.inject({
-  uniforms: {
-    throneEye: { value: false }
-  },
-  
-  fragment: [
-    {
-      marker: shaders.FRAGMENT_MARKER.UNIFORM,
-      value: /* glsl */`
-uniform bool throneEye;
-`
-    },
-    {
-      marker: shaders.FRAGMENT_MARKER.PRE_QUANTIZATION,
-      value: /* glsl */`
-if (throneEye) {
-vec4 color = gl_FragColor;
-// increase exposure
-color.b *= 1.4;
-color.r *= 1.4;
-color.g *= 1.4;
-gl_FragColor = color;
-}
-      `
-    },
-  ]
-})
-
 const gltfPromise = loadGltf("./3d/throne.glb")
 
 export class ThroneView extends EntityView {
@@ -52,9 +24,9 @@ export class ThroneView extends EntityView {
 
     this.throne.position.set(startPosition[0], startPosition[1], startPosition[2])
 
-    shaders.applyInjectedMaterials(this.throne)
-
     processAttributes(this.throne, simulation, entId, true)
+
+    shaders.applyInjectedMaterials(this.throne)
 
     for (const child of traverse(this.throne)) {
       if (!this.throne) {
@@ -65,10 +37,14 @@ export class ThroneView extends EntityView {
         const eye = child as THREE.Mesh
 
         this.eye = eye
-    
+
         shaders.waitForShader(eye).then((shader) => {
           shader.uniforms.throneEye = { value: true }
-          // shader.uniforms.vertexBits = { value: 0 }
+
+          shaders.recursivelyManipulateMaterial(eye, (material) => {
+            material.needsUpdate = true
+            console.log(shader.uniforms.throneEye)
+          })
         })
       }
 
