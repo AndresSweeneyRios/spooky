@@ -322,8 +322,6 @@ ${FRAGMENT_MARKER.POST_QUANTIZATION}
     newFragmentShader = newFragmentShader.replace(marker, "")
   }
 
-  console.log(0)
-
   shader.vertexShader = newVertexShader
   shader.fragmentShader = newFragmentShader
 }
