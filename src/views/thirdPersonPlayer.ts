@@ -13,7 +13,7 @@ import { processAttributes } from "../utils/processAttributes";
 
 const gltfPromise = loadGltf("./3d/entities/fungi.glb")
 
-const rotationSpeed = 0.05; // Adjust this value to control speed
+const rotationSpeed = 3; // Adjust this value to control speed
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
@@ -49,10 +49,12 @@ export class ThirdPersonPlayerView extends PlayerView {
     this.simulation.ThreeScene.add(this.mesh);
   }
 
-  constructor(entId: EntId, private simulation: Simulation, initialRotation: vec3) {
+  constructor(entId: EntId, simulation: Simulation, initialRotation: vec3) {
     super(entId, simulation, initialRotation);
 
     this.cameraOffset = vec3.fromValues(0, 0, 5);
+
+    this.maxPitch = 0;
 
     this.init().catch(console.error);
   }
@@ -86,7 +88,7 @@ export class ThirdPersonPlayerView extends PlayerView {
         const newAngle = Math.atan2(Math.sin(angleDifference), Math.cos(angleDifference));
 
         // Rotate player in direction by rotationSpeed
-        this.mesh.rotation.y += newAngle * rotationSpeed;
+        this.mesh.rotation.y += newAngle * rotationSpeed * this.simulation.SimulationState.DeltaTime;
       }
     }
   }

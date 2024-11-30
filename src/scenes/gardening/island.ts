@@ -24,7 +24,7 @@ export const init = async () => {
   // const ambientLight = new THREE.AmbientLight(0xffffff, 1.1)
   // scene.add(ambientLight)
 
-  const sun = new THREE.DirectionalLight(0xffffff, 1)
+  const sun = new THREE.DirectionalLight(0xffaaaa, 2)
   sun.position.set(0, 1000, 0)
   // sun.target.position.set(0, 0, 0)
   // sun.shadow.camera.position.set(0, 1000, 0)
@@ -71,7 +71,7 @@ export const init = async () => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
-      scene.environmentIntensity = 1.0
+      scene.environmentIntensity = 0.9
 
       scene.environmentRotation.y = Math.PI / -4
       scene.backgroundRotation.y = Math.PI / -4

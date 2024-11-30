@@ -23,8 +23,8 @@ export const Viewport: React.FC = () => {
     })
     
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
-
+    renderer.shadowMap.type = THREE.VSMShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
     const resize = () => {

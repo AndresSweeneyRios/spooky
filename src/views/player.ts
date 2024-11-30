@@ -3,9 +3,10 @@ import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import * as THREE from "three";
 import * as math from "../utils/math";
-import { mat4, vec3 } from "gl-matrix";
+import { ReadonlyQuat, mat4, vec3 } from "gl-matrix";
 
-const MOUSE_SENSITIVITY = 1000;
+const MOUSE_SENSITIVITY = 10;
+const MAX_MOUSE_DELTA = 10; // Maximum allowed delta to prevent snapping
 
 const KEYS = Object.freeze([
   "KeyW",
@@ -19,14 +20,6 @@ const KEYS = Object.freeze([
 
 type Key = typeof KEYS[number]
 
-// Utility function to convert yaw and pitch angles to a rotation matrix
-function createRotationMatrix(yaw: number, pitch: number): mat4 {
-  const rotationMatrix = mat4.create();
-  mat4.fromYRotation(rotationMatrix, yaw);
-  mat4.rotateX(rotationMatrix, rotationMatrix, pitch);
-  return rotationMatrix;
-}
-
 export class PlayerView extends EntityView {
   protected yaw: number = 0;
   protected pitch: number = 0;
@@ -34,8 +27,8 @@ export class PlayerView extends EntityView {
   public keysDown = new Set<Key>();
 
   protected cleanupEvents: () => void;
-  protected minPitch: number = -Math.PI / 2; // Minimum pitch angle (in radians)
-  protected maxPitch: number = Math.PI / 2; // Maximum pitch angle (in radians)
+  protected minPitch: number = -1.5; // Minimum pitch angle (in radians)
+  protected maxPitch: number = 1.5; // Maximum pitch angle (in radians)
   protected cameraOffset: vec3 = vec3.fromValues(0, 2, 0);
 
   public Click(): void {
@@ -46,20 +39,19 @@ export class PlayerView extends EntityView {
     if (document.pointerLockElement !== this.canvas) {
       return;
     }
-
-    const { movementX, movementY } = event;
-
-    const x = movementX / MOUSE_SENSITIVITY;
-    const y = movementY / MOUSE_SENSITIVITY;
-
-    const yawChange = -x;
-    const pitchChange = -y;
-
-    this.yaw += yawChange;
-    this.pitch += pitchChange;
-
-    // Clamp pitch angle within the specified range
+  
+    const clampedMovementX = Math.max(-MAX_MOUSE_DELTA, Math.min(MAX_MOUSE_DELTA, event.movementX));
+    const clampedMovementY = Math.max(-MAX_MOUSE_DELTA, Math.min(MAX_MOUSE_DELTA, event.movementY));
+  
+    this.yaw += -clampedMovementX / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
+    this.pitch += -clampedMovementY / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
+
+    const euler = this.simulation.Camera.rotation;
+    euler.order = "YXZ";
+    euler.x = this.pitch;
+    euler.y = this.yaw;
+    euler.z = 0;
   }
 
   public Keydown(event: KeyboardEvent): void {
@@ -74,7 +66,7 @@ export class PlayerView extends EntityView {
     }
   }
 
-  constructor(entId: EntId, simulation: Simulation, initialRotation: vec3) {
+  constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3) {
     super(entId);
 
     // convert initial rotation to yaw and pitch
@@ -108,23 +100,16 @@ export class PlayerView extends EntityView {
     const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
     const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
 
-    const yawRotationMatrix = mat4.create();
-    mat4.fromYRotation(yawRotationMatrix, this.yaw);
-
-    const rotatedOffset = vec3.transformMat4(vec3.create(), this.cameraOffset, this.getRotationMatrix());
+    const rotatedOffset = vec3.transformMat4(vec3.create(), this.cameraOffset, this.GetRotationMatrix());
 
     simulation.Camera.position.set(
       lerpedPosition[0] + rotatedOffset[0],
       lerpedPosition[1] + rotatedOffset[1],
       lerpedPosition[2] + rotatedOffset[2],
     );
-
-    this.updateCameraRotation(simulation);
   }
 
   public Update(simulation: Simulation): void {
-    this.updateCameraRotation(simulation);
-
     const state = simulation.SimulationState;
 
     // Extract the forward direction vector from the rotation matrix
@@ -132,7 +117,7 @@ export class PlayerView extends EntityView {
       (this.keysDown.has("KeyD") ? 1 : 0) - (this.keysDown.has("KeyA") ? 1 : 0),
       0,
       (this.keysDown.has("KeyS") ? 1 : 0) - (this.keysDown.has("KeyW") ? 1 : 0),
-    ), this.getRotationMatrix());
+    ), this.GetRotationMatrix());
 
     // Prevent vertical movement
     direction[1] = 0;
@@ -140,17 +125,13 @@ export class PlayerView extends EntityView {
     state.MovementRepository.SetDirection(this.EntId, direction);
   }
 
-  protected updateCameraRotation(simulation: Simulation): void {
-    // Convert yaw and pitch angles (in radians) to a rotation matrix
-    const rotationMatrix = this.getRotationMatrix();
+  protected GetRotationMatrix(): mat4 {
+    const cameraQ = this.simulation.Camera.quaternion;
+    const q = [cameraQ.x, cameraQ.y, cameraQ.z, cameraQ.w] as ReadonlyQuat;
+    const glMatrixMat4 = mat4.create();
+    mat4.fromQuat(glMatrixMat4, q);
 
-    // Convert the rotation matrix to THREE's Quaternion
-    const quaternion = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().fromArray(rotationMatrix));
-    simulation.Camera.quaternion.copy(quaternion);
-  }
-
-  protected getRotationMatrix(): mat4 {
-    return createRotationMatrix(this.yaw, this.pitch);
+    return glMatrixMat4
   }
 
   public Cleanup(): void {
