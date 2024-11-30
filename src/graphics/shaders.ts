@@ -334,11 +334,13 @@ export const inject = (injection: Injection) => {
 
 export const applyInjectedMaterials = (object: THREE.Object3D) => {
   object.traverse((child) => {
-    if (child.type !== "Mesh") {
+    if (!(child instanceof THREE.Mesh)) {
       return
     }
 
     const mesh = child as THREE.Mesh
+    mesh.castShadow = true
+    mesh.receiveShadow = true
 
     if (!mesh.material) {
       return
@@ -346,10 +348,12 @@ export const applyInjectedMaterials = (object: THREE.Object3D) => {
 
     let materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
 
-    materials.forEach((_material) => {
-      _material.onBeforeCompile = onBeforeCompile(mesh)
+    materials.forEach((material) => {
+      material.onBeforeCompile = onBeforeCompile(mesh)
 
-      return _material
+      material.shadowSide = THREE.DoubleSide
+
+      return material
     })
   })
 }

@@ -21,11 +21,38 @@ export const init = async () => {
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
 
-  const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
-  scene.add(ambientLight)
+  // const ambientLight = new THREE.AmbientLight(0xffffff, 1.1)
+  // scene.add(ambientLight)
+
+  const sun = new THREE.DirectionalLight(0xffffff, 1)
+  sun.position.set(0, 1000, 0)
+  // sun.target.position.set(0, 0, 0)
+  // sun.shadow.camera.position.set(0, 1000, 0)
+  // sun.shadow.camera.lookAt(0, 0, 0)
+  // sun.position.set(0, 0, 0)
+  sun.castShadow = true
+  scene.add(sun)
+
+  // const lightHelper = new THREE.DirectionalLightHelper(sun, 5);
+  // scene.add(lightHelper);
+
+  // const sunShadowCameraHelper = new THREE.CameraHelper(sun.shadow.camera);
+  // scene.add(sunShadowCameraHelper);
+
+  sun.shadow.mapSize.width = 4096; // Higher values provide better shadow quality
+  sun.shadow.mapSize.height = 4096;
+  sun.shadow.camera.near = 0.1; // Adjust as needed
+  sun.shadow.camera.far = 2000;  // Adjust as needed
+  sun.shadow.camera.left = -20;
+  sun.shadow.camera.right = 20;
+  sun.shadow.camera.top = 20;
+  sun.shadow.camera.bottom = -20;
+  sun.shadow.bias = -0.0001;
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
+      sun.shadow.camera.position.set(camera.position.x, camera.position.y, camera.position.z)
+      // sun.shadow.camera.lookAt(0, 0, 0)
       renderer.render(scene, camera)
     }
   
@@ -55,18 +82,12 @@ export const init = async () => {
 
   processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
 
+  // sceneGltf.scene.visible = false
+
   shaders.applyInjectedMaterials(sceneGltf.scene)
 
   scene.add(sceneGltf.scene)
-
   simulation.Start()
-
-  scene.traverse((child) => {
-    if (child instanceof THREE.Mesh) {
-      child.castShadow = true
-      child.receiveShadow = true
-    }
-  })
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
