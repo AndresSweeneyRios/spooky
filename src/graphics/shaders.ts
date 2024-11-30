@@ -352,6 +352,7 @@ export const applyInjectedMaterials = (object: THREE.Object3D) => {
       material.onBeforeCompile = onBeforeCompile(mesh)
 
       material.shadowSide = THREE.DoubleSide
+      material.depthWrite = true
 
       return material
     })

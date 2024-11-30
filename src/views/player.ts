@@ -6,7 +6,6 @@ import * as math from "../utils/math";
 import { ReadonlyQuat, mat4, vec3 } from "gl-matrix";
 
 const MOUSE_SENSITIVITY = 10;
-const MAX_MOUSE_DELTA = 10; // Maximum allowed delta to prevent snapping
 
 const KEYS = Object.freeze([
   "KeyW",
@@ -40,11 +39,8 @@ export class PlayerView extends EntityView {
       return;
     }
   
-    const clampedMovementX = Math.max(-MAX_MOUSE_DELTA, Math.min(MAX_MOUSE_DELTA, event.movementX));
-    const clampedMovementY = Math.max(-MAX_MOUSE_DELTA, Math.min(MAX_MOUSE_DELTA, event.movementY));
-  
-    this.yaw += -clampedMovementX / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
-    this.pitch += -clampedMovementY / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
+    this.yaw += -event.movementX / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
+    this.pitch += -event.movementY / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
 
     const euler = this.simulation.Camera.rotation;

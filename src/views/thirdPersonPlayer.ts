@@ -37,8 +37,6 @@ export class ThirdPersonPlayerView extends PlayerView {
 
       if (child.name === "ARMATURE") {
         this.armature = child;
-
-        console.log("Found armature", this.armature); 
       }
     })
 

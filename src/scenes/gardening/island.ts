@@ -4,16 +4,12 @@ import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
 import { loadEquirectangularAsEnvMap, loadGltf } from '../../graphics/loaders';
 import * as shaders from '../../graphics/shaders';
-import { NoiseMaterial } from '../../graphics/noise'; 
-import { getRGBBits } from '../../graphics/quantize';
-import { createParallaxWindowMaterial } from '../../graphics/parallaxWindow';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
-import { CollidersDebugger } from '../../views/collidersDebugger';
 
 export const init = async () => {
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
+  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
   const simulation = new Simulation(camera, scene)
 
   player.setThirdPerson(true)
@@ -21,23 +17,10 @@ export const init = async () => {
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
 
-  // const ambientLight = new THREE.AmbientLight(0xffffff, 1.1)
-  // scene.add(ambientLight)
-
   const sun = new THREE.DirectionalLight(0xffaaaa, 2)
   sun.position.set(0, 1000, 0)
-  // sun.target.position.set(0, 0, 0)
-  // sun.shadow.camera.position.set(0, 1000, 0)
-  // sun.shadow.camera.lookAt(0, 0, 0)
-  // sun.position.set(0, 0, 0)
   sun.castShadow = true
   scene.add(sun)
-
-  // const lightHelper = new THREE.DirectionalLightHelper(sun, 5);
-  // scene.add(lightHelper);
-
-  // const sunShadowCameraHelper = new THREE.CameraHelper(sun.shadow.camera);
-  // scene.add(sunShadowCameraHelper);
 
   sun.shadow.mapSize.width = 4096; // Higher values provide better shadow quality
   sun.shadow.mapSize.height = 4096;
@@ -52,7 +35,6 @@ export const init = async () => {
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
       sun.shadow.camera.position.set(camera.position.x, camera.position.y, camera.position.z)
-      // sun.shadow.camera.lookAt(0, 0, 0)
       renderer.render(scene, camera)
     }
   
@@ -60,11 +42,15 @@ export const init = async () => {
       renderer.dispose()
     }
   })
-  
-  window.addEventListener('resize', () => {
+
+  const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-  }, false);
+  }
+
+  resize()
+  
+  window.addEventListener('resize', resize, false);
 
   const [, sceneGltf] = await Promise.all([
     loadEquirectangularAsEnvMap("/3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
