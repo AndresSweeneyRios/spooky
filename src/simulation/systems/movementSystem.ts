@@ -27,5 +27,7 @@ export const movementSystem = (state: SimulationState) => {
     const movement = vec3.scale(vec3.create(), normalizedDirection, speed * state.DeltaTime);
 
     state.PhysicsRepository.TryMoveCharacterController(entId, movement);
+
+    state.MovementRepository.SetPreviousDirection(entId, direction);
   }
 };

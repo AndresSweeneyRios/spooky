@@ -14,6 +14,7 @@ const KEYS = Object.freeze([
   "KeyD",
   "Space",
   "ShiftLeft",
+  "KeyE",
 ] as const)
 
 type Key = typeof KEYS[number]
@@ -27,14 +28,15 @@ function createRotationMatrix(yaw: number, pitch: number): mat4 {
 }
 
 export class PlayerView extends EntityView {
-  private yaw: number = 0;
-  private pitch: number = 0;
+  protected yaw: number = 0;
+  protected pitch: number = 0;
   public canvas: HTMLCanvasElement;
   public keysDown = new Set<Key>();
 
-  private cleanupEvents: () => void;
-  private minPitch: number = -Math.PI / 2; // Minimum pitch angle (in radians)
-  private maxPitch: number = Math.PI / 2; // Maximum pitch angle (in radians)
+  protected cleanupEvents: () => void;
+  protected minPitch: number = -Math.PI / 2; // Minimum pitch angle (in radians)
+  protected maxPitch: number = Math.PI / 2; // Maximum pitch angle (in radians)
+  protected cameraOffset: vec3 = vec3.fromValues(0, 2, 0);
 
   public Click(): void {
     this.canvas.requestPointerLock();
@@ -106,7 +108,16 @@ export class PlayerView extends EntityView {
     const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
     const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
 
-    simulation.Camera.position.set(lerpedPosition[0], lerpedPosition[1] + 2, lerpedPosition[2]);
+    const yawRotationMatrix = mat4.create();
+    mat4.fromYRotation(yawRotationMatrix, this.yaw);
+
+    const rotatedOffset = vec3.transformMat4(vec3.create(), this.cameraOffset, this.getRotationMatrix());
+
+    simulation.Camera.position.set(
+      lerpedPosition[0] + rotatedOffset[0],
+      lerpedPosition[1] + rotatedOffset[1],
+      lerpedPosition[2] + rotatedOffset[2],
+    );
 
     this.updateCameraRotation(simulation);
   }
@@ -129,7 +140,7 @@ export class PlayerView extends EntityView {
     state.MovementRepository.SetDirection(this.EntId, direction);
   }
 
-  private updateCameraRotation(simulation: Simulation): void {
+  protected updateCameraRotation(simulation: Simulation): void {
     // Convert yaw and pitch angles (in radians) to a rotation matrix
     const rotationMatrix = this.getRotationMatrix();
 
@@ -138,7 +149,7 @@ export class PlayerView extends EntityView {
     simulation.Camera.quaternion.copy(quaternion);
   }
 
-  private getRotationMatrix(): mat4 {
+  protected getRotationMatrix(): mat4 {
     return createRotationMatrix(this.yaw, this.pitch);
   }
 

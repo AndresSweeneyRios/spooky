@@ -13,6 +13,7 @@ import {
 
 class MovementComponent extends SimulationComponent {
   public direction: vec3 = vec3.create()
+  public previousDirection: vec3 = vec3.create()
   public speed: number = 0
   public lockVerticalMovement = false
 }
@@ -22,8 +23,18 @@ export class MovementRepository extends SimulationRepository<MovementComponent> 
     this.entities.get(entId)!.direction = direction
   }
 
+  public SetPreviousDirection(entId: EntId, direction: vec3) {
+    this.entities.get(entId)!.previousDirection = direction
+  }
+
   public GetDirection(entId: EntId) {
     const direction = this.entities.get(entId)!.direction
+
+    return vec3.clone(direction)
+  }
+
+  public GetPreviousDirection(entId: EntId) {
+    const direction = this.entities.get(entId)!.previousDirection
 
     return vec3.clone(direction)
   }
