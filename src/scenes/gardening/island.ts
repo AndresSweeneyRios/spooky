@@ -30,7 +30,7 @@ export const init = async () => {
   sun.shadow.camera.right = 20;
   sun.shadow.camera.top = 20;
   sun.shadow.camera.bottom = -20;
-  sun.shadow.bias = -0.0001;
+  sun.shadow.bias = -0.001;
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
