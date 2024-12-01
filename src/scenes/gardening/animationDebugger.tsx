@@ -129,6 +129,52 @@ export const init = async () => {
     break
   }
 
+  const serialize = () => {
+    const serialized: Record<string, any> = {}
+
+    for (const [directory, animations] of animationMap.entries()) {
+      for (const { name, clip } of animations) {
+        serialized[`${directory}/${name}`] = THREE.AnimationClip.toJSON(clip)
+      }
+    }
+
+    return {
+      names: Object.keys(serialized),
+      json: JSON.stringify(serialized),
+    }
+  }
+
+  const generateBody = () => {
+    const serialized = serialize()
+
+    const typescript = `
+export type AnimationKey = ${serialized.names.map((name) => `'${name}'`).join(' | ')}
+`
+
+    return {
+      typescript,
+      json: serialized.json,
+    }
+  }
+
+  const publish = async () => {
+    try {
+      const response = await fetch('http://localhost:8888/update-animations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(generateBody()),
+      })
+
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const debugMenuHtmlElement = document.createElement('div')
   debugMenuHtmlElement.id = 'animation-debugger'
   document.body.appendChild(debugMenuHtmlElement)
@@ -176,9 +222,25 @@ export const init = async () => {
   `
   document.head.appendChild(styleElement)
 
-  // render react componen
   const Component = () => {
     const [_, setUpdate] = React.useState(0)
+    const [loading, setLoading] = React.useState(false)
+
+    const publishReactive = async () => {
+      try {
+        setLoading(true)
+  
+        await publish()
+  
+        setLoading(false)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    if (loading) {
+      return <>Loading...</>
+    }
 
     return <>
       <div id="animation-debugger-controls">
@@ -205,6 +267,20 @@ export const init = async () => {
       >{
         rotationEnabled ? 'Disable Rotation' : 'Enable Rotation'
       }</button>
+
+      {/* publish button */}
+
+      <button 
+        onClick={publishReactive}
+        style={{ 
+          position: 'absolute', 
+          bottom: '4em', 
+          right: '1em',
+          fontSize: '2em',
+        }}
+      >
+        Publish
+      </button>
     </>
   }
 

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import checker from 'vite-plugin-checker'
 import wasm from "vite-plugin-wasm"
+import viteCompression from 'vite-plugin-compression'
 
 const config = defineConfig({
   plugins: [
@@ -9,6 +10,7 @@ const config = defineConfig({
       // e.g. use TypeScript check
       typescript: true,
     }),
+    viteCompression(),
   ],
   build: {
     target: 'esnext',

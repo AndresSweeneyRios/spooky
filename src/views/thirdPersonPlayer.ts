@@ -10,19 +10,26 @@ import * as shaders from "../graphics/shaders";
 // import skeletonutils 
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { processAttributes } from "../utils/processAttributes";
-import { getHumanoidAnimator } from "../animation/humanoidAnimator";
+import { animationsPromise, getAnimation, playAnimation } from "../animation";
+import { AnimationKey } from "../assets/animations";
 
 const gltfPromise = loadGltf("./3d/entities/fungi.glb")
 
 const rotationSpeed = 3; // Adjust this value to control speed
 
+const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
+const WALK_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
+
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
   rootBone: THREE.Bone | null = null;
   armature: THREE.Object3D | null = null;
-  meshOffset: vec3 = vec3.fromValues(0, -1.0, 0);
+  meshOffset: vec3 = vec3.fromValues(0, -0.8, 0);
+  skinnedMeshes: THREE.SkinnedMesh[] = [];
 
   async init() {
+    await animationsPromise
+
     const gltf = await gltfPromise;
 
     this.mesh = SkeletonUtils.clone(gltf.scene);
@@ -42,7 +49,9 @@ export class ThirdPersonPlayerView extends PlayerView {
 
       if (child instanceof THREE.SkinnedMesh) {
         child.frustumCulled = false;
-        getHumanoidAnimator(this.simulation, child).catch(console.error);
+        const clip = getAnimation(IDLE_ANIMATION)
+        playAnimation(child, clip)
+        this.skinnedMeshes.push(child);
       }
     })
 
@@ -56,7 +65,7 @@ export class ThirdPersonPlayerView extends PlayerView {
   constructor(entId: EntId, simulation: Simulation, initialRotation: vec3) {
     super(entId, simulation, initialRotation);
 
-    this.cameraOffset = vec3.fromValues(0, 0, 5);
+    this.cameraOffset = vec3.fromValues(0, 0, 2);
 
     this.maxPitch = 0;
 
@@ -78,9 +87,29 @@ export class ThirdPersonPlayerView extends PlayerView {
   
     // Calculate movement direction
     const direction = simulation.SimulationState.MovementRepository.GetDirection(this.EntId);
+    const previousDirection = simulation.SimulationState.MovementRepository.GetPreviousDirection(this.EntId);
   
     if (this.mesh) {
       this.mesh.position.set(lerpedPosition[0], lerpedPosition[1], lerpedPosition[2]);
+
+      if (vec3.length(direction) > 0 && vec3.length(previousDirection) === 0) {
+        const clip = getAnimation(WALK_ANIMATION)
+
+        for (const skinnedMesh of this.skinnedMeshes) {
+          playAnimation(skinnedMesh, clip)
+        }
+      } else if (vec3.length(direction) === 0 && vec3.length(previousDirection) > 0) {
+        const clip = getAnimation(IDLE_ANIMATION)
+
+        for (const skinnedMesh of this.skinnedMeshes) {
+          playAnimation(skinnedMesh, clip)
+        }
+      }
+
+      // reverse direction
+      direction[0] *= -1;
+      direction[1] *= -1;
+      direction[2] *= -1;
   
       const desiredAngle = Math.atan2(direction[0], direction[2]) + Math.PI;
 
