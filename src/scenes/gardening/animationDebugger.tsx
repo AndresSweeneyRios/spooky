@@ -6,6 +6,7 @@ import { loadEquirectangularAsEnvMap, loadGltf } from '../../graphics/loaders';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import ReactDOM from 'react-dom';
 import React from 'react';
+import { playAnimation } from '../../animation/animationPlayer';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -91,8 +92,6 @@ export const init = async () => {
 
   scene.add(playerModel)
 
-  const mixers = [] as THREE.AnimationMixer[]
-
   let rotationEnabled = false
 
   const playerView = new class PlayerView extends View {
@@ -100,45 +99,29 @@ export const init = async () => {
       if (rotationEnabled) {
         playerModel.rotateY(simulation.SimulationState.DeltaTime)
       }
-
-      mixers.forEach((mixer) => {
-        mixer.update(simulation.SimulationState.DeltaTime)
-      })
     }
 
     public Cleanup(): void {
     }
   }
 
+  const skinnedMeshes = [] as THREE.SkinnedMesh[]
+
   playerModel.traverse((object) => {
     if (object instanceof THREE.SkinnedMesh) {
-      const mixer = new THREE.AnimationMixer(object)
-      mixers.push(mixer)
+      skinnedMeshes.push(object)
     }
   })
 
-  const actions = [] as THREE.AnimationAction[]
-
-  const playAnimation = (clip: THREE.AnimationClip) => {
-    actions.forEach((action) => action.stop())
-
-    mixers.forEach((mixer) => {
-      const action = mixer.clipAction(clip)
-      action.play()
-
-      action.timeScale = 0.4
-
-      actions.push(action)
-    })
-
-    mixers.forEach((mixer) => {
-      mixer.update(0)
-    })
+  const playClip = (clip: THREE.AnimationClip) => {
+    for (const skinnedMesh of skinnedMeshes) {
+      playAnimation(skinnedMesh, clip)
+    }
   }
 
   for (const [, animations] of animationMap.entries()) {
     for (const { clip } of animations) {
-      playAnimation(clip)
+      playClip(clip)
 
       break
     }
@@ -201,9 +184,9 @@ export const init = async () => {
       <div id="animation-debugger-controls">
         <h1>Animation Debugger</h1>
         {Array.from(animationMap.entries()).map(([directory, animations]) => (<>
-          <h2>{directory}</h2>
+          <h2 key={directory}>{directory}</h2>
           {animations.map(({ name, clip }) => (
-            <button onClick={() => playAnimation(clip)}>{name}</button>
+            <button key={directory+name} onClick={() => playClip(clip)}>{name}</button>
           ))}
         </>))}
       </div>
