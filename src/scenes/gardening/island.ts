@@ -7,6 +7,16 @@ import * as shaders from '../../graphics/shaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
 
+const SUN_OFFSET = 1000
+const SHADOW_MAP_SIZE = 4096;
+const SHADOW_CAMERA_NEAR = 0.1;
+const SHADOW_CAMERA_FAR = 2000;
+const SHADOW_CAMERA_LEFT = -20;
+const SHADOW_CAMERA_RIGHT = 20;
+const SHADOW_CAMERA_TOP = 20;
+const SHADOW_CAMERA_BOTTOM = -20;
+const SHADOW_BIAS = -0.000008;
+
 export const init = async () => {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -18,23 +28,32 @@ export const init = async () => {
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
 
   const sun = new THREE.DirectionalLight(0xffaaaa, 2)
-  sun.position.set(0, 1000, 0)
+  sun.position.set(0, SUN_OFFSET, 0)
   sun.castShadow = true
   scene.add(sun)
 
-  sun.shadow.mapSize.width = 4096; // Higher values provide better shadow quality
-  sun.shadow.mapSize.height = 4096;
-  sun.shadow.camera.near = 0.1; // Adjust as needed
-  sun.shadow.camera.far = 2000;  // Adjust as needed
-  sun.shadow.camera.left = -20;
-  sun.shadow.camera.right = 20;
-  sun.shadow.camera.top = 20;
-  sun.shadow.camera.bottom = -20;
-  sun.shadow.bias = -0.000008;
+  const sunTarget = new THREE.Object3D()
+  sunTarget.position.set(0, 0, 0)
+  scene.add(sunTarget)
+
+  sun.target = sunTarget
+
+  sun.shadow.mapSize.width = SHADOW_MAP_SIZE;
+  sun.shadow.mapSize.height = SHADOW_MAP_SIZE;
+  sun.shadow.camera.near = SHADOW_CAMERA_NEAR;
+  sun.shadow.camera.far = SHADOW_CAMERA_FAR;
+  sun.shadow.camera.left = SHADOW_CAMERA_LEFT;
+  sun.shadow.camera.right = SHADOW_CAMERA_RIGHT;
+  sun.shadow.camera.top = SHADOW_CAMERA_TOP;
+  sun.shadow.camera.bottom = SHADOW_CAMERA_BOTTOM;
+  sun.shadow.bias = SHADOW_BIAS;
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
-      sun.shadow.camera.position.set(camera.position.x, camera.position.y, camera.position.z)
+      sun.position.copy(camera.position)
+      sun.target.position.copy(camera.position)
+      sun.position.y += SUN_OFFSET
+      sun.shadow.camera.position.copy(camera.position)
       renderer.render(scene, camera)
     }
   

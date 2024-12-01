@@ -62,6 +62,12 @@ export class PlayerView extends EntityView {
     }
   }
 
+  public PointerLockChange(): void {
+    if (document.pointerLockElement !== this.canvas) {
+      this.keysDown.clear();
+    }
+  }
+
   constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3) {
     super(entId);
 
@@ -75,17 +81,20 @@ export class PlayerView extends EntityView {
     const mousemoveHandler = this.Mousemove.bind(this);
     const keydownHandler = this.Keydown.bind(this);
     const keyupHandler = this.Keyup.bind(this);
+    const pointerLockChangeHandler = this.PointerLockChange.bind(this);
 
     this.canvas.addEventListener('click', clickHandler);
     window.addEventListener('mousemove', mousemoveHandler);
     document.addEventListener('keydown', keydownHandler);
     document.addEventListener('keyup', keyupHandler);
+    document.addEventListener('pointerlockchange', pointerLockChangeHandler);
 
     this.cleanupEvents = () => {
       this.canvas.removeEventListener('click', clickHandler);
       window.removeEventListener('mousemove', mousemoveHandler);
       document.removeEventListener('keydown', keydownHandler);
       document.removeEventListener('keyup', keyupHandler);
+      document.removeEventListener('pointerlockchange', pointerLockChangeHandler);
     };
   }
 
