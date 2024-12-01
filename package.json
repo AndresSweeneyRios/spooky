@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "generate-animations": "node ./public/3d/animations/_generate.js"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
@@ -23,6 +24,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/three": "^0.169.0",
+    "fbx2gltf": "^0.9.7-p1",
     "typescript": "^5.3.3",
     "vite": "^5.0.12",
     "vite-plugin-checker": "^0.6.4",

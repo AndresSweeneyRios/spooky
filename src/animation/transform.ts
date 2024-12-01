@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-export const rotateAnimationTracks = (animationClip: THREE.AnimationClip, rotationAngle: number)  => {
-  // Create a quaternion for a 180-degree rotation around the Y-axis
+export const rotateAnimationTracks = (animationClip: THREE.AnimationClip, eulerRotation: THREE.Euler)  => {
+  // Create a quaternion from the euler rotation
   const rotationQuat = new THREE.Quaternion();
-  rotationQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
+  rotationQuat.setFromEuler(eulerRotation);
 
   // Iterate over all tracks in the animation clip
   animationClip.tracks.forEach((track) => {
@@ -33,9 +33,9 @@ export const rotateAnimationTracks = (animationClip: THREE.AnimationClip, rotati
   });
 };
 
-export const rotateAnimationTracksArray = (animationClips: THREE.AnimationClip[], rotationAngle: number) => {
+export const rotateAnimationTracksArray = (animationClips: THREE.AnimationClip[], eulerRotation: THREE.Euler) => {
   for (const clip of animationClips) {
-    rotateAnimationTracks(clip, rotationAngle);
+    rotateAnimationTracks(clip, eulerRotation);
   }
 }
 

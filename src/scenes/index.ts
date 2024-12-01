@@ -4,6 +4,7 @@ export const scenes = Object.freeze({
   gatesOfHeaven: () => import('./gatesOfHeaven'),
   island: () => import('./gardening/island'),
   city: () => import('./city'),
+  animationDebugger: () => import('./gardening/animationDebugger'),
 })
 
 const DEFAULT_SCENE = scenes.island

@@ -4,6 +4,17 @@ import { renderer } from '../components/Viewport';
 import * as shaders from './shaders';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+
+const fbxLoader = new FBXLoader();
+
+export const loadFbx = async (path: string) => {
+  const fbx = await fbxLoader.loadAsync(path)
+
+  shaders.applyInjectedMaterials(fbx)
+
+  return fbx
+}
 
 const gltfLoader = new GLTFLoader();
 
