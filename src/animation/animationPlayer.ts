@@ -5,20 +5,14 @@ const activeActions = new Map<string, symbol[]>()
 const actionMap = new Map<symbol, THREE.AnimationAction>()
 const actionStartTime = new Map<symbol, number>()
 
-const INTERPOLATION_DURATION = 2000
+const INTERPOLATION_DURATION = 500
 const TIME_SCALE = 0.001
 
-export const easeElastic = (x: number) => {
-  const c4 = (2 * Math.PI) / 3
-
-  return x === 0
-    ? 0
-    : x === 1
-    ? 1
-    : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1
+export const ease = (x: number) => {
+  return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2
 }
 
-const timing = easeElastic
+const timing = ease
 
 export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.AnimationClip, once = false, playNext?: THREE.AnimationClip[]) => {
   try {
