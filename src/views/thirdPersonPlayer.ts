@@ -10,6 +10,7 @@ import * as shaders from "../graphics/shaders";
 // import skeletonutils 
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { processAttributes } from "../utils/processAttributes";
+import { getHumanoidAnimator } from "../animation/humanoidAnimator";
 
 const gltfPromise = loadGltf("./3d/entities/fungi.glb")
 
@@ -37,6 +38,11 @@ export class ThirdPersonPlayerView extends PlayerView {
 
       if (child.name === "ARMATURE") {
         this.armature = child;
+      }
+
+      if (child instanceof THREE.SkinnedMesh) {
+        child.frustumCulled = false;
+        getHumanoidAnimator(this.simulation, child).catch(console.error);
       }
     })
 
