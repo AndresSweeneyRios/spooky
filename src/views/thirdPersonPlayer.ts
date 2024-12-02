@@ -12,10 +12,11 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { processAttributes } from "../utils/processAttributes";
 import { animationsPromise, getAnimation, playAnimation } from "../animation";
 import { AnimationKey } from "../assets/animations";
+import normalizeWheel from "../input/normalizeWheel";
 
 const gltfPromise = loadGltf("./3d/entities/fungi.glb")
 
-const rotationSpeed = 3; // Adjust this value to control speed
+const ROTATION_SPEED = 3; // Adjust this value to control speed
 
 const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
 const WALK_ANIMATION: AnimationKey = 'humanoid/Walking.glb - mixamo.com'
@@ -23,6 +24,10 @@ const RUN_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
 const IDLE_TIMESCALE = 1
 const WALK_TIMESCALE = 1.5
 const RUN_TIMESCALE = 1.3
+const MIN_CAMERA_DISTANCE = 1.5
+const MAX_CAMERA_DISTANCE = 10
+const DEFAULT_CAMERA_DISTANCE = 3
+const CAMERA_ZOOM_SENSITIVITY = 0.002
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
@@ -31,6 +36,20 @@ export class ThirdPersonPlayerView extends PlayerView {
   meshOffset: vec3 = vec3.fromValues(0, -0.75, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
+
+  cleanupEventsThirdPerson: () => void;
+
+  WheelHandler(event: WheelEvent): void {
+    if (document.pointerLockElement !== this.canvas) {
+      return;
+    }
+
+    const { pixelY } = normalizeWheel(event);
+
+    const zoomFactor = Math.exp(pixelY * CAMERA_ZOOM_SENSITIVITY);
+    this.cameraOffset[2] *= zoomFactor;
+    this.cameraOffset[2] = Math.max(MIN_CAMERA_DISTANCE, Math.min(MAX_CAMERA_DISTANCE, this.cameraOffset[2]));
+  }
 
   async init() {
     await animationsPromise
@@ -70,11 +89,20 @@ export class ThirdPersonPlayerView extends PlayerView {
   constructor(entId: EntId, simulation: Simulation, initialRotation: vec3) {
     super(entId, simulation, initialRotation);
 
-    this.cameraOffset = vec3.fromValues(0, 0, 2);
+    this.cameraOffset = vec3.fromValues(0, 0, DEFAULT_CAMERA_DISTANCE);
 
     this.maxPitch = 0;
 
     this.init().catch(console.error);
+
+    // bind event to this
+    const wheelHandler = this.WheelHandler.bind(this);
+
+    window.addEventListener('wheel', wheelHandler);
+
+    this.cleanupEventsThirdPerson = () => {
+      window.removeEventListener('wheel', wheelHandler);
+    }
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
@@ -152,8 +180,18 @@ export class ThirdPersonPlayerView extends PlayerView {
         const newAngle = Math.atan2(Math.sin(angleDifference), Math.cos(angleDifference));
 
         // Rotate player in direction by rotationSpeed
-        this.mesh.rotation.y += newAngle * rotationSpeed * this.simulation.SimulationState.DeltaTime;
+        this.mesh.rotation.y += newAngle * ROTATION_SPEED * this.simulation.SimulationState.DeltaTime;
       }
     }
+  }
+
+  public Cleanup(): void {
+    super.Cleanup();
+
+    if (this.mesh) {
+      this.simulation.ThreeScene.remove(this.mesh);
+    }
+
+    this.cleanupEventsThirdPerson();
   }
 }
