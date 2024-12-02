@@ -5,7 +5,7 @@ import os from 'os';
 
 const __dirname = import.meta.dirname;
 
-const skipRegex = /(\.br|\.gz|.blend|.xcf)$/;
+const skipRegex = /(\.br|\.gz|.blend.*|.xcf)$/;
 
 // Collect all files in the directory recursively
 const collectFiles = (dir, fileList = []) => {
@@ -49,6 +49,8 @@ const processFilesWithWorkers = (files, maxThreads) => {
     const worker = new Worker(workerPath, { workerData: { file } });
     activeWorkers++;
     index++;
+
+    console.log(`Processing file ${file} (${index} of ${files.length})...`);
 
     worker.on('message', (message) => {
       if (message.success) {
