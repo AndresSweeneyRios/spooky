@@ -16,7 +16,7 @@ const collectFiles = (dir, fileList = []) => {
     if (stat.isDirectory()) {
       collectFiles(filePath, fileList);
     } else {
-      if (!skipRegex.test(filePath)) {
+      if (!skipRegex.test(filePath) && !fs.existsSync(`${filePath}.br`)) {
         fileList.push(filePath);
       }
     }
