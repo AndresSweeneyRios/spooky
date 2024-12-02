@@ -1,7 +1,6 @@
 import type { Simulation } from "../simulation";
 import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
-import * as THREE from "three";
 import * as math from "../utils/math";
 import { ReadonlyQuat, mat4, vec3 } from "gl-matrix";
 

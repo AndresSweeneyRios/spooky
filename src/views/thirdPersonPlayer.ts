@@ -18,16 +18,19 @@ const gltfPromise = loadGltf("./3d/entities/fungi.glb")
 const rotationSpeed = 3; // Adjust this value to control speed
 
 const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
-const WALK_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
+const WALK_ANIMATION: AnimationKey = 'humanoid/Walking.glb - mixamo.com'
+const RUN_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
 const IDLE_TIMESCALE = 1
-const WALK_TIMESCALE = 1.3
+const WALK_TIMESCALE = 1.5
+const RUN_TIMESCALE = 1.3
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
   rootBone: THREE.Bone | null = null;
   armature: THREE.Object3D | null = null;
-  meshOffset: vec3 = vec3.fromValues(0, -0.8, 0);
+  meshOffset: vec3 = vec3.fromValues(0, -0.75, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
+  isRunning: boolean = false;
 
   async init() {
     await animationsPromise
@@ -95,16 +98,42 @@ export class ThirdPersonPlayerView extends PlayerView {
       this.mesh.position.set(lerpedPosition[0], lerpedPosition[1], lerpedPosition[2]);
 
       if (vec3.length(direction) > 0 && vec3.length(previousDirection) === 0) {
-        const clip = getAnimation(WALK_ANIMATION)
+        if (this.isRunning) {
+          const clip = getAnimation(RUN_ANIMATION)
 
-        for (const skinnedMesh of this.skinnedMeshes) {
-          playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
+          for (const skinnedMesh of this.skinnedMeshes) {
+            playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
+          }
+        } else {
+          const clip = getAnimation(WALK_ANIMATION)
+  
+          for (const skinnedMesh of this.skinnedMeshes) {
+            playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
+          }
         }
       } else if (vec3.length(direction) === 0 && vec3.length(previousDirection) > 0) {
         const clip = getAnimation(IDLE_ANIMATION)
 
         for (const skinnedMesh of this.skinnedMeshes) {
           playAnimation(skinnedMesh, clip, IDLE_TIMESCALE)
+        }
+      } else if (vec3.length(direction) > 0) {
+        if (this.keysDown.has("ShiftLeft") && !this.isRunning) {
+          this.isRunning = true;
+  
+          const clip = getAnimation(RUN_ANIMATION)
+  
+          for (const skinnedMesh of this.skinnedMeshes) {
+            playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
+          }
+        } else if (!this.keysDown.has("ShiftLeft") && this.isRunning) {
+          this.isRunning = false;
+  
+          const clip = getAnimation(WALK_ANIMATION)
+  
+          for (const skinnedMesh of this.skinnedMeshes) {
+            playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
+          }
         }
       }
 
