@@ -1,3 +1,5 @@
+// @ts-check
+
 import { readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import fbx from "fbx2gltf"
@@ -17,7 +19,12 @@ directories.forEach(directory => {
 
   files.forEach(file => {
     const filePath = join(__dirname, directory, file);
-    const fileExtension = file.split('.').pop().toLowerCase();
+
+    const fileExtension = file.split('.').pop()?.toLowerCase();
+
+    if (!fileExtension) {
+      return;
+    }
 
     hierarchy[directory] = hierarchy[directory] || [];
 
@@ -26,7 +33,11 @@ directories.forEach(directory => {
       fbx(filePath, outputFilePath);
     }
 
-    const fileNameWithExtension = file.split(/\\\\|\//g).pop().replace('.fbx', '.glb');
+    const fileNameWithExtension = file.split(/\\\\|\//g).pop()?.replace('.fbx', '.glb');
+
+    if (!fileNameWithExtension) {
+      return
+    }
 
     if (hierarchy[directory].includes(fileNameWithExtension)) {
       return
@@ -36,4 +47,4 @@ directories.forEach(directory => {
   });
 });
 
-writeFileSync(join(__dirname, '../../public/3d/animations/_list.json'), JSON.stringify(hierarchy, null, 2));
+writeFileSync(join(__dirname, './_list.json'), JSON.stringify(hierarchy, null, 2));
