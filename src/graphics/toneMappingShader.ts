@@ -2,6 +2,9 @@ const ToneMappingShader = {
   uniforms: {
     tDiffuse: { value: null },
     toneMappingExposure: { value: 0.8 },
+    saturation: { value: 0.9 },
+    contrast: { value: 1.02 },
+    contrastMidpoint: { value: 0.5 },
   },
   vertexShader: /*glsl*/`
     varying vec2 vUv;
@@ -13,6 +16,9 @@ const ToneMappingShader = {
   fragmentShader: /*glsl*/`
     uniform sampler2D tDiffuse;
     uniform float toneMappingExposure;
+    uniform float saturation;
+    uniform float contrast;
+    uniform float contrastMidpoint;
     varying vec2 vUv;
 
     vec3 toneMapACESFilm(vec3 color) {
@@ -24,11 +30,25 @@ const ToneMappingShader = {
       return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);
     }
 
+    vec3 setSaturation(vec3 color, float saturation) {
+      // Convert RGB to grayscale (luminance)
+      float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+      
+      // Interpolate between grayscale and the original color based on saturation
+      return mix(vec3(luminance), color, saturation);
+    }
+
+    vec3 setContrast(vec3 color, float contrast, float midpoint) {
+      return mix(vec3(midpoint), color, contrast);
+    }
+
     void main() {
       vec4 color = texture2D(tDiffuse, vUv);
       vec3 hdrColor = color.rgb * toneMappingExposure; // Apply exposure
       vec3 ldrColor = toneMapACESFilm(hdrColor); // Apply ACES Film tone mapping
-      gl_FragColor = vec4(ldrColor, color.a); // Preserve alpha
+      vec3 saturationColor = setSaturation(ldrColor, saturation); // Apply saturation
+      vec3 contrastColor = setContrast(saturationColor, contrast, contrastMidpoint); // Apply contrast
+      gl_FragColor = vec4(contrastColor, color.a); // Preserve alpha
     }
   `,
 };
