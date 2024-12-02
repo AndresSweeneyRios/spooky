@@ -26,7 +26,7 @@ const WALK_TIMESCALE = 1.5
 const RUN_TIMESCALE = 1.3
 const MIN_CAMERA_DISTANCE = 1.5
 const MAX_CAMERA_DISTANCE = 10
-const DEFAULT_CAMERA_DISTANCE = 3
+const DEFAULT_CAMERA_DISTANCE = 4
 const CAMERA_ZOOM_SENSITIVITY = 0.002
 
 export class ThirdPersonPlayerView extends PlayerView {
@@ -36,6 +36,7 @@ export class ThirdPersonPlayerView extends PlayerView {
   meshOffset: vec3 = vec3.fromValues(0, -0.75, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
+  targetCameraZoom: number = DEFAULT_CAMERA_DISTANCE;
 
   cleanupEventsThirdPerson: () => void;
 
@@ -47,8 +48,8 @@ export class ThirdPersonPlayerView extends PlayerView {
     const { pixelY } = normalizeWheel(event);
 
     const zoomFactor = Math.exp(pixelY * CAMERA_ZOOM_SENSITIVITY);
-    this.cameraOffset[2] *= zoomFactor;
-    this.cameraOffset[2] = Math.max(MIN_CAMERA_DISTANCE, Math.min(MAX_CAMERA_DISTANCE, this.cameraOffset[2]));
+    this.targetCameraZoom *= zoomFactor;
+    this.targetCameraZoom = Math.max(MIN_CAMERA_DISTANCE, Math.min(MAX_CAMERA_DISTANCE, this.targetCameraZoom));
   }
 
   async init() {
@@ -106,6 +107,9 @@ export class ThirdPersonPlayerView extends PlayerView {
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
+    // inch camera towards target zoom
+    this.cameraOffset[2] = math.lerp(this.cameraOffset[2], this.targetCameraZoom, 0.2);
+
     super.Draw(simulation, lerpFactor);
   
     const state = simulation.SimulationState;
