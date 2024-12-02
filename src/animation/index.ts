@@ -12,6 +12,8 @@ export const animationsPromise = fetch('/3d/animations/animations.json.br').then
     animations[key] = THREE.AnimationClip.parse(rawAnimations[key]);
   }
 
+  console.log(animations)
+
   return animations;
 })
 

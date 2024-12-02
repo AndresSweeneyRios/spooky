@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "engine": "npm run generate-animations && cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node ./engine/index.ts",
-    "generate-animations": "node ./public/3d/animations/_generate.js"
+    "generate-animations": "node ./tools/animations/_generate.js"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
@@ -37,7 +37,6 @@
     "typescript": "^5.3.3",
     "vite": "^5.0.12",
     "vite-plugin-checker": "^0.6.4",
-    "vite-plugin-compression": "^0.5.1",
     "vite-plugin-wasm": "^3.3.0",
     "vitest": "^1.6.0"
   }

@@ -4,13 +4,8 @@ const mixerMap = new Map<string, THREE.AnimationMixer>()
 const activeAction = new Map<string, THREE.AnimationAction>()
 
 const CROSSFADE_DURATION = 0.15
-const TIME_SCALE = 1
 
-export const ease = (x: number) => {
-  return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2
-}
-
-export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.AnimationClip) => {
+export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.AnimationClip, timeScale = 1) => {
   try {
     if (!mixerMap.has(model.uuid)) {
       mixerMap.set(model.uuid, new THREE.AnimationMixer(model))
@@ -19,7 +14,7 @@ export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.Animat
     const mixer = mixerMap.get(model.uuid)!
   
     const action = mixer.clipAction(clip)
-    action.timeScale = TIME_SCALE
+    action.timeScale = timeScale
 
     action.reset()
     action.play()
@@ -27,7 +22,7 @@ export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.Animat
 
     if (activeAction.has(model.uuid)) {
       const previousAction = activeAction.get(model.uuid)!
-      previousAction.crossFadeTo(action, CROSSFADE_DURATION * TIME_SCALE, false)
+      previousAction.crossFadeTo(action, CROSSFADE_DURATION, false)
       mixer.update(0)
     }
   

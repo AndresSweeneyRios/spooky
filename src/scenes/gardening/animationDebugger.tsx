@@ -7,6 +7,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import { playAnimation } from '../../animation/animationPlayer';
+import { animationKeys } from '../../assets/animations';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -21,7 +22,7 @@ export const init = async () => {
     public Draw(): void {
       renderer.render(scene, camera)
     }
-  
+
     public Cleanup(): void {
       renderer.dispose()
     }
@@ -33,7 +34,7 @@ export const init = async () => {
   }
 
   resize()
-  
+
   window.addEventListener('resize', resize, false);
 
   const [, playerModelGLTF, animationListJSON] = await Promise.all([
@@ -54,8 +55,13 @@ export const init = async () => {
 
   const animationList = animationListJSON as { [directory: string]: string[] }
 
-  type AnimationObject = { directory: string, name: string, clip: THREE.AnimationClip }
-  
+  type AnimationObject = { 
+    directory: string, 
+    name: string, 
+    clip: THREE.AnimationClip, 
+    key: string,
+  }
+
   const animationMap = new Map<string, AnimationObject[]>()
 
   const fullPaths = Object.entries(animationList).flatMap(([directory, files]) => files.map((file) => `/3d/animations/${directory}/${file}`))
@@ -76,7 +82,12 @@ export const init = async () => {
         animationMap.set(directory, [] as AnimationObject[])
       }
 
-      const object: AnimationObject = { directory: directory, name: `${filename} - ${clipName}`, clip }
+      const object: AnimationObject = { 
+        directory: directory, 
+        name: `${filename} - ${clipName}`, 
+        clip, 
+        key: `${directory}/${filename} - ${clipName}`,
+      }
 
       return object
     })
@@ -132,9 +143,13 @@ export const init = async () => {
   const serialize = () => {
     const serialized: Record<string, any> = {}
 
-    for (const [directory, animations] of animationMap.entries()) {
-      for (const { name, clip } of animations) {
-        serialized[`${directory}/${name}`] = THREE.AnimationClip.toJSON(clip)
+    for (const [, animations] of animationMap.entries()) {
+      for (const { clip, key } of animations) {
+        if (!enabledAnimations.has(key)) {
+          continue
+        }
+
+        serialized[key] = THREE.AnimationClip.toJSON(clip)
       }
     }
 
@@ -144,11 +159,14 @@ export const init = async () => {
     }
   }
 
+  const enabledAnimations = new Set<string>(animationKeys)
+
   const generateBody = () => {
     const serialized = serialize()
 
     const typescript = `
-export type AnimationKey = ${serialized.names.map((name) => `'${name}'`).join(' | ')}
+export const animationKeys = ${JSON.stringify(serialized.names)} as const
+export type AnimationKey = typeof animationKeys[number]
 `
 
     return {
@@ -219,6 +237,22 @@ export type AnimationKey = ${serialized.names.map((name) => `'${name}'`).join(' 
       font-size: 0.9em;
       letter-spacing: 0.01em;
     }
+
+    #animation-debugger button:hover {
+      background-color: rgba(100, 100, 100);
+    }
+
+    #animation-debugger .animation {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+    }
+
+    #animation-debugger .animation input {
+      width: 1em;
+      height: 1em;
+      cursor: pointer;
+    }
   `
   document.head.appendChild(styleElement)
 
@@ -229,9 +263,9 @@ export type AnimationKey = ${serialized.names.map((name) => `'${name}'`).join(' 
     const publishReactive = async () => {
       try {
         setLoading(true)
-  
+
         await publish()
-  
+
         setLoading(false)
       } catch (error) {
         console.error(error)
@@ -245,36 +279,55 @@ export type AnimationKey = ${serialized.names.map((name) => `'${name}'`).join(' 
     return <>
       <div id="animation-debugger-controls">
         <h1>Animation Debugger</h1>
-        {Array.from(animationMap.entries()).map(([directory, animations]) => (<>
-          <h2 key={directory}>{directory}</h2>
-          {animations.map(({ name, clip }) => (
-            <button key={directory+name} onClick={() => playClip(clip)}>{name}</button>
-          ))}
-        </>))}
+        {Array.from(animationMap.entries()).map(([directory, animations]) => (
+          <React.Fragment key={directory}>
+            <h2>{directory}</h2>
+            {animations.map(({ name, clip, key }) => {
+              return (
+                <div className='animation' key={`${directory}-${name}`}>
+                  <input
+                    type='checkbox'
+                    checked={enabledAnimations.has(key)}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        enabledAnimations.add(key);
+                      } else {
+                        enabledAnimations.delete(key);
+                      }
+
+                      setUpdate((prev) => prev + 1);
+                    }}
+                  />
+                  <button onClick={() => playClip(clip)}>{name}</button>
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
       </div>
 
-      <button 
+      <button
         onClick={() => {
           rotationEnabled = !rotationEnabled
           setUpdate((prev) => prev + 1)
         }}
-        style={{ 
-          position: 'absolute', 
-          bottom: '1em', 
+        style={{
+          position: 'absolute',
+          bottom: '1em',
           right: '1em',
           fontSize: '2em',
         }}
       >{
-        rotationEnabled ? 'Disable Rotation' : 'Enable Rotation'
-      }</button>
+          rotationEnabled ? 'Disable Rotation' : 'Enable Rotation'
+        }</button>
 
       {/* publish button */}
 
-      <button 
+      <button
         onClick={publishReactive}
-        style={{ 
-          position: 'absolute', 
-          bottom: '4em', 
+        style={{
+          position: 'absolute',
+          bottom: '4em',
           right: '1em',
           fontSize: '2em',
         }}

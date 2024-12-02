@@ -19,6 +19,8 @@ const rotationSpeed = 3; // Adjust this value to control speed
 
 const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
 const WALK_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
+const IDLE_TIMESCALE = 1
+const WALK_TIMESCALE = 1.3
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
@@ -50,7 +52,7 @@ export class ThirdPersonPlayerView extends PlayerView {
       if (child instanceof THREE.SkinnedMesh) {
         child.frustumCulled = false;
         const clip = getAnimation(IDLE_ANIMATION)
-        playAnimation(child, clip)
+        playAnimation(child, clip, IDLE_TIMESCALE)
         this.skinnedMeshes.push(child);
       }
     })
@@ -96,13 +98,13 @@ export class ThirdPersonPlayerView extends PlayerView {
         const clip = getAnimation(WALK_ANIMATION)
 
         for (const skinnedMesh of this.skinnedMeshes) {
-          playAnimation(skinnedMesh, clip)
+          playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
         }
       } else if (vec3.length(direction) === 0 && vec3.length(previousDirection) > 0) {
         const clip = getAnimation(IDLE_ANIMATION)
 
         for (const skinnedMesh of this.skinnedMeshes) {
-          playAnimation(skinnedMesh, clip)
+          playAnimation(skinnedMesh, clip, IDLE_TIMESCALE)
         }
       }
 

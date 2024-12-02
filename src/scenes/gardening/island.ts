@@ -27,17 +27,17 @@ export const init = async () => {
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
 
-  const sun = new THREE.DirectionalLight(0xffaaaa, 2)
+  const sun = new THREE.DirectionalLight(0xffffff, 2)
   sun.position.set(0, SUN_OFFSET, 0)
   sun.castShadow = true
   scene.add(sun)
-
+  
   const sunTarget = new THREE.Object3D()
   sunTarget.position.set(0, 0, 0)
   scene.add(sunTarget)
-
+  
   sun.target = sunTarget
-
+  
   sun.shadow.mapSize.width = SHADOW_MAP_SIZE;
   sun.shadow.mapSize.height = SHADOW_MAP_SIZE;
   sun.shadow.camera.near = SHADOW_CAMERA_NEAR;
@@ -47,7 +47,7 @@ export const init = async () => {
   sun.shadow.camera.top = SHADOW_CAMERA_TOP;
   sun.shadow.camera.bottom = SHADOW_CAMERA_BOTTOM;
   sun.shadow.bias = SHADOW_BIAS;
-
+  
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
       sun.position.copy(camera.position)
@@ -72,14 +72,11 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap("/3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("/3d/env/fantasy_sky_2.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
       scene.environmentIntensity = 0.9
-
-      scene.environmentRotation.y = Math.PI / -4
-      scene.backgroundRotation.y = Math.PI / -4
     }),
 
     loadGltf("/3d/scenes/island/island.glb")
