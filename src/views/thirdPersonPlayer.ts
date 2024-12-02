@@ -28,6 +28,7 @@ const MIN_CAMERA_DISTANCE = 1.5
 const MAX_CAMERA_DISTANCE = 10
 const DEFAULT_CAMERA_DISTANCE = 4
 const CAMERA_ZOOM_SENSITIVITY = 0.002
+const CAMERA_ZOOM_SMOOTHING = 4
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
@@ -110,7 +111,7 @@ export class ThirdPersonPlayerView extends PlayerView {
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
     // inch camera towards target zoom
-    this.cameraOffset[2] = math.lerp(this.cameraOffset[2], this.targetCameraZoom, 0.2);
+    this.cameraOffset[2] = math.lerp(this.cameraOffset[2], this.targetCameraZoom, CAMERA_ZOOM_SMOOTHING * simulation.SimulationState.DeltaTime);
 
     super.Draw(simulation, lerpFactor);
   
