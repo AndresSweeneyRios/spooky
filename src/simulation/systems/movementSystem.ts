@@ -1,8 +1,6 @@
 import { SimulationState } from "../SimulationState";
 import { vec3 } from "gl-matrix";
 
-const GRAVITY = -9.81;
-
 export const movementSystem = (state: SimulationState) => {
   for (const entId of state.MovementRepository.Entities) {
     // state.PhysicsRepository.StopMovement(entId);
@@ -10,6 +8,8 @@ export const movementSystem = (state: SimulationState) => {
     const speed = state.MovementRepository.GetSpeed(entId);
     const direction = state.MovementRepository.GetDirection(entId);
     const lockVerticalMovement = state.MovementRepository.GetLockVerticalMovement(entId);
+
+    state.MovementRepository.SetPreviousDirection(entId, direction);
 
     if (speed === 0 || vec3.length(direction) === 0) {
       continue;

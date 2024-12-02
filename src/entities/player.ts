@@ -3,8 +3,18 @@ import type { vec3 } from "gl-matrix"
 
 const SPEED = 5
 
+let thirdPerson = false
+let size = 1.0
+
+export const setThirdPerson = (value: boolean) => {
+  thirdPerson = value
+}
+
+export const setSize = (value: number) => {
+  size = value
+}
+
 export const createPlayer = (simulation: Simulation, position: vec3, rotation: vec3) => {
-  const size = 1.0
   const offset = 0
   const positionAtFeet: vec3 = [position[0], position[1] + size, position[2]]
   
@@ -29,9 +39,17 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
     }
   })
 
-  import("../views/player").then(({ PlayerView }) => {
-    const view = new PlayerView(entId, simulation, rotation)
-
-    simulation.ViewSync.AddEntityView(view)
-  })
+  if (thirdPerson) {
+    import("../views/thirdPersonPlayer").then(({ ThirdPersonPlayerView }) => {
+      const view = new ThirdPersonPlayerView(entId, simulation, rotation)
+  
+      simulation.ViewSync.AddEntityView(view)
+    })
+  } else {
+    import("../views/player").then(({ PlayerView }) => {
+      const view = new PlayerView(entId, simulation, rotation)
+  
+      simulation.ViewSync.AddEntityView(view)
+    })
+  }
 }

@@ -43,7 +43,6 @@ export class ThroneView extends EntityView {
 
           shaders.recursivelyManipulateMaterial(eye, (material) => {
             material.needsUpdate = true
-            console.log(shader.uniforms.throneEye)
           })
         })
       }

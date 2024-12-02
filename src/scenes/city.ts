@@ -104,7 +104,7 @@ export const init = async () => {
 
   scene.add(sceneGltf.scene)
 
-  // shaders.applyInjectedMaterials(sceneGltf.scene)
+  shaders.applyInjectedMaterials(sceneGltf.scene)
 
   simulation.Start()
 

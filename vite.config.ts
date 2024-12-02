@@ -6,7 +6,6 @@ const config = defineConfig({
   plugins: [
     wasm(),
     checker({
-      // e.g. use TypeScript check
       typescript: true,
     }),
   ],
@@ -15,6 +14,7 @@ const config = defineConfig({
     sourcemap: true,
     assetsInlineLimit: 1024*4,
     chunkSizeWarningLimit: 1024*4,
+    emptyOutDir: false,
   },
   preview: {
     port: 3000,
