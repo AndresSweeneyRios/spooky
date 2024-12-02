@@ -1,8 +1,8 @@
-const ToneMappingShader = {
+export const ToneMappingShader = {
   uniforms: {
     tDiffuse: { value: null },
     toneMappingExposure: { value: 0.8 },
-    saturation: { value: 0.9 },
+    saturation: { value: 0.8 },
     contrast: { value: 1.02 },
     contrastMidpoint: { value: 0.5 },
   },
@@ -31,10 +31,8 @@ const ToneMappingShader = {
     }
 
     vec3 setSaturation(vec3 color, float saturation) {
-      // Convert RGB to grayscale (luminance)
       float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
       
-      // Interpolate between grayscale and the original color based on saturation
       return mix(vec3(luminance), color, saturation);
     }
 
@@ -52,5 +50,3 @@ const ToneMappingShader = {
     }
   `,
 };
-
-export default ToneMappingShader;

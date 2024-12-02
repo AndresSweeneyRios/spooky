@@ -22,7 +22,7 @@ const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
 const WALK_ANIMATION: AnimationKey = 'humanoid/Walking.glb - mixamo.com'
 const RUN_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
 const IDLE_TIMESCALE = 1
-const WALK_TIMESCALE = 1.5
+const WALK_TIMESCALE = 1.7
 const RUN_TIMESCALE = 1.3
 const MIN_CAMERA_DISTANCE = 1.5
 const MAX_CAMERA_DISTANCE = 10
@@ -100,6 +100,8 @@ export class ThirdPersonPlayerView extends PlayerView {
     const wheelHandler = this.WheelHandler.bind(this);
 
     window.addEventListener('wheel', wheelHandler);
+
+    this.runSpeedModifier = 1.5;
 
     this.cleanupEventsThirdPerson = () => {
       window.removeEventListener('wheel', wheelHandler);

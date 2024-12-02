@@ -1,7 +1,8 @@
 import type { Simulation } from "../simulation"
 import type { vec3 } from "gl-matrix"
+import { StatType } from "../simulation/repository/StatRepository"
 
-const SPEED = 5
+const SPEED = 4
 
 let thirdPerson = false
 let size = 1.0
@@ -24,20 +25,8 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
   simulation.SimulationState.PhysicsRepository.CreateCharacterControllerWithSphere(entId, positionAtFeet, size - offset, offset)
   simulation.SimulationState.PhysicsRepository.SetAffectedByGravity(entId, true)
   simulation.SimulationState.MovementRepository.CreateComponent(entId)
-  simulation.SimulationState.MovementRepository.SetSpeed(entId, SPEED)
-
-  // shift to set speed to 8, and then release to set back to 4
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Shift') {
-      simulation.SimulationState.MovementRepository.SetSpeed(entId, SPEED * 2)
-    }
-  })
-
-  window.addEventListener('keyup', (e) => {
-    if (e.key === 'Shift') {
-      simulation.SimulationState.MovementRepository.SetSpeed(entId, SPEED)
-    }
-  })
+  simulation.SimulationState.StatRepository.CreateComponent(entId)
+  simulation.SimulationState.StatRepository.SetStatBaseValue(entId, StatType.SPEED, SPEED)
 
   if (thirdPerson) {
     import("../views/thirdPersonPlayer").then(({ ThirdPersonPlayerView }) => {

@@ -1,11 +1,12 @@
 import { SimulationState } from "../SimulationState";
 import { vec3 } from "gl-matrix";
+import { StatType } from "../repository/StatRepository";
 
 export const movementSystem = (state: SimulationState) => {
   for (const entId of state.MovementRepository.Entities) {
     // state.PhysicsRepository.StopMovement(entId);
 
-    const speed = state.MovementRepository.GetSpeed(entId);
+    const speed = state.StatRepository.GetStatComputedValue(entId, StatType.SPEED);
     const direction = state.MovementRepository.GetDirection(entId);
     const lockVerticalMovement = state.MovementRepository.GetLockVerticalMovement(entId);
 

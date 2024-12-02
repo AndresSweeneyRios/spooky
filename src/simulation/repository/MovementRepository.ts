@@ -14,7 +14,6 @@ import {
 class MovementComponent extends SimulationComponent {
   public direction: vec3 = vec3.create()
   public previousDirection: vec3 = vec3.create()
-  public speed: number = 0
   public lockVerticalMovement = false
 }
 
@@ -37,14 +36,6 @@ export class MovementRepository extends SimulationRepository<MovementComponent> 
     const direction = this.entities.get(entId)!.previousDirection
 
     return vec3.clone(direction)
-  }
-
-  public SetSpeed(entId: EntId, speed: number) {
-    this.entities.get(entId)!.speed = speed
-  }
-
-  public GetSpeed(entId: EntId) {
-    return this.entities.get(entId)!.speed
   }
 
   public SetLockVerticalMovement(entId: EntId, lockVerticalMovement: boolean) {

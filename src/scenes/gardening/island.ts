@@ -8,11 +8,10 @@ import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
 import { createGarden } from '../../entities/garden';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { FXAAShader, ShaderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
-import ToneMappingShader from '../../graphics/toneMappingShader';
+import { ToneMappingShader } from '../../graphics/toneMappingShader';
 
 const SUN_OFFSET = 1000
 const SHADOW_MAP_SIZE = 4096;
