@@ -1,0 +1,34 @@
+#landing-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#landing-page .temp-container {
+  width: 40vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.test-slopper {
+  stroke: #fff;
+  fill: #123;
+  /* padding: 1rem; */
+  transition: stroke 0.2s, fill 0.2s;
+}
+
+.test-slopper:hover {
+  stroke: #ff69b4;
+  fill: #223;
+}
+
+.test-slopper-child {
+  padding: 2rem;
+  cursor: pointer;
+  font-size: 2.5rem;
+}

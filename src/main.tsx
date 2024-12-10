@@ -19,21 +19,24 @@ new A(0 as EntId)
 
 import "./graphics/shaders"
 import "./graphics/injections"
+import NotFound from './pages/_notfound'
+import Home from './pages/Home'
+import Landing from './pages/Landing'
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
-    element: <>
-      <Viewport />
-      <DialogueBox />
-    </>,
+    element: <Home />,
   },
-
+  {
+    path: "/landing",
+    element: <Landing />,
+  },
   // 404
   {
     path: "*",
-    element: <h1>404</h1>,
+    element: <NotFound />,
   },
 ])
 
