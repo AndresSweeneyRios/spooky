@@ -177,13 +177,10 @@ export default function SloppyContainer({
   sloppiness = 4,
   seed = randomSeed(),
   waviness = 2.5,
-  // These can be configured via css now
-  // strokeColor = "white",
-  // backgroundColor = "transparent",
   strokeWidth = 2.5,
   borderRadius = 0,
   offsetFactor = 0.1,
-  sizeMode = "widthParentHeightChildren", // Default mode
+  sizeMode = "widthParentHeightChildren",
   containerClassName,
   className,
   asChild = false,
@@ -329,20 +326,15 @@ export default function SloppyContainer({
           pointerEvents: "none",
         }}
       >
-        {/* First path with background fill */}
         <path
           d={firstPath}
-          // fill="currentColor"
-          // stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* Second path without fill */}
         <path
           d={secondPath}
           fill="none"
-          // stroke="currentColor"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
