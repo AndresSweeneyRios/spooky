@@ -58,6 +58,7 @@ export const loadVideoTexture = (path: string) => {
   texture.minFilter = THREE.NearestFilter
   texture.magFilter = THREE.NearestFilter
   texture.format = THREE.RGBFormat
+  texture.colorSpace = THREE.SRGBColorSpace
 
   return texture
 }

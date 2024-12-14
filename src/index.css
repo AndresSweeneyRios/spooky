@@ -3,6 +3,19 @@
   src: url('./assets/fonts/HellsCemetery-Regular.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'FuzzyBubbles';
+  src: url('./assets/fonts/FuzzyBubbles-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'FuzzyBubbles';
+  src: url('./assets/fonts/FuzzyBubbles-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -13,6 +26,16 @@ html, body, #root {
   width: 100%;
   min-height: 100vh;
   display: flex;
+  background-color: #010101;
+  color: white;
+}
+
+.font-hells-cemetery {
+  font-family: 'HellsCemetery-Regular', sans-serif;
+}
+
+.font-fuzzy-bubbles {
+  font-family: 'FuzzyBubbles', serif;
 }
 
 canvas {

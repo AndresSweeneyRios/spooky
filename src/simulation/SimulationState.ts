@@ -4,6 +4,7 @@ import { MovementRepository } from "./repository/MovementRepository";
 import { PhysicsRepository } from "./repository/PhysicsRepository";
 import { SensorCommandRepository } from "./repository/SensorCommandRepository";
 import { SensorTargetRepository } from "./repository/SensorTargetRepository";
+import { StatRepository } from "./repository/StatRepository";
 
 export class SimulationState {
   public DeltaTime: number = 0
@@ -12,6 +13,7 @@ export class SimulationState {
   MovementRepository = MovementRepository.Factory()
   SensorTargetRepository = SensorTargetRepository.Factory()
   SensorCommandRepository = SensorCommandRepository.Factory()
+  StatRepository = StatRepository.Factory()
 
   public Commands: SimulationCommand[] = []
   public Events: SimulationEvent[] = []

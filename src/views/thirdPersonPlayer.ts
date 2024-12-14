@@ -22,12 +22,13 @@ const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
 const WALK_ANIMATION: AnimationKey = 'humanoid/Walking.glb - mixamo.com'
 const RUN_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
 const IDLE_TIMESCALE = 1
-const WALK_TIMESCALE = 1.5
+const WALK_TIMESCALE = 1.7
 const RUN_TIMESCALE = 1.3
 const MIN_CAMERA_DISTANCE = 1.5
 const MAX_CAMERA_DISTANCE = 10
-const DEFAULT_CAMERA_DISTANCE = 3
+const DEFAULT_CAMERA_DISTANCE = 4
 const CAMERA_ZOOM_SENSITIVITY = 0.002
+const CAMERA_ZOOM_SMOOTHING = 4
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
@@ -36,6 +37,7 @@ export class ThirdPersonPlayerView extends PlayerView {
   meshOffset: vec3 = vec3.fromValues(0, -0.75, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
+  targetCameraZoom: number = DEFAULT_CAMERA_DISTANCE;
 
   cleanupEventsThirdPerson: () => void;
 
@@ -47,8 +49,8 @@ export class ThirdPersonPlayerView extends PlayerView {
     const { pixelY } = normalizeWheel(event);
 
     const zoomFactor = Math.exp(pixelY * CAMERA_ZOOM_SENSITIVITY);
-    this.cameraOffset[2] *= zoomFactor;
-    this.cameraOffset[2] = Math.max(MIN_CAMERA_DISTANCE, Math.min(MAX_CAMERA_DISTANCE, this.cameraOffset[2]));
+    this.targetCameraZoom *= zoomFactor;
+    this.targetCameraZoom = Math.max(MIN_CAMERA_DISTANCE, Math.min(MAX_CAMERA_DISTANCE, this.targetCameraZoom));
   }
 
   async init() {
@@ -100,12 +102,17 @@ export class ThirdPersonPlayerView extends PlayerView {
 
     window.addEventListener('wheel', wheelHandler);
 
+    this.runSpeedModifier = 1.5;
+
     this.cleanupEventsThirdPerson = () => {
       window.removeEventListener('wheel', wheelHandler);
     }
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
+    // inch camera towards target zoom
+    this.cameraOffset[2] = math.lerp(this.cameraOffset[2], this.targetCameraZoom, CAMERA_ZOOM_SMOOTHING * simulation.SimulationState.DeltaTime);
+
     super.Draw(simulation, lerpFactor);
   
     const state = simulation.SimulationState;

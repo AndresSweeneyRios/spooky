@@ -1,3 +1,20 @@
 {
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "tsconfig.*.json, tsup.config.ts, vite.config.ts",
+    "package.json": "package-lock.json, yarn.lock, .yarnrc.yml",
+    "README.md": "LICENSE, LICENSE.md",
+    ".gitignore": ".gitattributes",
+    // Put css, scss files under their respective component files.
+    "*.tsx": "$(capture).css,$(capture).scss,$(capture).sass"
+  },
+  "typescript.preferences.quoteStyle": "double",
+  "javascript.preferences.quoteStyle": "double",
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  }
 }

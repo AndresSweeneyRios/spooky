@@ -1,6 +1,7 @@
 import type { Simulation } from "../simulation";
 import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
+import { ModifierType, StatType } from "../simulation/repository/StatRepository";
 import * as math from "../utils/math";
 import { ReadonlyQuat, mat4, vec3 } from "gl-matrix";
 
@@ -18,6 +19,28 @@ const KEYS = Object.freeze([
 
 type Key = typeof KEYS[number]
 
+// let runEffectId: symbol | null = null
+
+// // shift to set speed to 8, and then release to set back to 4
+// window.addEventListener('keydown', (e) => {
+//   if (e.key === 'Shift') {
+//     runEffectId = simulation.SimulationState.StatRepository.CreateStatusEffect(entId, {
+//       type: 0,
+//       stat: StatType.SPEED,
+//       value: SPEED * 2,
+//     })
+//   }
+// })
+
+// window.addEventListener('keyup', (e) => {
+//   if (e.key === 'Shift') {
+//     if (runEffectId) {
+//       simulation.SimulationState.StatRepository.RemoveStatusEffect(entId, runEffectId)
+//       runEffectId = null
+//     }
+//   }
+// })
+
 export class PlayerView extends EntityView {
   protected yaw: number = 0;
   protected pitch: number = 0;
@@ -28,6 +51,9 @@ export class PlayerView extends EntityView {
   protected minPitch: number = -1.5; // Minimum pitch angle (in radians)
   protected maxPitch: number = 1.5; // Maximum pitch angle (in radians)
   protected cameraOffset: vec3 = vec3.fromValues(0, 2, 0);
+  protected runSpeedModifier: number = 2;
+
+  private runEffectId: symbol | null = null
 
   public Click(): void {
     this.canvas.requestPointerLock();
@@ -49,21 +75,48 @@ export class PlayerView extends EntityView {
     euler.z = 0;
   }
 
-  public Keydown(event: KeyboardEvent): void {
-    if (KEYS.includes(event.code as Key)) {
-      this.keysDown.add(event.code as Key);
+  public Keydown(key: Key): void {
+    this.keysDown.add(key);
+
+    if (key === "ShiftLeft") {
+      this.runEffectId = this.simulation.SimulationState.StatRepository.CreateStatusEffect(this.EntId, {
+        type: ModifierType.MULTIPLY,
+        stat: StatType.SPEED,
+        value: this.runSpeedModifier,
+      });
     }
   }
 
-  public Keyup(event: KeyboardEvent): void {
-    if (KEYS.includes(event.code as Key)) {
-      this.keysDown.delete(event.code as Key);
+  public Keyup(key: Key): void {
+    this.keysDown.delete(key);
+
+    if (key === "ShiftLeft" && this.runEffectId) {
+      this.simulation.SimulationState.StatRepository.RemoveStatusEffect(this.EntId, this.runEffectId);
+      this.runEffectId = null;
     }
+  }
+
+  public KeydownHandler(event: KeyboardEvent): void {
+    if (!KEYS.includes(event.code as Key) || this.keysDown.has(event.code as Key)) {
+      return
+    }
+
+    this.Keydown(event.code as Key);
+  }
+
+  public KeyupHandler(event: KeyboardEvent): void {
+    if (!KEYS.includes(event.code as Key) || !this.keysDown.has(event.code as Key)) {
+      return
+    }
+
+    this.Keyup(event.code as Key);
   }
 
   public PointerLockChange(): void {
     if (document.pointerLockElement !== this.canvas) {
-      this.keysDown.clear();
+      for (const key of this.keysDown) {
+        this.Keyup(key);
+      }
     }
   }
 
@@ -78,8 +131,8 @@ export class PlayerView extends EntityView {
 
     const clickHandler = this.Click.bind(this);
     const mousemoveHandler = this.Mousemove.bind(this);
-    const keydownHandler = this.Keydown.bind(this);
-    const keyupHandler = this.Keyup.bind(this);
+    const keydownHandler = this.KeydownHandler.bind(this);
+    const keyupHandler = this.KeyupHandler.bind(this);
     const pointerLockChangeHandler = this.PointerLockChange.bind(this);
 
     this.canvas.addEventListener('click', clickHandler);
