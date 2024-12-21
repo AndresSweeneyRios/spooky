@@ -18,7 +18,7 @@ export const setSize = (value: number) => {
 export const createPlayer = (simulation: Simulation, position: vec3, rotation: vec3) => {
   const offset = 0
   const positionAtFeet: vec3 = [position[0], position[1] + size, position[2]]
-  
+
   const entId = simulation.EntityRegistry.Create()
   simulation.SimulationState.SensorTargetRepository.CreateComponent(entId)
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
@@ -31,13 +31,13 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
   if (thirdPerson) {
     import("../views/thirdPersonPlayer").then(({ ThirdPersonPlayerView }) => {
       const view = new ThirdPersonPlayerView(entId, simulation, rotation)
-  
+
       simulation.ViewSync.AddEntityView(view)
     })
   } else {
     import("../views/player").then(({ PlayerView }) => {
       const view = new PlayerView(entId, simulation, rotation)
-  
+
       simulation.ViewSync.AddEntityView(view)
     })
   }

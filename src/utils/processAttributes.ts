@@ -17,7 +17,7 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
       removalList.push(child)
 
       continue
-    } else if (child.name === 'COLLIDERS') {
+    } else if (child.name === 'COLLIDERS' || child.name.includes('COLLIDER')) {
       simulation.SimulationState.PhysicsRepository.AddCollidersFromObject(entId, child, addRigidBody)
 
       removalList.push(child)
@@ -59,7 +59,7 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
       simulation.SimulationState.PhysicsRepository.AddCollidersFromObject(entId, child, addRigidBody, isSensor)
 
       removalList.push(child)
-  
+
       continue
     }
   }

@@ -4,7 +4,7 @@ import { Tick } from "./systems";
 // Define the FPS constant
 // const FPS = 1000 / 120;
 const FPS = 1000 / 60;
-const MAX_ALLOWED_PAUSE = 1000;
+export const MAX_ALLOWED_PAUSE = 1000;
 
 // Variables to keep track of the game loop
 let isRunning = false;

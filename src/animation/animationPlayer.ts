@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { MAX_ALLOWED_PAUSE } from '../simulation/loop'
 
 const mixerMap = new Map<string, THREE.AnimationMixer>()
 const activeAction = new Map<string, THREE.AnimationAction>()
@@ -40,6 +41,11 @@ const loop = (time: DOMHighResTimeStamp) => {
 
   deltaTime = (time - previousTime) / 1000
 
+  if(deltaTime > MAX_ALLOWED_PAUSE) {
+    deltaTime = 0
+    previousTime = time
+  }
+
   try {
     mixerMap.forEach((mixer) => {
       mixer.update(deltaTime)
@@ -51,4 +57,4 @@ const loop = (time: DOMHighResTimeStamp) => {
   previousTime = time
 };
 
-requestAnimationFrame(loop)
+requestAnimationFrame(loop) 

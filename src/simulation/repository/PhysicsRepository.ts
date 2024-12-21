@@ -59,7 +59,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
 
   public GetPosition(entId: EntId): vec3 {
     const component = this.entities.get(entId)!
-    
+
     if (component.bodies.size > 0) {
       const position = component.GetFirstBody()!.translation()
       return vec3.fromValues(position.x, position.y, position.z)
@@ -152,7 +152,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     )
 
     body.setNextKinematicTranslation(nextTranslation)
-    
+
     component.verticalVelocity = computedMovement.y
   }
 
@@ -233,7 +233,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
 
       component.bodies.set(Symbol(), rigidBody)
       component.characters.set(Symbol(), character)
-    } 
+    }
 
     for (const child of traverse(object)) {
       if (child.type !== "Mesh") {
@@ -242,7 +242,10 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
 
       const geometry = (child as THREE.Mesh).geometry as THREE.BufferGeometry
       const vertices = geometry.getAttribute("position").array as Float32Array
-      const indices = geometry.getIndex()!.array as Uint32Array
+
+      const indices = geometry.getIndex()
+        ? geometry.getIndex()!.array as Uint32Array
+        : new Uint32Array(Array.from({ length: vertices.length / 3 }, (_, i) => i)); // Generate sequential indices for non-indexed geometry
 
       const translation = new RAPIER.Vector3(child.position.x, child.position.y, child.position.z)
       const rotation = new RAPIER.Quaternion(child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w)
@@ -331,7 +334,7 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     } else {
       for (const [entId, component] of this.entities) {
         const symbol = component.colliderUuidMap.get(uuid)
-  
+
         if (symbol) {
           return {
             symbol,

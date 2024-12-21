@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
-import { loadEquirectangularAsEnvMap, loadGltf } from '../../graphics/loaders';
+import { loadEquirectangularAsEnvMap, loadFbx, loadGltf } from '../../graphics/loaders';
 import * as shaders from '../../graphics/shaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
@@ -12,6 +12,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { FXAAShader, ShaderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
+import { CollidersDebugger } from "../../views/collidersDebugger";
 
 const SUN_OFFSET = 1000
 const SHADOW_MAP_SIZE = 4096;
@@ -25,7 +26,7 @@ const SHADOW_BIAS = -0.00004;
 
 export const init = async () => {
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 10000);
   const simulation = new Simulation(camera, scene)
 
   const effectComposer = new EffectComposer(renderer)
@@ -57,13 +58,13 @@ export const init = async () => {
   scene.add(sun)
 
   sun.shadow.intensity = 0.6
-  
+
   const sunTarget = new THREE.Object3D()
   sunTarget.position.set(0, 0, 0)
   scene.add(sunTarget)
-  
+
   sun.target = sunTarget
-  
+
   sun.shadow.mapSize.width = SHADOW_MAP_SIZE;
   sun.shadow.mapSize.height = SHADOW_MAP_SIZE;
   sun.shadow.camera.near = SHADOW_CAMERA_NEAR;
@@ -73,7 +74,7 @@ export const init = async () => {
   sun.shadow.camera.top = SHADOW_CAMERA_TOP;
   sun.shadow.camera.bottom = SHADOW_CAMERA_BOTTOM;
   sun.shadow.bias = SHADOW_BIAS;
-  
+
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
       sun.position.copy(camera.position)
@@ -83,7 +84,7 @@ export const init = async () => {
       // renderer.render(scene, camera)
       effectComposer.render()
     }
-  
+
     public Cleanup(): void {
       renderer.dispose()
     }
@@ -97,7 +98,7 @@ export const init = async () => {
   }
 
   resize()
-  
+
   window.addEventListener('resize', resize, false);
 
   const [, sceneGltf] = await Promise.all([
@@ -108,23 +109,40 @@ export const init = async () => {
       scene.environmentIntensity = 0.9
     }),
 
-    loadGltf("/3d/scenes/island/island.glb")
+    loadFbx("/3d/scenes/island/island2.fbx")
   ])
 
-  processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
+  // traverse scene and apply normal materials to all meshes
+  // sceneGltf.traverse((child) => {
+  //   if (child instanceof THREE.Mesh) {
+  //     if (child.material instanceof Array) {
+  //       for (let i = 0; i < child.material.length; i++) {
+  //         child.material[i] = new THREE.MeshNormalMaterial()
+  //       }
+  //     } else {
+  //       child.material = new THREE.MeshNormalMaterial()
+  //     }
+  //   }
+  // })
+
+  processAttributes(sceneGltf, simulation, sceneEntId, false)
 
   // sceneGltf.scene.visible = false
 
-  shaders.applyInjectedMaterials(sceneGltf.scene)
+  shaders.applyInjectedMaterials(sceneGltf)
 
-  scene.add(sceneGltf.scene)
+  scene.add(sceneGltf)
   simulation.Start()
+
+  console.log(sceneGltf)
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
   player.createPlayer(simulation, [0, 1, 0], [0, 0, 0])
 
   createGarden(simulation, [0, 0, -10])
+
+  simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
   return () => {
     simulation.Stop()
