@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
-import { loadEquirectangularAsEnvMap, loadFbx, loadGltf } from '../../graphics/loaders';
+import { loadEquirectangularAsEnvMap, loadFbx, loadGltf, loadTiledJSON } from '../../graphics/loaders';
 import * as shaders from '../../graphics/shaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
@@ -13,6 +13,8 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { FXAAShader, ShaderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { CollidersDebugger } from "../../views/collidersDebugger";
+import { vec3 } from "gl-matrix";
+import * as Tiled from "../../graphics/tiledJson"
 
 const SUN_OFFSET = 1000
 const SHADOW_MAP_SIZE = 4096;
@@ -101,7 +103,7 @@ export const init = async () => {
 
   window.addEventListener('resize', resize, false);
 
-  const [, sceneGltf] = await Promise.all([
+  const [, island] = await Promise.all([
     loadEquirectangularAsEnvMap("/3d/env/fantasy_sky_2.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
@@ -109,40 +111,40 @@ export const init = async () => {
       scene.environmentIntensity = 0.9
     }),
 
-    loadFbx("/3d/scenes/island/island2.fbx")
+    loadTiledJSON("/3d/maps/island.json")
   ])
 
-  // traverse scene and apply normal materials to all meshes
-  // sceneGltf.traverse((child) => {
-  //   if (child instanceof THREE.Mesh) {
-  //     if (child.material instanceof Array) {
-  //       for (let i = 0; i < child.material.length; i++) {
-  //         child.material[i] = new THREE.MeshNormalMaterial()
-  //       }
-  //     } else {
-  //       child.material = new THREE.MeshNormalMaterial()
-  //     }
-  //   }
-  // })
+  for (const mesh of island.meshes) {
+    shaders.applyInjectedMaterials(mesh)
 
-  processAttributes(sceneGltf, simulation, sceneEntId, false)
+    scene.add(mesh)
+  }
 
-  // sceneGltf.scene.visible = false
+  for (const boxCollider of island.boxColliders) {
+    simulation.SimulationState.PhysicsRepository.AddBoxCollider(sceneEntId, boxCollider.halfExtents, boxCollider.position)
+  }
 
-  shaders.applyInjectedMaterials(sceneGltf)
+  for (const spawnPoint of island.spawnPoints) {
+    const [x, y, z] = spawnPoint
+    const position = vec3.fromValues(x, y, z)
+    player.createPlayer(simulation, position, [0, 0, 0])
 
-  scene.add(sceneGltf)
+    break;
+  }
+
+  for (const plot in island.plots) {
+    const [x, y, z] = island.plots[plot]
+
+    const size = Tiled.PLOT_SIZE
+
+    const position = vec3.fromValues(x + (size / 2), y, z + (size / 2))
+
+    createGarden(simulation, position)
+  }
+
   simulation.Start()
 
-  console.log(sceneGltf)
-
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
-
-  player.createPlayer(simulation, [0, 1, 0], [0, 0, 0])
-
-  createGarden(simulation, [0, 0, -10])
-
-  simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
   return () => {
     simulation.Stop()

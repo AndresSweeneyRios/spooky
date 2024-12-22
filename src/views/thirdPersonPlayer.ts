@@ -34,7 +34,7 @@ export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
   rootBone: THREE.Bone | null = null;
   armature: THREE.Object3D | null = null;
-  meshOffset: vec3 = vec3.fromValues(0, -0.75, 0);
+  meshOffset: vec3 = vec3.fromValues(0, -0.25, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
   targetCameraZoom: number = DEFAULT_CAMERA_DISTANCE;
@@ -92,6 +92,7 @@ export class ThirdPersonPlayerView extends PlayerView {
     super(entId, simulation, initialRotation);
 
     this.cameraOffset = vec3.fromValues(0, 0, DEFAULT_CAMERA_DISTANCE);
+    this.cameraPositionOffset = vec3.fromValues(0, -this.meshOffset[1], 0);
 
     this.maxPitch = 0;
 
@@ -114,21 +115,21 @@ export class ThirdPersonPlayerView extends PlayerView {
     this.cameraOffset[2] = math.lerp(this.cameraOffset[2], this.targetCameraZoom, CAMERA_ZOOM_SMOOTHING * simulation.SimulationState.DeltaTime);
 
     super.Draw(simulation, lerpFactor);
-  
+
     const state = simulation.SimulationState;
-  
+
     const position = state.PhysicsRepository.GetPosition(this.EntId);
     const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
     const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
-  
+
     lerpedPosition[0] += this.meshOffset[0];
     lerpedPosition[1] += this.meshOffset[1];
     lerpedPosition[2] += this.meshOffset[2];
-  
+
     // Calculate movement direction
     const direction = simulation.SimulationState.MovementRepository.GetDirection(this.EntId);
     const previousDirection = simulation.SimulationState.MovementRepository.GetPreviousDirection(this.EntId);
-  
+
     if (this.mesh) {
       this.mesh.position.set(lerpedPosition[0], lerpedPosition[1], lerpedPosition[2]);
 
@@ -141,7 +142,7 @@ export class ThirdPersonPlayerView extends PlayerView {
           }
         } else {
           const clip = getAnimation(WALK_ANIMATION)
-  
+
           for (const skinnedMesh of this.skinnedMeshes) {
             playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
           }
@@ -155,17 +156,17 @@ export class ThirdPersonPlayerView extends PlayerView {
       } else if (vec3.length(direction) > 0) {
         if (this.keysDown.has("ShiftLeft") && !this.isRunning) {
           this.isRunning = true;
-  
+
           const clip = getAnimation(RUN_ANIMATION)
-  
+
           for (const skinnedMesh of this.skinnedMeshes) {
             playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
           }
         } else if (!this.keysDown.has("ShiftLeft") && this.isRunning) {
           this.isRunning = false;
-  
+
           const clip = getAnimation(WALK_ANIMATION)
-  
+
           for (const skinnedMesh of this.skinnedMeshes) {
             playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
           }
@@ -176,7 +177,7 @@ export class ThirdPersonPlayerView extends PlayerView {
       direction[0] *= -1;
       direction[1] *= -1;
       direction[2] *= -1;
-  
+
       const desiredAngle = Math.atan2(direction[0], direction[2]) + Math.PI;
 
       if (vec3.length(direction) > 0) {
