@@ -14,7 +14,7 @@ let accumulatedTime = 0;
 // Function to start the game loop
 export function startGameLoop(simulation: Simulation) {
   if (isRunning) return;
-  
+
   isRunning = true;
   lastFrameTime = Date.now();
   gameLoop(simulation);
@@ -28,16 +28,17 @@ export function stopGameLoop() {
 // Game loop function
 function gameLoop(simulation: Simulation) {
   if (!isRunning) return;
-  
+
   const currentTime = Date.now();
-  const deltaTime = (currentTime - lastFrameTime)
+  let deltaTime = (currentTime - lastFrameTime)
 
   // If the pause is too long, reset the accumulated time
   if (deltaTime > MAX_ALLOWED_PAUSE) {
     accumulatedTime = 0; // Reset accumulated time
     lastFrameTime = currentTime;
+    deltaTime = 0;
   }
-  
+
   // Update game logic here
   accumulatedTime += deltaTime;
 
@@ -59,10 +60,10 @@ function gameLoop(simulation: Simulation) {
   }
 
   simulation.ViewSync.Draw(simulation, accumulatedTime / FPS);
-  
+
   // Render game graphics here
   lastFrameTime = currentTime;
-  
+
   // Call the game loop again
   requestAnimationFrame(() => gameLoop(simulation));
 }
