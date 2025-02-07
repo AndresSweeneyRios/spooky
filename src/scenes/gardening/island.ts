@@ -17,13 +17,13 @@ import { vec3 } from "gl-matrix";
 import * as Tiled from "../../graphics/tiledJson"
 
 const SUN_OFFSET = 1000
-const SHADOW_MAP_SIZE = 4096;
+const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
 const SHADOW_CAMERA_FAR = 2000;
-const SHADOW_CAMERA_LEFT = -20;
-const SHADOW_CAMERA_RIGHT = 20;
-const SHADOW_CAMERA_TOP = 20;
-const SHADOW_CAMERA_BOTTOM = -20;
+const SHADOW_CAMERA_LEFT = -100;
+const SHADOW_CAMERA_RIGHT = 100;
+const SHADOW_CAMERA_TOP = 100;
+const SHADOW_CAMERA_BOTTOM = -100;
 const SHADOW_BIAS = -0.00004;
 
 export const init = async () => {
