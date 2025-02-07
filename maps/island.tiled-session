@@ -9,8 +9,10 @@
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
     },
+    "last.exportedFilePath": "C:/gamedev/spooky/maps",
     "last.imagePath": "C:/gamedev/spooky/maps",
     "map.fixedSize": false,
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "openFiles": [
     ],

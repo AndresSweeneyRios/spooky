@@ -51,6 +51,7 @@ export class PlayerView extends EntityView {
   protected minPitch: number = -1.5; // Minimum pitch angle (in radians)
   protected maxPitch: number = 1.5; // Maximum pitch angle (in radians)
   protected cameraOffset: vec3 = vec3.fromValues(0, 2, 0);
+  protected cameraPositionOffset: vec3 = vec3.fromValues(0, 0, 0);
   protected runSpeedModifier: number = 2;
 
   private runEffectId: symbol | null = null
@@ -63,7 +64,7 @@ export class PlayerView extends EntityView {
     if (document.pointerLockElement !== this.canvas) {
       return;
     }
-  
+
     this.yaw += -event.movementX / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
     this.pitch += -event.movementY / MOUSE_SENSITIVITY * this.simulation.SimulationState.DeltaTime;
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
@@ -157,12 +158,14 @@ export class PlayerView extends EntityView {
     const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
     const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
 
+    const cameraPosition = vec3.add([0, 0, 0], lerpedPosition, this.cameraPositionOffset);
+
     const rotatedOffset = vec3.transformMat4(vec3.create(), this.cameraOffset, this.GetRotationMatrix());
 
     simulation.Camera.position.set(
-      lerpedPosition[0] + rotatedOffset[0],
-      lerpedPosition[1] + rotatedOffset[1],
-      lerpedPosition[2] + rotatedOffset[2],
+      cameraPosition[0] + rotatedOffset[0],
+      cameraPosition[1] + rotatedOffset[1],
+      cameraPosition[2] + rotatedOffset[2],
     );
   }
 

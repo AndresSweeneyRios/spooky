@@ -96,8 +96,9 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     return character;
   }
 
-  private CreateRigidBody(position: vec3) {
+  public CreateRigidBody(position: vec3) {
     const rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+    rigidBodyDesc.setCcdEnabled(true)
     rigidBodyDesc.setTranslation(position[0], position[1], position[2])
     const rigidBody = this.world.createRigidBody(rigidBodyDesc)
     rigidBody.lockRotations(true, true)
@@ -203,7 +204,20 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
   }
 
   public AddMeshCollider(entId: EntId, vertices: Float32Array, indices: Uint32Array, rigidBody?: InstanceType<typeof RAPIER.RigidBody>) {
-    const colliderDesc = RAPIER.ColliderDesc.trimesh(vertices, indices)
+    let colliderDesc = RAPIER.ColliderDesc.trimesh(vertices, indices)
+
+    const collider = this.world.createCollider(colliderDesc, rigidBody)
+
+    const component = this.entities.get(entId)!
+    component.colliders.set(Symbol(), collider)
+
+    return collider
+  }
+
+  public AddBoxCollider(entId: EntId, halfExtents: vec3, position: vec3, rigidBody?: InstanceType<typeof RAPIER.RigidBody>) {
+    let colliderDesc = RAPIER.ColliderDesc.cuboid(halfExtents[0], halfExtents[1], halfExtents[2])
+    colliderDesc.setTranslation(position[0], position[1], position[2])
+
     const collider = this.world.createCollider(colliderDesc, rigidBody)
 
     const component = this.entities.get(entId)!

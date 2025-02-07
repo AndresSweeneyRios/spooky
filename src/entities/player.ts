@@ -5,7 +5,7 @@ import { StatType } from "../simulation/repository/StatRepository"
 const SPEED = 4
 
 let thirdPerson = false
-let size = 1.0
+let size = 0.5
 
 export const setThirdPerson = (value: boolean) => {
   thirdPerson = value
