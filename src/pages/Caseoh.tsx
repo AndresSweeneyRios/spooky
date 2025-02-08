@@ -12,7 +12,7 @@ export default function Caseoh() {
       <Viewport scene={scenes.crazeoh} />
       <DialogueBox />
 
-      <div id="caseoh">
+      <div id="caseoh" is-hidden="true">
         <div className="main">
           <img src={TvWebp} />
           <h1>CrazeOh</h1>

@@ -31,7 +31,7 @@ export const init = async () => {
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
   const simulation = new Simulation(camera, scene)
 
-  camera.position.set(2, 1.4, -5)
+  // camera.position.set(2, 1.4, -5)
 
   camera.rotateY(-Math.PI / 2)
 
@@ -54,7 +54,7 @@ export const init = async () => {
   effectComposer.addPass(outputPass)
 
   player.setThirdPerson(false)
-  player.setCameraHeight(1.9)
+  player.setCameraHeight(1.5)
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
@@ -64,7 +64,7 @@ export const init = async () => {
       effectComposer.render()
 
       // rotate camera slowly around y axis
-      camera.rotateY(-0.0005)
+      // camera.rotateY(-0.0005)
     }
 
     public Cleanup(): void {
@@ -84,7 +84,14 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [sceneGltf] = await Promise.all([
-    loadGltf("/3d/scenes/island/crazeoh.glb")
+    loadGltf("/3d/scenes/island/crazeoh.glb"),
+
+    loadEquirectangularAsEnvMap("/3d/env/cityscape.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+      scene.background = texture
+      scene.backgroundIntensity = 0.0
+      scene.environment = texture
+      scene.environmentIntensity = 1.0
+    }),
   ])
 
   const scale = 0.6
@@ -94,7 +101,7 @@ export const init = async () => {
       child.castShadow = true
       child.receiveShadow = true
 
-      child.material = new THREE.MeshNormalMaterial()
+      // child.material = new THREE.MeshNormalMaterial()
 
       const material = child.material as THREE.Material
       material.shadowSide = THREE.DoubleSide
@@ -128,6 +135,8 @@ export const init = async () => {
   scene.add(sceneGltf.scene)
 
   simulation.Start()
+
+  player.createPlayer(simulation, [0, 0, 0], [0, 0, 0])
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 

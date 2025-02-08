@@ -12,6 +12,10 @@
   font-size: 1.7vh;
 }
 
+#caseoh[is-hidden="true"] {
+  display: none;
+} 
+
 #caseoh .main {
   display: flex;
   flex-direction: column;
