@@ -3,12 +3,14 @@ import * as THREE from "three"
 
 import { RENDERER } from "../../constants"
 import { stopGameLoop } from "../simulation/loop"
-import { loadAppropriateScene, unloadScene } from "../scenes"
+import { loadAppropriateScene, Scene, unloadScene } from "../scenes"
 
 export let canvas: HTMLCanvasElement = null!
 export let renderer: THREE.WebGLRenderer = null!
 
-export const Viewport: React.FC = () => {
+export const Viewport: React.FC<{
+  scene?: Scene
+}> = (props) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
   React.useEffect(() => {
@@ -42,7 +44,7 @@ export const Viewport: React.FC = () => {
     window.addEventListener("resize", resize)
     resize()
 
-    loadAppropriateScene()
+    loadAppropriateScene(props.scene)
 
     return () => {
       unloadScene()

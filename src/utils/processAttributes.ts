@@ -25,6 +25,8 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
       continue
     } else if (child.name === 'COMMANDS') {
       for (const command of child.children) {
+        console.log(command.name)
+
         for (const commandName in commands) {
           if (command.name === commandName) {
             const commandClass = commands[commandName as keyof typeof commands]

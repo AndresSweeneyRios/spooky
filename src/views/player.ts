@@ -194,6 +194,14 @@ export class PlayerView extends EntityView {
     return glMatrixMat4
   }
 
+  public SetCameraHeight(height: number): void {
+    this.cameraPositionOffset[1] = height;
+  }
+
+  public SetCameraOffset(offset: vec3): void {
+    this.cameraOffset = offset;
+  }
+
   public Cleanup(): void {
     this.cleanupEvents();
   }

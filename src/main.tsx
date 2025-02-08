@@ -20,14 +20,14 @@ new A(0 as EntId)
 import "./graphics/shaders"
 import "./graphics/injections"
 import NotFound from './pages/_notfound'
-import Home from './pages/Home'
 import Landing from './pages/Landing'
+import Caseoh from "./pages/Caseoh"
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
-    element: <Home />,
+    element: <Caseoh />,
   },
   {
     path: "/landing",

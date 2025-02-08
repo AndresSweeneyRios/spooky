@@ -5,9 +5,12 @@ export const scenes = Object.freeze({
   island: () => import('./gardening/island'),
   city: () => import('./city'),
   animationDebugger: () => import('./gardening/animationDebugger'),
+  crazeoh: () => import('./crazeoh'),
 })
 
-const DEFAULT_SCENE = scenes.island
+const DEFAULT_SCENE = scenes.crazeoh
+
+export type Scene = typeof DEFAULT_SCENE
 
 let sceneCleanup: (() => void) | null = null
 
@@ -32,7 +35,7 @@ export const unloadScene = () => {
   }
 }
 
-export const loadAppropriateScene = () => {
+export const loadAppropriateScene = (defaultScene?: Scene) => {
   const url = new URL(window.location.href)
   const scene = url.searchParams.get('scene')
 
@@ -45,5 +48,5 @@ export const loadAppropriateScene = () => {
     }
   }
 
-  void loadScene(DEFAULT_SCENE)
+  void loadScene(defaultScene || DEFAULT_SCENE)
 }
