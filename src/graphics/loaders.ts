@@ -8,11 +8,29 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import * as Tiled from "./tiledJson"
 import { vec2, vec3 } from "gl-matrix";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { traverse } from "../utils/traverse";
+import * as animation from "../animation"
 
 const fbxLoader = new FBXLoader();
 
-export const loadFbx = async (path: string) => {
+export const loadFbx = async (path: string, mapBones = false) => {
   const fbx = await fbxLoader.loadAsync(path)
+
+  if (mapBones) {
+    for (const object of traverse(fbx)) {
+      if (object instanceof THREE.SkinnedMesh) {
+        const bones = object.skeleton.bones
+
+        for (const bone of bones) {
+          if (!bone.name) {
+            continue
+          }
+
+          bone.name = animation.adapter.mapName(bone.name)
+        }
+      }
+    }
+  }
 
   shaders.applyInjectedMaterials(fbx)
 
@@ -25,8 +43,24 @@ const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath('https://threejs.org/examples/jsm/libs/draco/');
 gltfLoader.setDRACOLoader(dracoLoader);
 
-export const loadGltf = async (path: string) => {
+export const loadGltf = async (path: string, mapBones = false) => {
   const gltf = await gltfLoader.loadAsync(path)
+
+  if (mapBones) {
+    for (const object of traverse(gltf.scene)) {
+      if (object instanceof THREE.SkinnedMesh) {
+        const bones = object.skeleton.bones
+
+        for (const bone of bones) {
+          if (!bone.name) {
+            continue
+          }
+
+          bone.name = animation.adapter.mapName(bone.name)
+        }
+      }
+    }
+  }
 
   shaders.applyInjectedMaterials(gltf.scene)
 

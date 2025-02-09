@@ -1,104 +1,96 @@
 import * as THREE from 'three'
 
-/*
-root
-pelvis
-spine_01
-spine_02
-chest
-neck
-head
-upper_armL
-lower_armL
-handL
-upper_armR
-lower_armR
-handR
-thighL
-shinL
-footL
-leg_endL
-thighR
-shinR
-footR
-leg_endR
-*/
+export const mapName = (name: string): string => {
+  if (name.includes("mixamorig")) {
+    return name;
+  }
 
-const mapName = (name: string): string => {
   if (name.includes("UNKNOWN")) {
     return name;
   }
-  
-  if (/root/i.test(name)) {
-    return 'root';
-  }
 
-  if (/pelvis/i.test(name)) {
-    return 'pelvis';
+  if (/root|hips/i.test(name)) {
+    return 'mixamorigHips';
   }
 
   const spineMatch = name.match(/spine.?0*(\d+)/i);
   if (spineMatch) {
     let index = parseInt(spineMatch[1]);
     if (index === 1) {
-      return 'spine_01';
+      return 'mixamorigSpine';
     } else if (index === 2) {
-      return 'spine_02';
+      return 'mixamorigSpine1';
     }
-    return 'chest';
+    return 'mixamorigSpine2';
+  }
+
+  const spineRootMatch = name.match(/spine/i);
+  if (spineRootMatch) {
+    return 'mixamorigSpine';
   }
 
   if (/chest/i.test(name)) {
-    return 'chest';
+    return 'mixamorigSpine2';
   }
 
   if (/neck/i.test(name)) {
-    return 'neck';
+    return 'mixamorigNeck';
   }
 
   if (/head/i.test(name)) {
-    return 'head';
+    return 'mixamorigHead';
   }
 
-  const upperArmMatch = name.match(/upper_arm([LR])/i);
+  const upperArmMatch = name.match(/upper.?arm.?([LR])/i);
   if (upperArmMatch) {
-    return `upper_arm${upperArmMatch[1].toUpperCase()}`;
+    return `mixamorig${upperArmMatch[1] === 'L' ? 'Left' : 'Right'}Arm`;
   }
 
-  const lowerArmMatch = name.match(/forearm([LR])/i);
+  const lowerArmMatch = name.match(/forearm.?([LR])/i);
   if (lowerArmMatch) {
-    return `lower_arm${lowerArmMatch[1].toUpperCase()}`;
+    return `mixamorig${lowerArmMatch[1] === 'L' ? 'Left' : 'Right'}ForeArm`;
   }
 
-  const handMatch = name.match(/hand([LR])/i);
+  const handMatch = name.match(/hand.?([LR])/i);
   if (handMatch) {
-    return `hand${handMatch[1].toUpperCase()}`;
+    return `mixamorig${handMatch[1] === 'L' ? 'Left' : 'Right'}Hand`;
   }
 
-  const thighMatch = name.match(/thigh([LR])/i);
+  const thighMatch = name.match(/thigh.?([LR])/i);
   if (thighMatch) {
-    return `thigh${thighMatch[1].toUpperCase()}`;
+    return `mixamorig${thighMatch[1] === 'L' ? 'LeftUpLeg' : 'RightUpLeg'}`;
   }
 
-  const shinMatch = name.match(/shin([LR])/i);
+  const shinMatch = name.match(/shin.?([LR])/i);
   if (shinMatch) {
-    return `shin${shinMatch[1].toUpperCase()}`;
+    return `mixamorig${shinMatch[1] === 'L' ? 'LeftLeg' : 'RightLeg'}`;
   }
 
-  const footMatch = name.match(/foot([LR])/i);
+  const footMatch = name.match(/foot.?([LR])/i);
   if (footMatch) {
-    return `foot${footMatch[1].toUpperCase()}`;
+    return `mixamorig${footMatch[1] === 'L' ? 'LeftFoot' : 'RightFoot'}`;
   }
 
-  const legEndMatch = name.match(/leg_end([LR])/i);
+  const legEndMatch = name.match(/leg.?end.?([LR])/i);
   if (legEndMatch) {
-    return `leg_end${legEndMatch[1].toUpperCase()}`;
+    return `mixamorig${legEndMatch[1] === 'L' ? 'LeftFoot' : 'RightFoot'}`;
   }
 
-  const shoulderMatch = name.match(/shoulder([LR])/i);
+  const shoulderMatch = name.match(/shoulder.?([LR])/i);
   if (shoulderMatch) {
-    return `upper_arm${shoulderMatch[1].toUpperCase()}`;
+    return `mixamorig${shoulderMatch[1] === 'L' ? 'LeftShoulder' : 'RightShoulder'}`;
   }
+
+  const toeMatch = name.match(/toe.?([LR])/i);
+  if (toeMatch) {
+    return `mixamorig${toeMatch[1] === 'L' ? 'LeftToeBase' : 'RightToeBase'}`;
+  }
+
+  const toeEndMatch = name.match(/toe.?end.?([LR])/i);
+  if (toeEndMatch) {
+    return `mixamorig${toeEndMatch[1] === 'L' ? 'LeftToe_End' : 'RightToe_End'}`;
+  }
+  console.error(`Unknown bone: ${name}`);
 
   return 'UNKNOWN';
 };
@@ -113,7 +105,7 @@ export const adaptAnimation = (animation: THREE.AnimationClip) => {
     const originalTrackName = track.name
 
     track.name = `${mapName(name)}.${key}`
-    
+
     console.log(`${originalTrackName} mapped to ${track.name}`)
   }
 }

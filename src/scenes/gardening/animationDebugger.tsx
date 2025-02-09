@@ -48,10 +48,12 @@ export const init = async () => {
       scene.backgroundRotation.y = Math.PI / -4
     }),
 
-    loadGltf("/3d/entities/fungi.glb"),
+    loadGltf("/3d/entities/caseoh.glb"),
 
     fetch("/3d/animations/_list.json").then((response) => response.json())
   ])
+
+  console.log(playerModelGLTF)
 
   const animationList = animationListJSON as { [directory: string]: string[] }
 

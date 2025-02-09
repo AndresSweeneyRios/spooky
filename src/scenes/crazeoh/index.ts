@@ -2,20 +2,18 @@ import * as THREE from 'three'
 import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
-import { loadEquirectangularAsEnvMap, loadFbx, loadGltf, loadTiledJSON } from '../../graphics/loaders';
-import * as shaders from '../../graphics/shaders';
+import { loadEquirectangularAsEnvMap, loadGltf, } from '../../graphics/loaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
-import { createGarden } from '../../entities/garden';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { FXAAShader, ShaderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { FXAAShader, ShaderPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { CollidersDebugger } from "../../views/collidersDebugger";
 import { vec3 } from "gl-matrix";
-import * as Tiled from "../../graphics/tiledJson"
 import { traverse } from "../../utils/traverse";
+import { createCaseoh } from "../../entities/caseoh";
 
 const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
@@ -94,39 +92,14 @@ export const init = async () => {
     }),
   ])
 
-  const scale = 0.6
-
   for (const child of traverse(sceneGltf.scene)) {
     if (child instanceof THREE.Mesh) {
       child.castShadow = true
       child.receiveShadow = true
 
-      // child.material = new THREE.MeshNormalMaterial()
-
       const material = child.material as THREE.Material
       material.shadowSide = THREE.DoubleSide
       material.side = THREE.DoubleSide
-
-      // const geometry = child.geometry as THREE.BufferGeometry;
-
-      // if (geometry && geometry.attributes.position) {
-      //   const positions = geometry.attributes.position.array; // Float32Array of positions
-
-      //   // Scale down all vertices by scale
-      //   for (let i = 0; i < positions.length; i++) {
-      //     positions[i] *= scale;
-      //   }
-
-      //   // Mark the position attribute as needing an update
-      //   geometry.attributes.position.needsUpdate = true;
-
-      //   // Optionally, recompute bounding volumes
-      //   geometry.computeBoundingBox();
-      //   geometry.computeBoundingSphere();
-      // }
-
-      // // Adjust the object's position (if needed, avoid double-scaling!)
-      // child.position.multiplyScalar(scale);
     }
   }
 
@@ -136,7 +109,9 @@ export const init = async () => {
 
   simulation.Start()
 
-  player.createPlayer(simulation, [0, 0, 0], [0, 0, 0])
+  player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
+
+  createCaseoh(simulation)
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 

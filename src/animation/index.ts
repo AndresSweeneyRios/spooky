@@ -24,5 +24,5 @@ export const getAnimation = (name: AnimationKey) => {
 }
 
 export * from './animationPlayer';
-export * from './adapter';
+export * as adapter from './adapter';
 export * from './transform'
