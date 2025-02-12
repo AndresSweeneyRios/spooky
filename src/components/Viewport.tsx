@@ -22,6 +22,7 @@ export const Viewport: React.FC<{
     renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: RENDERER.antialias,
+      preserveDrawingBuffer: true,
     })
     
     renderer.shadowMap.enabled = true;

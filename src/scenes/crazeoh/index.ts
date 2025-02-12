@@ -24,9 +24,32 @@ const SHADOW_CAMERA_TOP = 100;
 const SHADOW_CAMERA_BOTTOM = -100;
 const SHADOW_BIAS = -0.00004;
 
+const setPolaroidFromViewport = () => {
+  const polaroid = document.querySelector("#caseoh-polaroid-overlay .background") as HTMLImageElement
+  const dataUrl = renderer.domElement.toDataURL()
+
+  polaroid.src = dataUrl
+  polaroid.parentElement!.setAttribute("is-hidden", "false")
+}
+
+// window.addEventListener("click", setPolaroidFromViewport)
+
+// functions to disable and enable #caseoh-loading via is-hidden attribute
+const disableLoading = () => {
+  const loading = document.getElementById("caseoh-loading")!
+  loading.setAttribute("is-hidden", "true")
+}
+
+const enableLoading = () => {
+  const loading = document.getElementById("caseoh-loading")!
+  loading.setAttribute("is-hidden", "false")
+}
+
 export const init = async () => {
+  enableLoading()
+
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
   const simulation = new Simulation(camera, scene)
 
   // camera.position.set(2, 1.4, -5)
@@ -111,11 +134,19 @@ export const init = async () => {
 
   player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
 
-  createCaseoh(simulation)
+  // createCaseoh(simulation)
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
+  setTimeout(() => {
+    disableLoading()
+  }, 2000)
+
   return () => {
     simulation.Stop()
+
+    simulation.ViewSync.Cleanup(simulation)
+
+    window.removeEventListener('resize', resize)
   }
 }
