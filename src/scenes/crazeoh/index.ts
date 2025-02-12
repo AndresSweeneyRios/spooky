@@ -33,8 +33,8 @@ export const init = async () => {
 
   camera.rotateY(-Math.PI / 2)
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.3)
-  scene.add(ambientLight)
+  // const ambientLight = new THREE.AmbientLight(0xffffff, 0)
+  // scene.add(ambientLight)
 
   const effectComposer = new EffectComposer(renderer)
 
@@ -52,7 +52,7 @@ export const init = async () => {
   effectComposer.addPass(outputPass)
 
   player.setThirdPerson(false)
-  player.setCameraHeight(1.5)
+  player.setCameraHeight(1.8)
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
@@ -84,7 +84,7 @@ export const init = async () => {
   const [sceneGltf] = await Promise.all([
     loadGltf("/3d/scenes/island/crazeoh.glb"),
 
-    loadEquirectangularAsEnvMap("/3d/env/cityscape.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("/3d/env/fantasy_sky_2.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 0.0
       scene.environment = texture

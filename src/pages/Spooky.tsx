@@ -4,6 +4,7 @@ import React, { Fragment } from 'react';
 import { Viewport } from '../components/Viewport';
 import { DialogueBox } from '../components/DialogueBox';
 import { scenes } from "../scenes";
+import * as Input from "../input/spookyBattle"
 
 import _SVG from 'react-inlinesvg';
 
@@ -11,6 +12,8 @@ const SVG = _SVG as any;
 
 import DpadSvg from '../assets/spooky/dpad.svg';
 import * as midi from '../audio/midi';
+
+Input.listenForEvents()
 
 export default function Spooky() {
   React.useEffect(() => {
@@ -21,7 +24,7 @@ export default function Spooky() {
     const noteMap = new Map<symbol, midi.Note>();
 
     async function playNotes() {
-      for await (const notes of midi.playNotesWithinInterval("/audio/fastbeat.wav", "/audio/fastbeat.mid", 3000, 2, 2000)) {
+      for await (const notes of midi.playNotesWithinInterval("/audio/fastbeat.wav", "/audio/fastbeat.mid", 2000, 2, 2000, 300, 200)) {
         const dpad = document.getElementById("dpad");
 
         for (const note of notes) {
@@ -67,8 +70,6 @@ export default function Spooky() {
           const noteElement = noteElementMap.get(note.note)!;
 
           noteElement.style.left = `${note.percentage}%`;
-
-          console.log(note.percentage)
         }
 
         // cleanup

@@ -1,4 +1,5 @@
 import * as midiManager from 'midi-file';
+import * as Input from "../input/spookyBattle"
 
 interface NoteEvent {
   note: number;
@@ -135,7 +136,7 @@ const loadAudio = async (url: string) => {
         const gainNode = context.createGain();
 
         // Set the volume to 50% (0.5)
-        gainNode.gain.value = 0.2; // Change this value to adjust volume
+        gainNode.gain.value = 0.05; // Change this value to adjust volume
 
         // Connect the source through the gain node to the destination.
         source.connect(gainNode);
@@ -194,7 +195,9 @@ export async function* playNotesWithinInterval(
   midiUrl: string,
   x: number, // window length in milliseconds
   subdivisionsPerMeasure: number,
-  delayMs: number // parameterized delay in ms
+  delayMs: number,         // delay before audio starts (in ms)
+  actionThresholdMs: number, // allowed percentage threshold (e.g. 5 means ±5%)
+  inputThresholdMs: number // input threshold in ms for WasRecentlyPressed
 ) {
   // Load both the audio and MIDI data.
   const [source, notes] = await Promise.all([
@@ -221,6 +224,30 @@ export async function* playNotesWithinInterval(
     return buttonQueue.shift()!;
   }
 
+  // Map a ButtonType to an Action (or set of Actions).
+  function getActionsForButton(button: ButtonType): Input.Action | Input.Action[] {
+    switch (button) {
+      case ButtonType.Up:
+        return Input.Action.Up;
+      case ButtonType.Left:
+        return Input.Action.Left;
+      case ButtonType.Right:
+        return Input.Action.Right;
+      case ButtonType.Down:
+        return Input.Action.Down;
+      case ButtonType.Middle:
+        // For Middle, allow any of the major/minor attack or breaker actions.
+        return [
+          Input.Action.MajorAttack,
+          Input.Action.MajorBreaker,
+          Input.Action.MinorAttack,
+          Input.Action.MinorBreaker
+        ];
+      default:
+        return Input.Action.Up;
+    }
+  }
+
   // Record the wall-clock time immediately.
   const realStart = Date.now();
   // We'll capture the audio's start time (in ms) once it actually starts.
@@ -233,7 +260,10 @@ export async function* playNotesWithinInterval(
     audioStart = source.context.currentTime * 1000;
   }, delayMs);
 
+  const noteButtonMap = new Map<symbol, ButtonType>();
+
   while (true) {
+    // Compute current display time.
     let currentDisplayMs: number;
     if (audioStart === 0) {
       // Audio hasn't started yet; use wall-clock time.
@@ -243,31 +273,61 @@ export async function* playNotesWithinInterval(
       currentDisplayMs = (source.context.currentTime * 1000) - audioStart;
     }
 
-    // For looping, use the effective display time modulo the total duration.
+    // For looping, compute effective display time modulo totalDuration.
     const effectiveDisplayMs = currentDisplayMs % totalDuration;
     const effectiveWindowEnd = effectiveDisplayMs + x;
 
     // Filter notes within the current window.
-    let windowNotes;
+    let windowNotes: typeof notes;
     if (effectiveWindowEnd <= totalDuration) {
-      windowNotes = notes.filter(note => note.ms > effectiveDisplayMs && note.ms <= effectiveWindowEnd);
+      windowNotes = notes.filter(note => note.ms > effectiveDisplayMs && note.ms - actionThresholdMs <= effectiveWindowEnd);
     } else {
       // If the window wraps around, combine notes from the end and beginning.
       windowNotes = notes.filter(note => note.ms > effectiveDisplayMs)
         .concat(notes.filter(note => note.ms <= (effectiveWindowEnd - totalDuration)));
     }
 
+    // Process each note in the current window.
     const notesToPlay = windowNotes.map(note => {
-      // Compute relative time within the window.
-      const relativeTime = (note.ms >= effectiveDisplayMs)
-        ? note.ms - effectiveDisplayMs
-        : (totalDuration - effectiveDisplayMs) + note.ms;
-      const percentage = (relativeTime / x) * 100;
-      // Mark as hit if the note's relative time is <= 0.
-      const hit = relativeTime <= 0;
-      // Assign a ButtonType.
-      const button = getNextButton();
-      return { ...note, percentage, hit, button };
+      // Compute a signed time difference (delta) on a circle.
+      let delta = note.ms - effectiveDisplayMs;
+      // Adjust for wrap-around to get the minimal difference.
+      if (delta > totalDuration / 2) {
+        delta -= totalDuration;
+      } else if (delta < -totalDuration / 2) {
+        delta += totalDuration;
+      }
+      // Compute percentage: 0% when delta is 0, positive if note is in the future, negative if overdue.
+      const percentage = (delta / x) * 100;
+
+      const deltaTime = note.ms - effectiveDisplayMs;
+
+      // Determine if the note is within the input detection threshold:
+      // i.e. its percentage is between -actionThreshold and actionThreshold.
+      let hit = false;
+
+      if (!noteButtonMap.has(note.note)) {
+        const button = getNextButton();
+        noteButtonMap.set(note.note, button);
+      }
+
+      const button = noteButtonMap.get(note.note)!;
+      if (deltaTime >= -actionThresholdMs && deltaTime <= actionThresholdMs) {
+        // Assign a ButtonType for this note.
+        const actions = getActionsForButton(button);
+        if (Array.isArray(actions)) {
+          hit = actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs));
+        } else {
+          hit = Input.WasRecentlyPressed(actions, inputThresholdMs);
+        }
+        return { ...note, percentage, hit, button };
+      } else {
+        if (deltaTime < -actionThresholdMs) {
+          noteButtonMap.delete(note.note);
+        }
+
+        return { ...note, percentage, hit, button };
+      }
     });
 
     if (notesToPlay.length > 0) {
@@ -278,4 +338,3 @@ export async function* playNotesWithinInterval(
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 }
-
