@@ -5,8 +5,6 @@ import {
   RouterProvider,
 } from "react-router-dom"
 import './index.css'
-import { Viewport } from './components/Viewport'
-import { DialogueBox } from './components/DialogueBox'
 
 // Preload
 import { processAttributes } from "./utils/processAttributes"
@@ -22,12 +20,17 @@ import "./graphics/injections"
 import NotFound from './pages/_notfound'
 import Landing from './pages/Landing'
 import Caseoh from "./pages/Caseoh"
+import Spooky from "./pages/Spooky"
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
     element: <Caseoh />,
+  },
+  {
+    path: "/spooky",
+    element: <Spooky />,
   },
   {
     path: "/landing",

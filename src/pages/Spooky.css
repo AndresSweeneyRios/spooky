@@ -1,0 +1,79 @@
+#spooky {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  padding: 2em;
+}
+
+#spooky::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20em;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.8));
+}
+
+#spooky #battle-track {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: auto;
+  width: 100%;
+  height: 10em;
+  background-color: rgba(34, 29, 34, 0.637);
+  backdrop-filter: blur(0.3em);
+  /* box-shadow: 0 0 2em 0 rgb(0, 0, 0); */
+  border-radius: 0.25em;
+  position: relative;
+  z-index: 5;
+  border: 0.1em solid rgb(77, 77, 77);
+  overflow: hidden;
+  padding: 2em;
+  box-sizing: border-box;
+}
+
+#spooky #battle-track svg {
+  position: absolute;
+  width: 6em;
+  height: 6em;
+  left: 0;
+  transition: transform 0.2s, opacity 0.2s;
+  z-index: 6;
+}
+
+#spooky #battle-track svg path {
+  transition: fill 0.2s;
+}
+
+#spooky #battle-track svg[hit="true"] {
+  transform: scale(1.5);
+  opacity: 0;
+}
+
+#spooky #battle-track svg[hit="false"] {
+  /* transform: scale(0); */
+  opacity: 0;
+}
+
+#spooky #battle-track svg[hit="false"] path {
+  fill: red !important;
+  fill-opacity: 0.3 !important;
+}
+
+#spooky #battle-track #dpad-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}

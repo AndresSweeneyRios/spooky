@@ -4,7 +4,7 @@ import { Simulation } from '../simulation';
 import { View } from '../simulation/View';
 import { loadEquirectangularAsEnvMap, loadGltf } from '../graphics/loaders';
 import * as shaders from '../graphics/shaders';
-import { NoiseMaterial } from '../graphics/noise'; 
+import { NoiseMaterial } from '../graphics/noise';
 import { getRGBBits } from '../graphics/quantize';
 import { createParallaxWindowMaterial } from '../graphics/parallaxWindow';
 import { processAttributes } from '../utils/processAttributes';
@@ -26,12 +26,12 @@ export const init = async () => {
       scene.environmentRotation.y += 0.0002
       scene.backgroundRotation.y += 0.0002
     }
-  
+
     public Cleanup(): void {
       renderer.dispose()
     }
   })
-  
+
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
