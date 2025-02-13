@@ -84,10 +84,32 @@
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
-  padding: 4em;
+  justify-content: center;
+  align-items: center;
   pointer-events: none;
+  font-size: 2em;
+  opacity: 0;
+}
+
+#caseoh-polaroid-overlay[shutter="true"] {
+  animation: cameraClickFadeOut 2s ease-in-out;
+}
+
+@keyframes cameraClickFadeOut {
+  0% {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.274);
+  }
+  20% {
+    background-color: transparent;
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 #caseoh-polaroid-overlay img.polaroid {
@@ -102,9 +124,9 @@
   height: 10em;
   width: 11em;
   background-color: rgb(34, 34, 34);
-  bottom: 12.5em;
-  left: 10.8em;
-  transform: rotate(3deg) translate(-50%, 50%);
+  /* bottom: 12.5em;
+  left: 10.8em; */
+  transform: rotate(3deg) translateY(-1.1em);
   object-fit: cover;
 }
 

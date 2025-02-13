@@ -14,6 +14,7 @@ import { CollidersDebugger } from "../../views/collidersDebugger";
 import { vec3 } from "gl-matrix";
 import { traverse } from "../../utils/traverse";
 import { createCaseoh } from "../../entities/caseoh";
+import * as state from "./state"
 
 const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
@@ -25,14 +26,23 @@ const SHADOW_CAMERA_BOTTOM = -100;
 const SHADOW_BIAS = -0.00004;
 
 const setPolaroidFromViewport = () => {
+  if (document.pointerLockElement !== renderer.domElement) {
+    return
+  }
+
   const polaroid = document.querySelector("#caseoh-polaroid-overlay .background") as HTMLImageElement
   const dataUrl = renderer.domElement.toDataURL()
 
   polaroid.src = dataUrl
   polaroid.parentElement!.setAttribute("is-hidden", "false")
+  polaroid.parentElement!.setAttribute("shutter", "true")
+
+  setTimeout(() => {
+    polaroid.parentElement!.setAttribute("shutter", "false")
+  }, 2000)
 }
 
-// window.addEventListener("click", setPolaroidFromViewport)
+window.addEventListener("click", setPolaroidFromViewport)
 
 // functions to disable and enable #caseoh-loading via is-hidden attribute
 const disableLoading = () => {
@@ -85,7 +95,9 @@ export const init = async () => {
       effectComposer.render()
 
       // rotate camera slowly around y axis
-      // camera.rotateY(-0.0005)
+      if (!state.playing) {
+        camera.rotateY(-0.0005)
+      }
     }
 
     public Cleanup(): void {
@@ -130,17 +142,37 @@ export const init = async () => {
 
   scene.add(sceneGltf.scene)
 
-  simulation.Start()
-
-  player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
-
   // createCaseoh(simulation)
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
-  setTimeout(() => {
-    disableLoading()
-  }, 2000)
+  const playerView = await player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
+
+  disableLoading()
+
+  let previousPlayStatus = false
+
+  simulation.Start()
+
+  const detectPlayStateChange = async () => {
+    if (state.playing === previousPlayStatus) {
+      return
+    }
+
+    if (state.playing) {
+      playerView.enableControls()
+    } else {
+      playerView.disableControls()
+    }
+
+    previousPlayStatus = state.playing
+  }
+
+  simulation.ViewSync.AddAuxiliaryView(new class extends View {
+    public Update(): void {
+      detectPlayStateChange()
+    }
+  })
 
   return () => {
     simulation.Stop()

@@ -50,6 +50,10 @@ export class PlayerView extends EntityView {
     const dx = Math.max(-maxDelta, Math.min(maxDelta, event.movementX));
     const dy = Math.max(-maxDelta, Math.min(maxDelta, event.movementY));
 
+    this.updateCamera(dx, dy);
+  }
+
+  private updateCamera(dx: number, dy: number): void {
     // Update yaw and pitch (do not multiply by deltaTime here)
     this.yaw -= dx / MOUSE_SENSITIVITY;
     this.pitch -= dy / MOUSE_SENSITIVITY;
@@ -120,6 +124,10 @@ export class PlayerView extends EntityView {
     const euler = new THREE.Euler(this.pitch, this.yaw, 0, "YXZ");
     this.simulation.Camera.quaternion.setFromEuler(euler);
 
+    this.cleanupEvents = () => { };
+  }
+
+  public enableControls(): void {
     const clickHandler = this.Click.bind(this);
     const mousemoveHandler = this.Mousemove.bind(this);
     const keydownHandler = this.KeydownHandler.bind(this);
@@ -130,7 +138,9 @@ export class PlayerView extends EntityView {
     window.addEventListener("mousemove", mousemoveHandler);
     document.addEventListener("keydown", keydownHandler);
     document.addEventListener("keyup", keyupHandler);
-    document.addEventListener("pointerlockchange", pointerLockChangeHandler);
+    document.addEventListener("pointerlockchange", pointerLockChangeHandler)
+
+    this.updateCamera(0, 0)
 
     this.cleanupEvents = () => {
       this.canvas.removeEventListener("click", clickHandler);
@@ -139,6 +149,11 @@ export class PlayerView extends EntityView {
       document.removeEventListener("keyup", keyupHandler);
       document.removeEventListener("pointerlockchange", pointerLockChangeHandler);
     };
+  }
+
+  public disableControls(): void {
+    this.cleanupEvents();
+    this.cleanupEvents = () => { };
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {

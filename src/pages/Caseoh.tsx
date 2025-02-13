@@ -1,11 +1,13 @@
 import "./Caseoh.css";
 
 import React, { Fragment } from 'react';
-import { Viewport } from '../components/Viewport';
+import { Viewport, renderer } from '../components/Viewport';
 import { DialogueBox } from '../components/DialogueBox';
 import { scenes } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp"
 import PolaroidPng from "../assets/caseoh/polaroid.png"
+import * as state from "../scenes/crazeoh/state"
+import * as THREE from "three"
 
 export default function Caseoh() {
   return (
@@ -13,11 +15,15 @@ export default function Caseoh() {
       <Viewport scene={scenes.crazeoh} />
       <DialogueBox />
 
-      <div id="caseoh" is-hidden="true">
+      <div id="caseoh" is-hidden="false">
         <div className="main">
           <img src={TvWebp} />
           <h1>CrazeOh</h1>
-          <button>Play</button>
+          <button onClick={() => {
+            renderer.domElement.requestPointerLock()
+            document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
+            state.setPlaying(true)
+          }}>Play</button>
         </div>
 
         <div className="credits">
