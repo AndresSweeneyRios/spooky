@@ -1,27 +1,27 @@
 import { Vector3 } from "three";
 import type { Simulation } from "../../simulation";
-import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
+import { ToggleMicrowave } from "../../simulation/commands/crazeoh/ToggleMicrowave";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
-import { FridgeView } from "../../views/crazeoh/fridge";
+import { MicrowaveView } from "../../views/crazeoh/microwave";
 
-export const createFridge = (simulation: Simulation) => {
+export const createMicrowave = (simulation: Simulation) => {
   const entId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
   simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
 
-  const fridgeObject = simulation.ThreeScene.getObjectByName("Fridge")!
+  const microwaveObject = simulation.ThreeScene.getObjectByName("Microwave")!
 
-  const fridgeView = new FridgeView(fridgeObject, simulation)
-  simulation.ViewSync.AddAuxiliaryView(fridgeView)
+  const microwaveView = new MicrowaveView(microwaveObject, simulation)
+  simulation.ViewSync.AddAuxiliaryView(microwaveView)
 
   simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
     entId: entId,
     executionMode: ExecutionMode.Interaction,
-    command: new ToggleFridge(fridgeView),
+    command: new ToggleMicrowave(microwaveView),
     once: false,
   })
 
-  const worldPosition = fridgeObject.getWorldPosition(new Vector3())
+  const worldPosition = microwaveObject.getWorldPosition(new Vector3())
 
   simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [3, 100, 3], [
     worldPosition.x,

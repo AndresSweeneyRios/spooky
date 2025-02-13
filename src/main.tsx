@@ -13,7 +13,7 @@ processAttributes
 import { EntityView } from "./simulation/EntityView"
 import type { EntId } from './simulation/EntityRegistry'
 class A extends EntityView {}
-new A(0 as EntId)
+new A(Symbol() as EntId)
 
 import "./graphics/shaders"
 import "./graphics/injections"

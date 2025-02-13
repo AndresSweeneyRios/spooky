@@ -63,38 +63,42 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
     component.AvailableInteractions = component.AvailableInteractions.filter((s) => s !== symbol)
   }
 
-  public *GetCommandsForSensor(entId: EntId, sensor: symbol) {
+  public GetCommandsForSensor(entId: EntId, sensor: symbol): { symbol: symbol, command: Readonly<SensorCommand> }[] {
     const component = this.entities.get(entId)!
+    const result: { symbol: symbol, command: Readonly<SensorCommand> }[] = []
 
     for (const symbol of component.Commands) {
       const command = this.SensorCommandMap.get(symbol)!
 
       if (command.Sensors === undefined || command.Sensors.includes(sensor)) {
-        yield {
+        result.push({
           symbol,
           command,
-        }
+        })
       }
     }
+
+    return result
   }
 
-  public *GetAvailableInteractions(entId: EntId) {
+  public GetAvailableInteractions(entId: EntId) {
     const component = this.entities.get(entId)!
 
-    for (const symbol of component.AvailableInteractions) {
+    return component.AvailableInteractions.map((symbol) => {
       const command = this.SensorCommandMap.get(symbol)!.Command
+      const entId = this.SymbolEntIdMap.get(symbol)!
 
-      yield {
+      return {
         command,
         entId,
       }
-    }
+    })
   }
 
   public PushAvailableInteractions(entId: EntId, commands: symbol[]) {
     const component = this.entities.get(entId)!
 
-    component.AvailableInteractions = [...component.AvailableInteractions, ...commands]
+    component.AvailableInteractions.push(...commands)
   }
 
   public ClearAvailableInteractions(entId: EntId) {

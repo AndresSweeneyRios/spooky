@@ -1,27 +1,27 @@
 import { Vector3 } from "three";
 import type { Simulation } from "../../simulation";
-import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
+import { ToggleStove } from "../../simulation/commands/crazeoh/ToggleStove";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
-import { FridgeView } from "../../views/crazeoh/fridge";
+import { StoveView } from "../../views/crazeoh/stove";
 
-export const createFridge = (simulation: Simulation) => {
+export const createStove = (simulation: Simulation) => {
   const entId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
   simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
 
-  const fridgeObject = simulation.ThreeScene.getObjectByName("Fridge")!
+  const stoveObject = simulation.ThreeScene.getObjectByName("Stove001")!
 
-  const fridgeView = new FridgeView(fridgeObject, simulation)
-  simulation.ViewSync.AddAuxiliaryView(fridgeView)
+  const stoveView = new StoveView(stoveObject, simulation)
+  simulation.ViewSync.AddAuxiliaryView(stoveView)
 
   simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
     entId: entId,
     executionMode: ExecutionMode.Interaction,
-    command: new ToggleFridge(fridgeView),
+    command: new ToggleStove(stoveView),
     once: false,
   })
 
-  const worldPosition = fridgeObject.getWorldPosition(new Vector3())
+  const worldPosition = stoveObject.getWorldPosition(new Vector3())
 
   simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [3, 100, 3], [
     worldPosition.x,

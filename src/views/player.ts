@@ -90,10 +90,14 @@ export class PlayerView extends EntityView {
       let closestCommand: SimulationCommand | null = null;
 
       for (const { command, entId } of commands) {
-        console.log(command)
-
         const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
-        const distance = vec3.distance(position, this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId));
+        const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
+
+        const distance = math.getAngle(
+          new THREE.Vector3(position[0], 0, position[2]),
+          new THREE.Vector3(playerPosition[0], 0, playerPosition[2]),
+          this.simulation.Camera,
+        )
 
         if (distance < closestDistance) {
           closestDistance = distance;

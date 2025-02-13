@@ -27,30 +27,20 @@ export const vec3ToThree = (v: vec3) => {
  * @param {number} angleThreshold - Angle threshold in degrees.
  * @returns {boolean} - True if the conditions are met.
  */
-export function checkVisibility(object: THREE.Object3D, player: THREE.Object3D, camera: THREE.Camera, angleThreshold = 45) {
-  const raycaster = new THREE.Raycaster();
+export function getAngle(object: THREE.Vector3, player: THREE.Vector3, camera: THREE.Camera) {
   const objectToPlayer = new THREE.Vector3();
   const cameraDirection = new THREE.Vector3();
 
   // Get object and player positions
-  objectToPlayer.subVectors(player.position, object.position).normalize();
-
-  // Set raycaster to check direct line
-  raycaster.set(object.position, objectToPlayer);
-
-  // Perform raycast, but ignore all objects (we assume no colliders affect this)
-  const intersections = raycaster.intersectObjects([], true);
-
-  // If something is hit (which shouldn't happen here), it means we didn't ignore colliders properly
-  if (intersections.length > 0) {
-    return false; // Something blocked the line
-  }
+  objectToPlayer.subVectors(player, object).normalize();
 
   // Get the camera's forward direction
   camera.getWorldDirection(cameraDirection);
 
+  cameraDirection.negate()
+
   // Compute angle between object-to-player vector and camera forward vector
   const angle = objectToPlayer.angleTo(cameraDirection) * (180 / Math.PI); // Convert to degrees
 
-  return angle <= angleThreshold;
+  return angle;
 }

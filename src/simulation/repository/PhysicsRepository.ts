@@ -392,11 +392,21 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
 
     let touching = false
 
-    targetCharacter.computeColliderMovement(targetCollider, new RAPIER.Vector3(0, 0, 0), RAPIER.QueryFilterFlags.EXCLUDE_SOLIDS, undefined, (otherCollider) => {
-      touching = otherCollider.handle === collider.handle
-
-      return false
-    })
+    targetCharacter.computeColliderMovement(
+      targetCollider,
+      new RAPIER.Vector3(0, 0, 0),
+      RAPIER.QueryFilterFlags.EXCLUDE_SOLIDS,
+      undefined,
+      (otherCollider) => {
+        if (otherCollider.handle === collider.handle) {
+          touching = true;
+          // Found our sensor collision, so stop further processing.
+          return false;
+        }
+        // Not our sensor – continue checking.
+        return true;
+      }
+    );
 
     return touching
   }

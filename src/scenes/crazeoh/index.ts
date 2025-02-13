@@ -18,6 +18,8 @@ import { pickRandomAnomaly } from "./anomaly";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
 import { createFridge } from "../../entities/crazeoh/fridge";
+import { createStove } from "../../entities/crazeoh/stove";
+import { createMicrowave } from "../../entities/crazeoh/microwave";
 
 const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
@@ -177,6 +179,8 @@ export const init = async () => {
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
 
   createFridge(simulation)
+  createStove(simulation)
+  createMicrowave(simulation)
 
   return () => {
     simulation.Stop()
