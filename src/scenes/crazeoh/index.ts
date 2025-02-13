@@ -13,8 +13,11 @@ import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { CollidersDebugger } from "../../views/collidersDebugger";
 import { vec3 } from "gl-matrix";
 import { traverse } from "../../utils/traverse";
-import { createCaseoh } from "../../entities/caseoh";
 import * as state from "./state"
+import { pickRandomAnomaly } from "./anomaly";
+import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
+import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
+import { createFridge } from "../../entities/crazeoh/fridge";
 
 const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
@@ -123,7 +126,7 @@ export const init = async () => {
       scene.background = texture
       scene.backgroundIntensity = 0.0
       scene.environment = texture
-      scene.environmentIntensity = 1.0
+      scene.environmentIntensity = 1
     }),
   ])
 
@@ -142,10 +145,6 @@ export const init = async () => {
 
   scene.add(sceneGltf.scene)
 
-  // createCaseoh(simulation)
-
-  // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
-
   const playerView = await player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
 
   disableLoading()
@@ -161,6 +160,7 @@ export const init = async () => {
 
     if (state.playing) {
       playerView.enableControls()
+      pickRandomAnomaly(simulation)
     } else {
       playerView.disableControls()
     }
@@ -173,6 +173,10 @@ export const init = async () => {
       detectPlayStateChange()
     }
   })
+
+  // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
+
+  createFridge(simulation)
 
   return () => {
     simulation.Stop()

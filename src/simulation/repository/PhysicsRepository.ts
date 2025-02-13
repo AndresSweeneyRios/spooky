@@ -214,11 +214,13 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     return collider
   }
 
-  public AddBoxCollider(entId: EntId, halfExtents: vec3, position: vec3, rigidBody?: InstanceType<typeof RAPIER.RigidBody>) {
+  public AddBoxCollider(entId: EntId, halfExtents: vec3, position: vec3, rigidBody?: InstanceType<typeof RAPIER.RigidBody>, sensor = false) {
     let colliderDesc = RAPIER.ColliderDesc.cuboid(halfExtents[0], halfExtents[1], halfExtents[2])
     colliderDesc.setTranslation(position[0], position[1], position[2])
 
     const collider = this.world.createCollider(colliderDesc, rigidBody)
+
+    collider.setSensor(sensor)
 
     const component = this.entities.get(entId)!
     component.colliders.set(Symbol(), collider)

@@ -1,4 +1,4 @@
-import type { Simulation } from "../simulation";
+import type { Simulation } from "../../simulation";
 
 export const createCaseoh = (simulation: Simulation) => {
   const entId = simulation.EntityRegistry.Create()
@@ -7,7 +7,7 @@ export const createCaseoh = (simulation: Simulation) => {
   simulation.SimulationState.MovementRepository.CreateComponent(entId)
   simulation.SimulationState.StatRepository.CreateComponent(entId)
 
-  import("../views/caseoh").then(({ CaseohView }) => {
+  import("../../views/caseoh").then(({ CaseohView }) => {
     const view = new CaseohView(entId, simulation)
     simulation.ViewSync.AddEntityView(view)
   })

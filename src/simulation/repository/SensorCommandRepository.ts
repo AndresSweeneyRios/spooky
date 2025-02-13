@@ -18,14 +18,17 @@ export interface SensorCommand {
 }
 
 class SensorCommandComponent extends SimulationComponent {
-  public Commands = new Map<symbol, Readonly<SensorCommand>>()
+  public Commands: symbol[] = []
   public AvailableInteractions: symbol[] = []
 }
 
 export class SensorCommandRepository extends SimulationRepository<SensorCommandComponent> {
+  public SensorCommandMap = new Map<symbol, Readonly<SensorCommand>>()
+  public SymbolEntIdMap = new Map<symbol, EntId>()
+
   public AddSensorCommand({
-    entId, 
-    command, 
+    entId,
+    command,
     executionMode,
     sensors = undefined,
     once = false,
@@ -39,19 +42,23 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
     const component = this.entities.get(entId)!
 
     const symbol = Symbol()
-    
-    component.Commands.set(symbol, Object.freeze({
+
+    this.SensorCommandMap.set(symbol, Object.freeze({
       Command: command,
       ExecutionMode: executionMode,
       Sensors: sensors,
       Once: once,
     }))
+
+    this.SymbolEntIdMap.set(symbol, entId)
+
+    component.Commands.push(symbol)
   }
 
   public DeleteSensorCommand(entId: EntId, symbol: symbol) {
     const component = this.entities.get(entId)!
 
-    component.Commands.delete(symbol)
+    this.SensorCommandMap.delete(symbol)
 
     component.AvailableInteractions = component.AvailableInteractions.filter((s) => s !== symbol)
   }
@@ -59,7 +66,9 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
   public *GetCommandsForSensor(entId: EntId, sensor: symbol) {
     const component = this.entities.get(entId)!
 
-    for (const [symbol, command] of component.Commands) {
+    for (const symbol of component.Commands) {
+      const command = this.SensorCommandMap.get(symbol)!
+
       if (command.Sensors === undefined || command.Sensors.includes(sensor)) {
         yield {
           symbol,
@@ -69,10 +78,29 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
     }
   }
 
-  public SetAvailableInteractions(entId: EntId, commands: symbol[]) {
+  public *GetAvailableInteractions(entId: EntId) {
     const component = this.entities.get(entId)!
 
-    component.AvailableInteractions = [...commands]
+    for (const symbol of component.AvailableInteractions) {
+      const command = this.SensorCommandMap.get(symbol)!.Command
+
+      yield {
+        command,
+        entId,
+      }
+    }
+  }
+
+  public PushAvailableInteractions(entId: EntId, commands: symbol[]) {
+    const component = this.entities.get(entId)!
+
+    component.AvailableInteractions = [...component.AvailableInteractions, ...commands]
+  }
+
+  public ClearAvailableInteractions(entId: EntId) {
+    const component = this.entities.get(entId)!
+
+    component.AvailableInteractions = []
   }
 
   public static Factory() {

@@ -33,6 +33,7 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
   simulation.SimulationState.MovementRepository.CreateComponent(entId)
   simulation.SimulationState.StatRepository.CreateComponent(entId)
   simulation.SimulationState.StatRepository.SetStatBaseValue(entId, StatType.SPEED, SPEED)
+  simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
 
   return new Promise<PlayerView>((resolve) => {
     if (thirdPerson) {

@@ -1,4 +1,5 @@
 import type { Simulation } from "../simulation";
+import { SimulationCommand } from "../simulation/commands/_command";
 import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import { ModifierType, StatType } from "../simulation/repository/StatRepository";
@@ -78,6 +79,31 @@ export class PlayerView extends EntityView {
           value: this.runSpeedModifier,
         }
       );
+    }
+
+    if (key === "KeyE") {
+      // we want to get all the sensor commands and invoke the closest one
+
+      const commands = this.simulation.SimulationState.SensorCommandRepository.GetAvailableInteractions(this.EntId);
+
+      let closestDistance = Infinity;
+      let closestCommand: SimulationCommand | null = null;
+
+      for (const { command, entId } of commands) {
+        console.log(command)
+
+        const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
+        const distance = vec3.distance(position, this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId));
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestCommand = command;
+        }
+      }
+
+      if (closestCommand) {
+        this.simulation.SimulationState.Commands.push(closestCommand);
+      }
     }
   }
 
