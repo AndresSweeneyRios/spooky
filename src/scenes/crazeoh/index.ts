@@ -20,6 +20,7 @@ import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
 import { createFridge } from "../../entities/crazeoh/fridge";
 import { createStove } from "../../entities/crazeoh/stove";
 import { createMicrowave } from "../../entities/crazeoh/microwave";
+import * as shaders from '../../graphics/shaders';
 
 const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
@@ -28,12 +29,16 @@ const SHADOW_CAMERA_LEFT = -100;
 const SHADOW_CAMERA_RIGHT = 100;
 const SHADOW_CAMERA_TOP = 100;
 const SHADOW_CAMERA_BOTTOM = -100;
-const SHADOW_BIAS = -0.00004;
+const SHADOW_BIAS = -0.0009;
+
+let shutterOn = false
 
 const setPolaroidFromViewport = () => {
-  if (document.pointerLockElement !== renderer.domElement) {
+  if (shutterOn || document.pointerLockElement !== renderer.domElement) {
     return
   }
+
+  shutterOn = true
 
   const polaroid = document.querySelector("#caseoh-polaroid-overlay .background") as HTMLImageElement
   const dataUrl = renderer.domElement.toDataURL()
@@ -44,6 +49,8 @@ const setPolaroidFromViewport = () => {
 
   setTimeout(() => {
     polaroid.parentElement!.setAttribute("shutter", "false")
+
+    shutterOn = false
   }, 2000)
 }
 
@@ -71,8 +78,8 @@ export const init = async () => {
 
   camera.rotateY(-Math.PI / 2)
 
-  // const ambientLight = new THREE.AmbientLight(0xffffff, 0)
-  // scene.add(ambientLight)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0)
+  scene.add(ambientLight)
 
   const effectComposer = new EffectComposer(renderer)
 
@@ -94,6 +101,29 @@ export const init = async () => {
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
+
+  const spotLight = new THREE.SpotLight(0xffffff);
+  spotLight.position.set(2, 3, -6);
+
+  spotLight.castShadow = false;
+
+  spotLight.shadow.mapSize.width = 4096;
+  spotLight.shadow.mapSize.height = 4096;
+
+  spotLight.shadow.camera.near = 0.1;
+  spotLight.shadow.camera.far = 30;
+  spotLight.shadow.camera.fov = 30;
+  spotLight.intensity = 3
+  spotLight.decay = 0.3
+  spotLight.angle = Math.PI * 0.17
+  spotLight.penumbra = 1
+  spotLight.shadow.bias = SHADOW_BIAS
+  scene.add(spotLight);
+
+  // add target to spotlight
+  const target = new THREE.Object3D()
+  scene.add(target)
+  spotLight.target = target
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
@@ -128,7 +158,7 @@ export const init = async () => {
       scene.background = texture
       scene.backgroundIntensity = 0.0
       scene.environment = texture
-      scene.environmentIntensity = 1
+      scene.environmentIntensity = 0
     }),
   ])
 
@@ -144,6 +174,8 @@ export const init = async () => {
   }
 
   processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
+
+  shaders.applyInjectedMaterials(sceneGltf.scene)
 
   scene.add(sceneGltf.scene)
 
@@ -173,6 +205,24 @@ export const init = async () => {
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
     public Update(): void {
       detectPlayStateChange()
+    }
+
+    public Draw(): void {
+      camera.updateMatrixWorld()
+
+      // For example, offset the spotlight from the camera:
+      const cameraPosition = camera.getWorldPosition(new THREE.Vector3());
+      spotLight.position.copy(cameraPosition).add(new THREE.Vector3(0, 0, 0));
+
+      // Then update the target to point where the camera is looking:
+      const cameraDirection = new THREE.Vector3();
+      camera.getWorldDirection(cameraDirection);
+      spotLight.target.position.copy(cameraPosition).add(cameraDirection);
+      spotLight.target.updateMatrixWorld();
+    }
+
+    public Cleanup(): void {
+      renderer.dispose()
     }
   })
 
