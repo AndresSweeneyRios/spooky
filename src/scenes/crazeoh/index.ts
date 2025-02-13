@@ -14,7 +14,7 @@ import { CollidersDebugger } from "../../views/collidersDebugger";
 import { vec3 } from "gl-matrix";
 import { traverse } from "../../utils/traverse";
 import * as state from "./state"
-import { pickRandomAnomaly } from "./anomaly";
+import { disableAllAnomalies, pickRandomAnomaly } from "./anomaly";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
 import { createFridge } from "../../entities/crazeoh/fridge";
@@ -31,30 +31,7 @@ const SHADOW_CAMERA_TOP = 100;
 const SHADOW_CAMERA_BOTTOM = -100;
 const SHADOW_BIAS = -0.0009;
 
-let shutterOn = false
-
-const setPolaroidFromViewport = () => {
-  if (shutterOn || document.pointerLockElement !== renderer.domElement) {
-    return
-  }
-
-  shutterOn = true
-
-  const polaroid = document.querySelector("#caseoh-polaroid-overlay .background") as HTMLImageElement
-  const dataUrl = renderer.domElement.toDataURL()
-
-  polaroid.src = dataUrl
-  polaroid.parentElement!.setAttribute("is-hidden", "false")
-  polaroid.parentElement!.setAttribute("shutter", "true")
-
-  setTimeout(() => {
-    polaroid.parentElement!.setAttribute("shutter", "false")
-
-    shutterOn = false
-  }, 2000)
-}
-
-window.addEventListener("click", setPolaroidFromViewport)
+const mapLoader = loadGltf("/3d/scenes/island/crazeoh.glb")
 
 // functions to disable and enable #caseoh-loading via is-hidden attribute
 const disableLoading = () => {
@@ -74,24 +51,20 @@ export const init = async () => {
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
   const simulation = new Simulation(camera, scene)
 
-  // camera.position.set(2, 1.4, -5)
-
-  camera.rotateY(-Math.PI / 2)
-
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0)
-  scene.add(ambientLight)
-
   const effectComposer = new EffectComposer(renderer)
 
   const renderPass = new RenderPass(scene, camera)
   effectComposer.addPass(renderPass)
 
+  ToneMappingShader.uniforms.contrast = { value: 1.09 }
+  ToneMappingShader.uniforms.saturation = { value: 0.9 }
+  ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 }
   const toneMappingPass = new ShaderPass(ToneMappingShader);
   effectComposer.addPass(toneMappingPass);
 
-  const fxaaPass = new ShaderPass(FXAAShader)
-  fxaaPass.material.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
-  effectComposer.addPass(fxaaPass)
+  const crtPass = new ShaderPass(shaders.CRTShader);
+  crtPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+  effectComposer.addPass(crtPass);
 
   const outputPass = new OutputPass()
   effectComposer.addPass(outputPass)
@@ -125,25 +98,10 @@ export const init = async () => {
   scene.add(target)
   spotLight.target = target
 
-  simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
-    public Draw(): void {
-      effectComposer.render()
-
-      // rotate camera slowly around y axis
-      if (!state.playing) {
-        camera.rotateY(-0.0005)
-      }
-    }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
-  })
-
   const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    fxaaPass.material.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
+    // fxaaPass.material.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
     effectComposer.setSize(window.innerWidth, window.innerHeight)
   }
 
@@ -151,18 +109,14 @@ export const init = async () => {
 
   window.addEventListener('resize', resize, false);
 
-  const [sceneGltf] = await Promise.all([
-    loadGltf("/3d/scenes/island/crazeoh.glb"),
-
-    loadEquirectangularAsEnvMap("/3d/env/fantasy_sky_2.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
-      scene.background = texture
-      scene.backgroundIntensity = 0.0
-      scene.environment = texture
-      scene.environmentIntensity = 0
-    }),
+  const [sceneGltfOriginal, playerView] = await Promise.all([
+    mapLoader,
+    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
   ])
 
-  for (const child of traverse(sceneGltf.scene)) {
+  const sceneGltf = sceneGltfOriginal.scene.clone()
+
+  for (const child of traverse(sceneGltf)) {
     if (child instanceof THREE.Mesh) {
       child.castShadow = true
       child.receiveShadow = true
@@ -173,19 +127,19 @@ export const init = async () => {
     }
   }
 
-  processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
+  processAttributes(sceneGltf, simulation, sceneEntId, false)
 
-  shaders.applyInjectedMaterials(sceneGltf.scene)
+  shaders.applyInjectedMaterials(sceneGltf)
 
-  scene.add(sceneGltf.scene)
-
-  const playerView = await player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
+  scene.add(sceneGltf)
 
   disableLoading()
 
   let previousPlayStatus = false
 
   simulation.Start()
+
+  disableAllAnomalies(simulation)
 
   const detectPlayStateChange = async () => {
     if (state.playing === previousPlayStatus) {
@@ -232,11 +186,56 @@ export const init = async () => {
   createStove(simulation)
   createMicrowave(simulation)
 
+  simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
+    public Draw(): void {
+      crtPass.uniforms.time.value = performance.now() / 1000.0;
+      crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
+
+      // rotate camera slowly around y axis
+      if (!state.playing) {
+        camera.rotateY(-0.0005)
+      }
+
+      effectComposer.render()
+    }
+
+    public Cleanup(): void {
+      renderer.dispose()
+    }
+  })
+
+  let shutterOn = false
+
+  const setPolaroidFromViewport = () => {
+    if (shutterOn || document.pointerLockElement !== renderer.domElement) {
+      return
+    }
+
+    shutterOn = true
+
+    const polaroid = document.querySelector("#caseoh-polaroid-overlay .background") as HTMLImageElement
+    const dataUrl = renderer.domElement.toDataURL()
+
+    polaroid.src = dataUrl
+    polaroid.parentElement!.setAttribute("is-hidden", "false")
+    polaroid.parentElement!.setAttribute("shutter", "true")
+
+    setTimeout(() => {
+      polaroid.parentElement!.setAttribute("shutter", "false")
+
+      shutterOn = false
+    }, 2000)
+  }
+
+  window.addEventListener("click", setPolaroidFromViewport)
+
   return () => {
     simulation.Stop()
 
     simulation.ViewSync.Cleanup(simulation)
 
     window.removeEventListener('resize', resize)
+
+    window.removeEventListener("click", setPolaroidFromViewport)
   }
 }
