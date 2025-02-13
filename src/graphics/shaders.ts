@@ -364,13 +364,13 @@ export const CRTShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1, 1) },
     time: { value: 0.0 },
-    scanlineIntensity: { value: 0.7 },
+    scanlineIntensity: { value: 0.3 },
     vignetteIntensity: { value: 0.0 },
-    curvature: { value: 0.3 },
-    noiseIntensity: { value: 0.2 },
+    curvature: { value: 0.5 },
+    noiseIntensity: { value: 0.3 },
     rgbOffset: { value: new THREE.Vector2(0.0012, 0.0012) },
     // New uniform to optionally scale the UV coordinates after distortion.
-    edgeScale: { value: 0.85 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
+    edgeScale: { value: 0.8 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -399,6 +399,11 @@ export const CRTShader = {
       return coord + cc * amt * dist * dist;
     }
     
+    // Random noise function
+    float random(vec2 st) {
+      return fract(sin(dot(st.xy, vec2(12.9898, 78.233) + time)) * 43758.5453123);
+    }
+
     void main() {
       // Apply barrel distortion to the original UVs.
       vec2 uv = barrelDistortion(vUv, curvature);
@@ -407,16 +412,26 @@ export const CRTShader = {
       uv = (uv - 0.5) * edgeScale + 0.5;
       
       // Create a scanline pattern based on the screen's vertical resolution.
-      float scanline = sin(vUv.y * resolution.y * 3.14159 * 2.0) * 0.5 + 0.5;
+      float scanline = sin((vUv.y) * resolution.y * 3.1459) * 0.5 + 0.5;
       scanline = mix(1.0, scanline, scanlineIntensity);
       
       // Apply vignette by darkening toward the edges.
       float dist = distance(uv, vec2(0.5, 0.5));
-      float vignette = smoothstep(0.8, 0.5, dist);
-      vignette = mix(1.0, vignette, vignetteIntensity);
+      // float vignette = smoothstep(0.8, 0.5, dist);
+      // vignette = mix(1.0, vignette, vignetteIntensity);
       
-      // Create noise/flicker effect based on time.
-      float noise = fract(sin(dot(uv * time, vec2(12.9898, 78.233))) * 43758.5453);
+      // Assume resolution holds the actual render resolution in pixels (width, height)
+      // We want the noise grid to be 640 pixels wide, and the height accordingly.
+      // vec2 noiseGridRes = vec2(640.0, 640.0 * (resolution.y / resolution.x));
+
+      // Convert normalized uv (0-1) into pixel coordinates for the noise grid,
+      // then use floor() to quantize to discrete noise cells.
+      vec2 noiseUV = floor(uv * resolution);
+
+      // Now, to animate the noise, add time as an offset (you can tweak which axis to add time)
+      float noise = random(noiseUV);
+
+      // Mix with zero based on noiseIntensity.
       noise = mix(0.0, noise, noiseIntensity);
       
       // Sample the scene texture with a slight offset for chromatic aberration.
@@ -428,8 +443,10 @@ export const CRTShader = {
       
       // Combine the effects.
       color.rgb *= scanline;
-      color.rgb *= vignette;
-      color.rgb += noise * 0.1;
+      // color.rgb *= vignette;
+      color.r += noise * 0.12;
+      color.g += noise * 0.09;
+      color.b += noise * 0.1;
       
       gl_FragColor = color;
     }

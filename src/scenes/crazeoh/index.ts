@@ -21,6 +21,10 @@ import { createFridge } from "../../entities/crazeoh/fridge";
 import { createStove } from "../../entities/crazeoh/stove";
 import { createMicrowave } from "../../entities/crazeoh/microwave";
 import * as shaders from '../../graphics/shaders';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { getAngle } from "../../utils/math";
+import { createDoor } from "../../entities/crazeoh/door";
+import { PlayerView } from "../../views/player";
 
 const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
 const SHADOW_CAMERA_NEAR = 0.1;
@@ -44,7 +48,14 @@ const enableLoading = () => {
   loading.setAttribute("is-hidden", "false")
 }
 
+export let currentPlayerView: PlayerView | null = null
+
 export const init = async () => {
+  state.setAnomalyPosition(new THREE.Vector3(0, 0, 0))
+  state.setFoundAnomaly(false)
+  state.setTookPicture(false)
+  state.setPlaying(false)
+
   enableLoading()
 
   const scene = new THREE.Scene()
@@ -56,8 +67,8 @@ export const init = async () => {
   const renderPass = new RenderPass(scene, camera)
   effectComposer.addPass(renderPass)
 
-  ToneMappingShader.uniforms.contrast = { value: 1.09 }
-  ToneMappingShader.uniforms.saturation = { value: 0.9 }
+  ToneMappingShader.uniforms.contrast = { value: 1.07 }
+  ToneMappingShader.uniforms.saturation = { value: 0.95 }
   ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 }
   const toneMappingPass = new ShaderPass(ToneMappingShader);
   effectComposer.addPass(toneMappingPass);
@@ -114,7 +125,9 @@ export const init = async () => {
     player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
   ])
 
-  const sceneGltf = sceneGltfOriginal.scene.clone()
+  currentPlayerView = playerView
+
+  const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal.scene)
 
   for (const child of traverse(sceneGltf)) {
     if (child instanceof THREE.Mesh) {
@@ -133,11 +146,7 @@ export const init = async () => {
 
   scene.add(sceneGltf)
 
-  disableLoading()
-
   let previousPlayStatus = false
-
-  simulation.Start()
 
   disableAllAnomalies(simulation)
 
@@ -185,6 +194,7 @@ export const init = async () => {
   createFridge(simulation)
   createStove(simulation)
   createMicrowave(simulation)
+  createDoor(simulation)
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
@@ -213,12 +223,30 @@ export const init = async () => {
 
     shutterOn = true
 
-    const polaroid = document.querySelector("#caseoh-polaroid-overlay .background") as HTMLImageElement
+    const polaroid = document.querySelector(".caseoh-polaroid-overlay.ingame .background") as HTMLImageElement
+    const polaroid2 = document.querySelector("#caseoh-decision .caseoh-polaroid-overlay .background") as HTMLImageElement
     const dataUrl = renderer.domElement.toDataURL()
 
     polaroid.src = dataUrl
+    polaroid2.src = dataUrl
     polaroid.parentElement!.setAttribute("is-hidden", "false")
     polaroid.parentElement!.setAttribute("shutter", "true")
+
+    const playerEntId = playerView.EntId
+    const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
+    const targetPosition = state.anomalyPosition
+
+    if (state.anomaly) {
+      const angle = getAngle(targetPosition, new THREE.Vector3(
+        playerPosition[0],
+        playerPosition[1],
+        playerPosition[2]
+      ), camera)
+
+      state.setFoundAnomaly(angle < 25)
+    }
+
+    state.setTookPicture(true)
 
     setTimeout(() => {
       polaroid.parentElement!.setAttribute("shutter", "false")
@@ -228,6 +256,12 @@ export const init = async () => {
   }
 
   window.addEventListener("click", setPolaroidFromViewport)
+
+  setTimeout(() => {
+    disableLoading()
+  }, 750)
+
+  simulation.Start()
 
   return () => {
     simulation.Stop()

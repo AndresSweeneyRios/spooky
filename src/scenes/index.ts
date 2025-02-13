@@ -1,5 +1,4 @@
 import { rapierFinishedLoading } from '../simulation/repository/PhysicsRepository'
-import * as THREE from 'three'
 
 export const scenes = Object.freeze({
   gatesOfHeaven: () => import('./gatesOfHeaven'),
@@ -9,7 +8,7 @@ export const scenes = Object.freeze({
   crazeoh: () => import('./crazeoh'),
 })
 
-const DEFAULT_SCENE = scenes.crazeoh
+const DEFAULT_SCENE = scenes.city
 
 export type Scene = typeof DEFAULT_SCENE
 

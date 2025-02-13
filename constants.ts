@@ -1,6 +1,6 @@
 export const RENDERER = Object.freeze({
   limitResolution: true,
-  width: 729,
+  width: 640,
   colorBits: 64,
   vertexBits: 64,
   antialias: false,

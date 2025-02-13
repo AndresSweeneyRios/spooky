@@ -1,6 +1,6 @@
 import type { Simulation } from "../../simulation"
 import * as state from "./state"
-import type * as THREE from 'three'
+import * as THREE from 'three'
 
 interface Anomaly {
   Id: symbol
@@ -15,7 +15,7 @@ const FrenchFries: Anomaly = {
     const fries = simulation.ThreeScene.getObjectByName('fries')!.getObjectByProperty('type', 'Mesh') as THREE.Mesh
     fries.scale.set(0.5, 0.5, 0.5)
 
-    return fries.position
+    return fries.getWorldPosition(new THREE.Vector3())
   },
 
   Disable(simulation: Simulation) {
@@ -30,7 +30,7 @@ const SeveredHand: Anomaly = {
 
     hand.visible = true
 
-    return hand.position
+    return hand.getWorldPosition(new THREE.Vector3())
   },
 
   Disable(simulation: Simulation) {
@@ -59,7 +59,7 @@ export const pickRandomAnomaly = (simulation: Simulation) => {
   const isNoAnomaly = Math.random() < 0.2
 
   state.setAnomaly(!isNoAnomaly)
-  state.setFoundAnomoly(false)
+  state.setFoundAnomaly(false)
 
   if (isNoAnomaly) {
     return

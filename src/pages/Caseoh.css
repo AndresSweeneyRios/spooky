@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;1,400&family=Libre+Barcode+39+Text&family=Manrope:wght@200&display=swap');
 
-#caseoh {
+#caseoh, #caseoh-decision {
   position: absolute;
   top: 0;
   left: 0;
@@ -16,7 +16,7 @@
   display: none !important;
 } 
 
-#caseoh .main {
+#caseoh .main, #caseoh-decision .main {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -25,11 +25,11 @@
   gap: 5em;
 }
 
-#caseoh .main img {
+#caseoh .main img, #caseoh-decision .main img {
   width: 12em;
 }
 
-#caseoh .main h1 {
+#caseoh .main h1, #caseoh-decision .main h1 {
   font-family: Manrope, sans-serif;
   text-transform: uppercase;
   font-weight: 200;
@@ -40,7 +40,7 @@
   font-size: 2.8em;
 }
 
-#caseoh .main button {
+#caseoh .main button, #caseoh-decision .main button {
   --gradient-start-color: rgba(0, 0, 0, 0.1);
   --gradient-end-color: rgba(109, 109, 109, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.158);
@@ -56,7 +56,7 @@
   border-radius: 4em;
 }
 
-#caseoh .main button:hover {
+#caseoh .main button:hover, #caseoh-decision .main button:hover {
   --gradient-start-color: white;
   --gradient-end-color: white;
   color: black;
@@ -77,7 +77,7 @@
   color: grey;
 }
 
-#caseoh-polaroid-overlay {
+.caseoh-polaroid-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -91,7 +91,7 @@
   opacity: 0;
 }
 
-#caseoh-polaroid-overlay[shutter="true"] {
+.caseoh-polaroid-overlay[shutter="true"] {
   animation: cameraClickFadeOut 2s ease-in-out;
 }
 
@@ -112,14 +112,14 @@
   }
 }
 
-#caseoh-polaroid-overlay img.polaroid {
+.caseoh-polaroid-overlay img.polaroid {
   height: 15em;
   width: 13em;
   transform: rotate(3deg);
   position: relative;
 }
 
-#caseoh-polaroid-overlay img.background {
+.caseoh-polaroid-overlay img.background {
   position: absolute;
   height: 10em;
   width: 11em;
@@ -145,6 +145,7 @@
   font-family: Manrope;
   text-transform: uppercase;
   letter-spacing: 0.5em;
+  z-index: 1000;
 }
 
 #caseoh-loading img {
@@ -179,4 +180,32 @@
   100% {
     opacity: 0.6;
   }
+}
+
+#caseoh-decision {
+  background-color: black;
+  z-index: 10;
+}
+
+#caseoh-decision .main {
+  font-size: 0.8em;
+}
+
+#caseoh-decision .main .polaroid {
+  width: 15em;
+}
+
+#caseoh-decision .main .split {
+  display: flex;
+  gap: 2em;
+}
+
+#caseoh-decision .caseoh-polaroid-overlay {
+  position: relative;
+  z-index: 11;
+  opacity: 1;
+  font-size: 1.5em;
+  width: auto;
+  height: auto;
+  transform: scaleX(0.9);
 }

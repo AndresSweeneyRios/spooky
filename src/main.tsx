@@ -19,14 +19,14 @@ import "./graphics/shaders"
 import "./graphics/injections"
 import NotFound from './pages/_notfound'
 import Landing from './pages/Landing'
-import Caseoh from "./pages/Caseoh"
+import { CrazeOh } from "./pages/Caseoh"
 import Spooky from "./pages/Spooky"
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
-    element: <Caseoh />,
+    element: <CrazeOh />,
   },
   {
     path: "/spooky",

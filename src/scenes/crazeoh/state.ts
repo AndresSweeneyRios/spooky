@@ -18,10 +18,10 @@ export const setAnomaly = (value: boolean) => {
 
 // -----
 
-export let foundAnomoly = false
+export let foundAnomaly = false
 
-export const setFoundAnomoly = (value: boolean) => {
-  foundAnomoly = value
+export const setFoundAnomaly = (value: boolean) => {
+  foundAnomaly = value
 }
 
 // -----
@@ -38,10 +38,22 @@ export let wins = 0
 
 export const incrementWins = () => {
   wins++
+
+  console.log("WINNER WINNER CHICKEN DINNER")
 }
 
 export const resetWins = () => {
   wins = 0
+
+  console.log("LOSER LOSER CHICKEN DINNER")
+}
+
+// -----
+
+export let tookPicture = false
+
+export const setTookPicture = (value: boolean) => {
+  tookPicture = value
 }
 
 // -----
