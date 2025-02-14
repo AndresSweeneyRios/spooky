@@ -2,21 +2,17 @@ import * as THREE from 'three'
 import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
-import { loadEquirectangularAsEnvMap, loadGltf, } from '../../graphics/loaders';
+import { loadAudio, loadEquirectangularAsEnvMap, loadGltf, } from '../../graphics/loaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { FXAAShader, ShaderPass } from 'three/examples/jsm/Addons.js';
+import { ShaderPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
-import { CollidersDebugger } from "../../views/collidersDebugger";
-import { vec3 } from "gl-matrix";
 import { traverse } from "../../utils/traverse";
 import * as state from "./state"
 import { disableAllAnomalies, pickRandomAnomaly } from "./anomaly";
-import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
-import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
 import { createFridge } from "../../entities/crazeoh/fridge";
 import { createStove } from "../../entities/crazeoh/stove";
 import { createMicrowave } from "../../entities/crazeoh/microwave";
@@ -26,16 +22,33 @@ import { getAngle } from "../../utils/math";
 import { createDoor } from "../../entities/crazeoh/door";
 import { PlayerView } from "../../views/player";
 
-const SHADOW_MAP_SIZE = renderer.capabilities.maxTextureSize;
-const SHADOW_CAMERA_NEAR = 0.1;
-const SHADOW_CAMERA_FAR = 2000;
-const SHADOW_CAMERA_LEFT = -100;
-const SHADOW_CAMERA_RIGHT = 100;
-const SHADOW_CAMERA_TOP = 100;
-const SHADOW_CAMERA_BOTTOM = -100;
 const SHADOW_BIAS = -0.0009;
 
 const mapLoader = loadGltf("/3d/scenes/island/crazeoh.glb")
+
+const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
+  loop: true,
+})
+
+const nightAmbianceAudioPromise = loadAudio("/audio/sfx/night_ambiance.ogg", {
+  loop: true,
+})
+
+const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {})
+
+cameraAudioPromise.then(audio => {
+  audio.setVolume(0.3)
+})
+
+windAudioPromise.then(audio => {
+  audio.setVolume(0.06)
+  audio.play()
+})
+
+nightAmbianceAudioPromise.then(audio => {
+  audio.setVolume(0.01)
+  audio.play()
+})
 
 // functions to disable and enable #caseoh-loading via is-hidden attribute
 const disableLoading = () => {
@@ -84,7 +97,7 @@ export const init = async () => {
   effectComposer.addPass(outputPass)
 
   player.setThirdPerson(false)
-  player.setCameraHeight(1.8)
+  player.setCameraHeight(2)
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
@@ -123,9 +136,12 @@ export const init = async () => {
 
   window.addEventListener('resize', resize, false);
 
-  const [sceneGltfOriginal, playerView] = await Promise.all([
+  const [
+    sceneGltfOriginal,
+    playerView,
+  ] = await Promise.all([
     mapLoader,
-    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
+    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0]),
   ])
 
   currentPlayerView = playerView
@@ -225,6 +241,8 @@ export const init = async () => {
     }
 
     shutterOn = true
+
+    cameraAudioPromise.then(audio => audio.play())
 
     const polaroid = document.querySelector(".caseoh-polaroid-overlay.ingame .background") as HTMLImageElement
     const polaroid2 = document.querySelector("#caseoh-decision .caseoh-polaroid-overlay .background") as HTMLImageElement

@@ -17,7 +17,7 @@ Input.listenForEvents()
 
 export default function Spooky() {
   React.useEffect(() => {
-    return
+    // return
 
     // the dpad is our note icon. this is a rhythm game. the notes will spawn in from right to left based on notes[x].percentage.
     // clone the dpad svg and move it to the right side of the screen. we will need to maintain a list of notes that are currently on the screen.
@@ -26,7 +26,7 @@ export default function Spooky() {
     const noteMap = new Map<symbol, midi.Note>();
 
     async function playNotes() {
-      for await (const notes of midi.playNotesWithinInterval("/audio/fastbeat.wav", "/audio/fastbeat.mid", 4000, 2, 2000, 300, 200)) {
+      for await (const notes of midi.playNotesWithinInterval("/audio/music/fastbeat.wav", "/audio/music/fastbeat.mid", 4000, 2, 2000, 300, 200)) {
         const dpad = document.getElementById("dpad");
 
         for (const note of notes) {
@@ -102,13 +102,13 @@ export default function Spooky() {
   return (
     <Fragment>
       <Viewport scene={scenes.gatesOfHeaven} />
-      {/* <div id="spooky">
+      <div id="spooky">
         <div id="battle-track">
           <div id="dpad-container">
             <SVG id="dpad" src={DpadSvg} />
           </div>
         </div>
-      </div> */}
+      </div>
       <DialogueBox />
     </Fragment>
   )

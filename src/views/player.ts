@@ -1,3 +1,4 @@
+import { loadAudio } from "../graphics/loaders";
 import type { Simulation } from "../simulation";
 import { SimulationCommand } from "../simulation/commands/_command";
 import type { EntId } from "../simulation/EntityRegistry";
@@ -21,6 +22,11 @@ const KEYS = Object.freeze([
 
 type Key = typeof KEYS[number];
 
+const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
+  randomPitch: true,
+  detune: - 1000,
+})
+
 export class PlayerView extends EntityView {
   protected yaw: number = 0;
   protected pitch: number = 0;
@@ -35,7 +41,11 @@ export class PlayerView extends EntityView {
   protected cameraPositionOffset: vec3 = vec3.fromValues(0, 0, 0);
   protected runSpeedModifier: number = 2;
 
+  public runEnabled: boolean = false;
+
   private runEffectId: symbol | null = null;
+
+  private footstepAudioInterval: ReturnType<typeof setInterval> | null = null;
 
   public Click(): void {
     this.canvas.requestPointerLock();
@@ -70,7 +80,7 @@ export class PlayerView extends EntityView {
 
   public Keydown(key: Key): void {
     this.keysDown.add(key);
-    if (key === "ShiftLeft") {
+    if (key === "ShiftLeft" && this.runEnabled) {
       this.runEffectId = this.simulation.SimulationState.StatRepository.CreateStatusEffect(
         this.EntId,
         {
@@ -184,6 +194,11 @@ export class PlayerView extends EntityView {
   public disableControls(): void {
     this.cleanupEvents();
     this.cleanupEvents = () => { };
+
+    if (this.footstepAudioInterval !== null) {
+      clearInterval(this.footstepAudioInterval);
+      this.footstepAudioInterval = null;
+    }
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
@@ -214,6 +229,21 @@ export class PlayerView extends EntityView {
       0,
       (this.keysDown.has("KeyS") ? 1 : 0) - (this.keysDown.has("KeyW") ? 1 : 0)
     );
+
+    if (localDirection.length() > 0) {
+      if (this.footstepAudioInterval === null) {
+        footstepAudio.then(audio => audio.play());
+
+        this.footstepAudioInterval = setInterval(() => {
+          footstepAudio.then(audio => audio.play());
+        }, 700);
+      }
+    } else {
+      if (this.footstepAudioInterval !== null) {
+        clearInterval(this.footstepAudioInterval);
+        this.footstepAudioInterval = null;
+      }
+    }
 
     // Rotate the movement vector by the camera's orientation.
     localDirection.applyQuaternion(this.simulation.Camera.quaternion);
