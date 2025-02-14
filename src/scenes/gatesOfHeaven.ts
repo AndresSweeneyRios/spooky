@@ -139,7 +139,7 @@ export const init = async () => {
       scene.environmentRotation.y += 0.0002
       scene.backgroundRotation.y += 0.0002
 
-      crtPass.uniforms.time.value += 0.01
+      crtPass.uniforms.time.value = Date.now() / 1000.0 % 1.0;
 
       effectComposer.render()
     }

@@ -59,8 +59,11 @@ export const init = async () => {
   enableLoading()
 
   const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
   const simulation = new Simulation(camera, scene)
+
+  const listener = new THREE.AudioListener()
+  camera.add(listener)
 
   const effectComposer = new EffectComposer(renderer)
 
@@ -99,7 +102,7 @@ export const init = async () => {
   spotLight.shadow.camera.fov = 30;
   spotLight.intensity = 3
   spotLight.decay = 0.3
-  spotLight.angle = Math.PI * 0.17
+  spotLight.angle = Math.PI * 0.25
   spotLight.penumbra = 1
   spotLight.shadow.bias = SHADOW_BIAS
   scene.add(spotLight);
@@ -198,7 +201,7 @@ export const init = async () => {
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
-      crtPass.uniforms.time.value = performance.now() / 1000.0;
+      crtPass.uniforms.time.value = Date.now() / 1000.0 % 1.0;
       crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
 
       // rotate camera slowly around y axis
@@ -243,7 +246,7 @@ export const init = async () => {
         playerPosition[2]
       ), camera)
 
-      state.setFoundAnomaly(angle < 25)
+      state.setFoundAnomaly(angle < 30)
     }
 
     state.setTookPicture(true)
