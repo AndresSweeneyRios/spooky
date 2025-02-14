@@ -85,12 +85,13 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
     const component = this.entities.get(entId)!
 
     return component.AvailableInteractions.map((symbol) => {
-      const command = this.SensorCommandMap.get(symbol)!.Command
+      const command = this.SensorCommandMap.get(symbol)!
       const entId = this.SymbolEntIdMap.get(symbol)!
 
       return {
         command,
         entId,
+        symbol,
       }
     })
   }

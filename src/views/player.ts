@@ -3,6 +3,7 @@ import type { Simulation } from "../simulation";
 import { SimulationCommand } from "../simulation/commands/_command";
 import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
+import { SensorCommand } from "../simulation/repository/SensorCommandRepository";
 import { ModifierType, StatType } from "../simulation/repository/StatRepository";
 import * as math from "../utils/math";
 import { vec3 } from "gl-matrix";
@@ -97,9 +98,11 @@ export class PlayerView extends EntityView {
       const commands = this.simulation.SimulationState.SensorCommandRepository.GetAvailableInteractions(this.EntId);
 
       let closestDistance = Infinity;
-      let closestCommand: SimulationCommand | null = null;
+      let closestCommand: SensorCommand | null = null;
+      let closestEntId: EntId | null = null;
+      let closestCommandSymbol: symbol | null = null;
 
-      for (const { command, entId } of commands) {
+      for (const { command, entId, symbol } of commands) {
         const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
         const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
 
@@ -112,11 +115,17 @@ export class PlayerView extends EntityView {
         if (distance < closestDistance) {
           closestDistance = distance;
           closestCommand = command;
+          closestEntId = entId;
+          closestCommandSymbol = symbol
         }
       }
 
-      if (closestCommand) {
-        this.simulation.SimulationState.Commands.push(closestCommand);
+      if (closestCommand && closestEntId && closestCommandSymbol) {
+        this.simulation.SimulationState.Commands.push(closestCommand.Command);
+
+        if (closestCommand.Once) {
+          this.simulation.SimulationState.SensorCommandRepository.DeleteSensorCommand(closestEntId, closestCommandSymbol);
+        }
       }
     }
   }

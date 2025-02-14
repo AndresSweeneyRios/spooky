@@ -21,6 +21,9 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { getAngle } from "../../utils/math";
 import { createDoor } from "../../entities/crazeoh/door";
 import { PlayerView } from "../../views/player";
+import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
+import { SimulationCommand } from "../../simulation/commands/_command";
+import { CollidersDebugger } from "../../views/collidersDebugger";
 
 const SHADOW_BIAS = -0.0009;
 
@@ -35,6 +38,19 @@ const nightAmbianceAudioPromise = loadAudio("/audio/sfx/night_ambiance.ogg", {
 })
 
 const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {})
+
+const ceilingFanAudioPromise = loadAudio("/audio/sfx/ceiling_fan.ogg", {
+  loop: true,
+  positional: true,
+})
+
+const eatChipAudioPromise = loadAudio("/audio/sfx/eat_chip.ogg", {
+  detune: -600,
+})
+
+eatChipAudioPromise.then(audio => {
+  audio.setVolume(0.5)
+})
 
 cameraAudioPromise.then(audio => {
   audio.setVolume(0.3)
@@ -215,6 +231,14 @@ export const init = async () => {
   createMicrowave(simulation)
   createDoor(simulation)
 
+  const fanBlades = scene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh
+
+  ceilingFanAudioPromise.then(audio => {
+    audio.setVolume(1)
+    fanBlades.add(audio.getPositionalAudio())
+    audio.play()
+  })
+
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
       crtPass.uniforms.time.value = Date.now() / 1000.0 % 1.0;
@@ -224,6 +248,8 @@ export const init = async () => {
       if (!state.playing) {
         camera.rotateY(-0.0005)
       }
+
+      fanBlades.rotateZ(0.06)
 
       effectComposer.render()
     }
@@ -281,6 +307,27 @@ export const init = async () => {
   setTimeout(() => {
     disableLoading()
   }, 750)
+
+  const pizzaObject = scene.getObjectByName("pizza") as THREE.Mesh
+  const pizzaEntId = simulation.EntityRegistry.Create()
+  simulation.SimulationState.PhysicsRepository.CreateComponent(pizzaEntId)
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(pizzaEntId, [2, 2, 2], [
+    pizzaObject.position.x,
+    pizzaObject.position.y,
+    pizzaObject.position.z,
+  ], undefined, true)
+  simulation.SimulationState.SensorCommandRepository.CreateComponent(pizzaEntId)
+  simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
+    entId: pizzaEntId,
+    executionMode: ExecutionMode.Interaction,
+    once: true,
+    command: new class extends SimulationCommand {
+      public Execute(simulation: Simulation): void {
+        pizzaObject.visible = false
+        eatChipAudioPromise.then(audio => audio.play())
+      }
+    }
+  })
 
   simulation.Start()
 

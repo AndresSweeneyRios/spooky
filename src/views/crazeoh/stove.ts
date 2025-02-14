@@ -1,10 +1,29 @@
 import { Simulation } from "../../simulation";
 import * as THREE from "three";
 import { View } from "../../simulation/View";
+import { loadAudio } from "../../graphics/loaders";
 
 const STOVE_OPEN_SPEED = 500
 const STOVE_OPEN_ANGLE = Math.PI / 3 * 1
 const STOVE_CLOSED_ANGLE = 0
+
+const openDoorAudioPromise = loadAudio("/audio/sfx/door_open.ogg", {
+  // randomPitch: true,
+  detune: -1000,
+})
+
+const closeDoorAudioPromise = loadAudio("/audio/sfx/door_close.ogg", {
+  // randomPitch: true,
+  detune: -1000,
+})
+
+openDoorAudioPromise.then(audio => {
+  audio.setVolume(0.5)
+})
+
+closeDoorAudioPromise.then(audio => {
+  audio.setVolume(0.5)
+})
 
 export class StoveView extends View {
   private isOpen = false
@@ -71,8 +90,10 @@ export class StoveView extends View {
   public Toggle() {
     if (this.isOpen) {
       this.Close()
+      closeDoorAudioPromise.then(audio => audio.play())
     } else {
       this.Open()
+      openDoorAudioPromise.then(audio => audio.play())
     }
   }
 }

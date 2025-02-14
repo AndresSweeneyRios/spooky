@@ -1,10 +1,27 @@
 import { Simulation } from "../../simulation";
 import * as THREE from "three";
 import { View } from "../../simulation/View";
+import { loadAudio } from "../../graphics/loaders";
 
 const FRIDGE_OPEN_SPEED = 500
 const FRIDGE_OPEN_ANGLE = Math.PI / 3 * 2
 const FRIDGE_CLOSED_ANGLE = 0
+
+const openDoorAudioPromise = loadAudio("/audio/sfx/door_open.ogg", {
+  // randomPitch: true,
+})
+
+const closeDoorAudioPromise = loadAudio("/audio/sfx/door_close.ogg", {
+  // randomPitch: true,
+})
+
+openDoorAudioPromise.then(audio => {
+  audio.setVolume(0.5)
+})
+
+closeDoorAudioPromise.then(audio => {
+  audio.setVolume(0.5)
+})
 
 export class FridgeView extends View {
   private isOpen = false
@@ -71,8 +88,10 @@ export class FridgeView extends View {
   public Toggle() {
     if (this.isOpen) {
       this.Close()
+      closeDoorAudioPromise.then(audio => audio.play())
     } else {
       this.Open()
+      openDoorAudioPromise.then(audio => audio.play())
     }
   }
 }

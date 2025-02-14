@@ -72,10 +72,6 @@ export const sensorSystem = (state: SimulationState) => {
           }
 
           state.SensorCommandRepository.PushAvailableInteractions(targetEntId, [commandSymbol])
-
-          if (Once) {
-            state.SensorCommandRepository.DeleteSensorCommand(entId, commandSymbol)
-          }
         }
       }
     }
