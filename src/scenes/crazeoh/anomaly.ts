@@ -106,22 +106,58 @@ const Demon: Anomaly = {
   },
 }
 
-const anomalies = [
+// hour hand_0
+// minute hand_0
+// second hand_0
+
+const ClockSpinFast: Anomaly = {
+  Id: Symbol('ClockSpinFast'),
+
+  Enable(simulation: Simulation) {
+    const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh
+    const clock2 = simulation.ThreeScene.getObjectByName('minute_hand_0') as THREE.Mesh
+    const clock3 = simulation.ThreeScene.getObjectByName('second_hand_0') as THREE.Mesh
+
+    simulation.ViewSync.AddAuxiliaryView(new class Clock extends View {
+      public Draw() {
+        clock1.rotateZ(0.035)
+        clock2.rotateZ(0.035 * 2)
+        clock3.rotateZ(0.035 * 3)
+      }
+    })
+
+    return clock1.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+  },
+}
+
+const DEFAULT_ANOMALIES = [
   FrenchFries,
   SeveredHand,
   FanFast,
   ClockSix,
   Demon,
+  ClockSpinFast,
 ]
 
+const anomalies: typeof DEFAULT_ANOMALIES = []
+
+let currentAnomalyIndex = 0
+
 export const disableAllAnomalies = (simulation: Simulation) => {
-  for (const anomaly of anomalies) {
+  for (const anomaly of DEFAULT_ANOMALIES) {
     anomaly.Disable(simulation)
   }
 }
 
 export const pickRandomAnomaly = (simulation: Simulation) => {
   disableAllAnomalies(simulation)
+
+  if (anomalies.length === 0) {
+    anomalies.push(...DEFAULT_ANOMALIES)
+  }
 
   const randomIndex = Math.random() * anomalies.length
 
@@ -134,9 +170,15 @@ export const pickRandomAnomaly = (simulation: Simulation) => {
     return
   }
 
-  const anomaly = anomalies[Math.floor(randomIndex)]
+  currentAnomalyIndex = Math.floor(randomIndex)
+
+  const anomaly = anomalies[currentAnomalyIndex]
 
   const position = anomaly.Enable(simulation)
 
   state.setAnomalyPosition(position)
+}
+
+export const removeCurrentAnomaly = () => {
+  anomalies.splice(currentAnomalyIndex, 1)
 }

@@ -50,6 +50,9 @@ export class PlayerView extends EntityView {
 
   public Click(): void {
     this.canvas.requestPointerLock();
+
+    const canvas = document.querySelector("body")!
+    canvas.requestFullscreen()
   }
 
   public Mousemove(event: MouseEvent): void {

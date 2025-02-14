@@ -7,6 +7,7 @@ import { loadScene, scenes } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp"
 import PolaroidPng from "../assets/caseoh/polaroid.png"
 import * as state from "../scenes/crazeoh/state"
+import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 
 export const CrazeOh = () => React.useMemo(() => <>
   <Viewport scene={scenes.crazeoh} />
@@ -20,6 +21,9 @@ export const CrazeOh = () => React.useMemo(() => <>
         renderer.domElement.requestPointerLock()
         document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
         state.setPlaying(true)
+
+        const canvas = document.querySelector("body")!
+        canvas.requestFullscreen()
       }}>Play</button>
     </div>
 
@@ -46,6 +50,8 @@ export const CrazeOh = () => React.useMemo(() => <>
         <button className="yes" onClick={() => {
           if (state.anomaly && state.foundAnomaly) {
             state.incrementWins()
+
+            removeCurrentAnomaly()
           } else {
             state.resetWins()
           }
@@ -56,6 +62,9 @@ export const CrazeOh = () => React.useMemo(() => <>
           loadScene(scenes.crazeoh).then(() => {
             state.setPlaying(true)
           })
+
+          const canvas = document.querySelector("body")!
+          canvas.requestFullscreen()
         }}>YES</button>
         <button onClick={() => {
           if (state.anomaly) {
@@ -70,6 +79,9 @@ export const CrazeOh = () => React.useMemo(() => <>
           loadScene(scenes.crazeoh).then(() => {
             state.setPlaying(true)
           })
+
+          const canvas = document.querySelector("body")!
+          canvas.requestFullscreen()
         }}>NO</button>
       </div>
     </div>
