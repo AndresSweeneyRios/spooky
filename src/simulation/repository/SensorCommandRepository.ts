@@ -60,7 +60,7 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
 
     this.SensorCommandMap.delete(symbol)
 
-    component.AvailableInteractions = component.AvailableInteractions.filter((s) => s !== symbol)
+    component.Commands = component.Commands.filter((s) => s !== symbol)
   }
 
   public GetCommandsForSensor(entId: EntId, sensor: symbol): { symbol: symbol, command: Readonly<SensorCommand> }[] {

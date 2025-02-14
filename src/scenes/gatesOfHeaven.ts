@@ -8,11 +8,38 @@ import { NoiseMaterial } from '../graphics/noise';
 import { getRGBBits } from '../graphics/quantize';
 import { createParallaxWindowMaterial } from '../graphics/parallaxWindow';
 import { processAttributes } from '../utils/processAttributes';
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ToneMappingShader } from "../graphics/toneMappingShader";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 export const init = async () => {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
   const simulation = new Simulation(camera, scene)
+
+  const effectComposer = new EffectComposer(renderer)
+
+  const renderPass = new RenderPass(scene, camera)
+  effectComposer.addPass(renderPass)
+
+  ToneMappingShader.uniforms.contrast = { value: 1.07 }
+  ToneMappingShader.uniforms.saturation = { value: 0.95 }
+  ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 }
+  const toneMappingPass = new ShaderPass(ToneMappingShader);
+  effectComposer.addPass(toneMappingPass);
+
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.5, 0.6)
+  effectComposer.addPass(bloomPass)
+
+  const crtPass = new ShaderPass(shaders.CRTShader);
+  crtPass.uniforms.scanlineIntensity.value = 0.5
+  effectComposer.addPass(crtPass);
+
+  const outputPass = new OutputPass()
+  effectComposer.addPass(outputPass)
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
@@ -20,22 +47,16 @@ export const init = async () => {
   const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
   scene.add(ambientLight)
 
-  simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
-    public Draw(): void {
-      renderer.render(scene, camera)
-      scene.environmentRotation.y += 0.0002
-      scene.backgroundRotation.y += 0.0002
-    }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
-  })
-
-  window.addEventListener('resize', () => {
+  const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-  }, false);
+    crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
+    effectComposer.setSize(renderer.domElement.width, renderer.domElement.height)
+  }
+
+  window.addEventListener('resize', resize, false);
+
+  resize()
 
   const [, sceneGltf] = await Promise.all([
     loadEquirectangularAsEnvMap("/3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
@@ -112,6 +133,21 @@ export const init = async () => {
   simulation.Start()
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger())
+
+  simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
+    public Draw(): void {
+      scene.environmentRotation.y += 0.0002
+      scene.backgroundRotation.y += 0.0002
+
+      crtPass.uniforms.time.value += 0.01
+
+      effectComposer.render()
+    }
+
+    public Cleanup(): void {
+      renderer.dispose()
+    }
+  })
 
   return () => {
     simulation.Stop()
