@@ -1,4 +1,6 @@
 import type { Simulation } from "../../simulation"
+import { View } from "../../simulation/View"
+import { traverse } from "../../utils/traverse"
 import * as state from "./state"
 import * as THREE from 'three'
 
@@ -40,9 +42,76 @@ const SeveredHand: Anomaly = {
   },
 }
 
+const FanFast: Anomaly = {
+  Id: Symbol('FanFast'),
+
+  Enable(simulation: Simulation) {
+    const fanBlades = simulation.ThreeScene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh
+
+    simulation.ViewSync.AddAuxiliaryView(new class Fan extends View {
+      public Draw() {
+        fanBlades.rotateZ(0.12)
+      }
+    })
+
+    return fanBlades.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+  },
+}
+
+const ClockSix: Anomaly = {
+  Id: Symbol('ClockSix'),
+
+  Enable(simulation: Simulation) {
+    const clock1 = simulation.ThreeScene.getObjectByName('6_0002') as THREE.Mesh
+    const clock2 = simulation.ThreeScene.getObjectByName('6_0003') as THREE.Mesh
+    const clock3 = simulation.ThreeScene.getObjectByName('6_0001') as THREE.Mesh
+
+    clock1.visible = true
+    clock2.visible = true
+    clock3.visible = true
+
+    return clock1.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const clock1 = simulation.ThreeScene.getObjectByName('6_0002') as THREE.Mesh
+    const clock2 = simulation.ThreeScene.getObjectByName('6_0003') as THREE.Mesh
+    const clock3 = simulation.ThreeScene.getObjectByName('6_0001') as THREE.Mesh
+
+    clock1.visible = false
+    clock2.visible = false
+    clock3.visible = false
+  },
+}
+
+const Demon: Anomaly = {
+  Id: Symbol('Demon'),
+
+  Enable(simulation: Simulation) {
+    const demon = simulation.ThreeScene.getObjectByName('demon') as THREE.Mesh
+
+    demon.visible = true
+
+    return demon.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const demon = simulation.ThreeScene.getObjectByName('demon') as THREE.Mesh
+
+
+    demon.visible = false
+  },
+}
+
 const anomalies = [
   FrenchFries,
   SeveredHand,
+  FanFast,
+  ClockSix,
+  Demon,
 ]
 
 export const disableAllAnomalies = (simulation: Simulation) => {
