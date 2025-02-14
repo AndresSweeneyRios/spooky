@@ -341,3 +341,56 @@ export const loadTiledJSON = async (path: string) => {
     boxColliders,
   };
 }
+
+const firstClick = new Promise<void>((resolve) => {
+  document.addEventListener('click', () => {
+    resolve()
+  }, { once: true })
+})
+
+export const listener = new THREE.AudioListener();
+
+export const loadAudio = async (path: string, {
+  loop = false,
+  randomPitch = false,
+  detune = 0,
+  positional = false,
+}) => {
+  const audio = positional ? new THREE.PositionalAudio(listener) : new THREE.Audio(listener);
+
+  const audioLoader = new THREE.AudioLoader();
+
+  const buffer = await audioLoader.loadAsync(path);
+  audio.setBuffer(buffer);
+  audio.setLoop(loop);
+  audio.setVolume(0.2);
+  audio.detune = detune;
+
+  return {
+    setVolume(volume: number) {
+      audio.setVolume(volume);
+    },
+
+    async play() {
+      await firstClick;
+
+      if (audio.isPlaying) {
+        audio.stop();
+      }
+
+      if (randomPitch) {
+        audio.detune = Math.random() * 3000 - 1500 + detune;
+      }
+
+      audio.play();
+    },
+
+    getPositionalAudio() {
+      if (!positional) {
+        throw new Error("Audio is not positional");
+      }
+
+      return audio as THREE.PositionalAudio;
+    }
+  };
+}

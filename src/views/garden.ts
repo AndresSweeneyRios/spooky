@@ -8,9 +8,11 @@ import * as THREE from 'three';
 const houseGltfPromise = loadGltf("/3d/houses/mushy.glb")
 
 export class GardenView extends EntityView {
+  private house: THREE.Object3D | null = null;
+
   constructor(
-    entId: EntId, 
-    public simulation: Simulation, 
+    entId: EntId,
+    public simulation: Simulation,
     public initalPosition: vec3,
   ) {
     super(entId);
@@ -20,8 +22,15 @@ export class GardenView extends EntityView {
 
   async init() {
     const houseGltf = await houseGltfPromise;
-    const house = houseGltf.scene.clone();
-    house.position.copy(new THREE.Vector3(...this.initalPosition));
-    this.simulation.ThreeScene.add(house);
+    this.house = houseGltf.scene.clone();
+    this.house.position.copy(new THREE.Vector3(...this.initalPosition));
+    this.simulation.ThreeScene.add(this.house);
+  }
+
+  public Cleanup(simulation: Simulation): void {
+    if (this.house) {
+      simulation.ThreeScene.remove(this.house);
+      this.house = null;
+    }
   }
 }

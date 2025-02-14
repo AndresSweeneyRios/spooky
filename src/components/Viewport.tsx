@@ -22,6 +22,7 @@ export const Viewport: React.FC<{
     renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: RENDERER.antialias,
+      preserveDrawingBuffer: true,
     })
     
     renderer.shadowMap.enabled = true;
@@ -30,9 +31,29 @@ export const Viewport: React.FC<{
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
     const resize = () => {
+
       if (RENDERER.limitResolution) {
-        canvas.width = RENDERER.width
-        canvas.height = window.innerHeight * (canvas.width / window.innerWidth)
+        const targetHeight = RENDERER.height; // your desired renderer height
+        const windowHeight = window.innerHeight;
+        let closestDivisibleHeight = 1;
+        let smallestDiff = Infinity;
+
+        // Iterate over all numbers from 1 to windowHeight
+        for (let d = 1; d <= windowHeight; d++) {
+          // Check if d is a divisor of windowHeight
+          if (windowHeight % d === 0) {
+            const diff = Math.abs(d - targetHeight);
+            if (diff < smallestDiff) {
+              smallestDiff = diff;
+              closestDivisibleHeight = d;
+            }
+          }
+        }
+
+        // Set the canvas dimensions based on the chosen height
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        canvas.height = closestDivisibleHeight;
+        canvas.width = closestDivisibleHeight * aspectRatio;
       } else {
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight

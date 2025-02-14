@@ -59,6 +59,9 @@ export class ViewSync {
     for (const view of this.auxiliaryViews.values()) {
       view.Cleanup?.(simulation)
     }
+
+    this.entityViews.clear()
+    this.auxiliaryViews.clear()
   }
 
   public CameraUpdate(simulation: Simulation) {

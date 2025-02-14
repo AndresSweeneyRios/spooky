@@ -168,10 +168,10 @@ const onBeforeCompile = (
 ) => (shader: THREE.WebGLProgramParametersWithUniforms) => {
   const uuid = mesh.uuid
 
-  ;(mesh as any).shader = shader
+    ; (mesh as any).shader = shader
 
   shader.uniforms.vertexBits = { value: RENDERER.vertexBits }
-  
+
   const bits = getRGBBits(RENDERER.colorBits)
 
   shader.uniforms.colorBitsR = { value: bits.r }
@@ -187,13 +187,13 @@ const onBeforeCompile = (
 
     shader.uniforms.resolution = { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
   }
-  
+
   resize()
 
   window.addEventListener('resize', resize)
 
   let newVertexShader = String(shader.vertexShader).replace(
-    /*glsl*/`void main`, 
+    /*glsl*/`void main`,
     /*glsl*/`
 uniform float vertexBits;
 ${VERTEX_MARKER.UNIFORM}
@@ -202,7 +202,7 @@ ${VERTEX_MARKER.CONSTANT}
 
 void main`)
 
-newVertexShader = newVertexShader.replace(
+  newVertexShader = newVertexShader.replace(
   /*glsl*/`#include <project_vertex>`,
   /*glsl*/`#include <project_vertex>
 ${VERTEX_MARKER.PRE_QUANTIZATION}
@@ -306,7 +306,7 @@ ${FRAGMENT_MARKER.POST_QUANTIZATION}
         if (step.raw) {
           step.raw(shader)
         }
-        
+
         if (step.marker && step.value) {
           newFragmentShader = newFragmentShader.replace(step.marker, step.value.toString() + '\n' + step.marker)
         }
@@ -358,3 +358,97 @@ export const applyInjectedMaterials = (object: THREE.Object3D) => {
     })
   })
 }
+
+export const CRTShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1, 1) },
+    time: { value: 0.0 },
+    scanlineIntensity: { value: 0.3 },
+    vignetteIntensity: { value: 0.0 },
+    curvature: { value: 1.0 },
+    noiseIntensity: { value: 0.3 },
+    rgbOffset: { value: new THREE.Vector2(0.0012, 0.0012) },
+    // New uniform to optionally scale the UV coordinates after distortion.
+    edgeScale: { value: 0.65 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
+  },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float scanlineIntensity;
+    uniform float vignetteIntensity;
+    uniform float curvature;
+    uniform float noiseIntensity;
+    uniform vec2 rgbOffset;
+    uniform float edgeScale;
+    
+    varying vec2 vUv;
+    
+    // Barrel distortion to simulate CRT screen curvature.
+    vec2 barrelDistortion(vec2 coord, float amt) {
+      vec2 cc = coord - 0.5;
+      float dist = length(cc);
+      return coord + cc * amt * dist * dist;
+    }
+    
+    // Random noise function
+    float random(vec2 st) {
+      return fract(sin(dot(st.xy, vec2(12.9898, 78.233) + time)) * 43758.5453123);
+    }
+
+    void main() {
+      // Apply barrel distortion to the original UVs.
+      vec2 uv = barrelDistortion(vUv, curvature);
+      
+      // Optionally scale the UVs to push the distorted edges inward.
+      uv = (uv - 0.5) * edgeScale + 0.5;
+      
+      // Create a scanline pattern based on the screen's vertical resolution.
+      float scanline = sin((vUv.y) * resolution.y * 3.14159) * 0.5 + 0.5;
+      scanline = mix(1.0, scanline, scanlineIntensity);
+      
+      // Apply vignette by darkening toward the edges.
+      float dist = distance(uv, vec2(0.5, 0.5));
+      // float vignette = smoothstep(0.8, 0.5, dist);
+      // vignette = mix(1.0, vignette, vignetteIntensity);
+      
+      // Assume resolution holds the actual render resolution in pixels (width, height)
+      // We want the noise grid to be 640 pixels wide, and the height accordingly.
+      // vec2 noiseGridRes = vec2(640.0, 640.0 * (resolution.y / resolution.x));
+
+      // Convert normalized uv (0-1) into pixel coordinates for the noise grid,
+      // then use floor() to quantize to discrete noise cells.
+      vec2 noiseUV = floor(uv * resolution);
+
+      // Now, to animate the noise, add time as an offset (you can tweak which axis to add time)
+      float noise = random(noiseUV);
+
+      // Mix with zero based on noiseIntensity.
+      noise = mix(0.0, noise, noiseIntensity);
+      
+      // Sample the scene texture with a slight offset for chromatic aberration.
+      vec4 color;
+      color.r = texture2D(tDiffuse, uv + rgbOffset).r;
+      color.g = texture2D(tDiffuse, uv).g;
+      color.b = texture2D(tDiffuse, uv - rgbOffset).b;
+      color.a = 1.0;
+      
+      // Combine the effects.
+      color.rgb *= scanline;
+      // color.rgb *= vignette;
+      color.r += noise * 0.12;
+      color.g += noise * 0.09;
+      color.b += noise * 0.1;
+      
+      gl_FragColor = color;
+    }
+  `
+};

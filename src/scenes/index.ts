@@ -8,7 +8,7 @@ export const scenes = Object.freeze({
   crazeoh: () => import('./crazeoh'),
 })
 
-const DEFAULT_SCENE = scenes.crazeoh
+const DEFAULT_SCENE = scenes.city
 
 export type Scene = typeof DEFAULT_SCENE
 
@@ -23,6 +23,7 @@ export const loadScene = async (scene: typeof DEFAULT_SCENE) => {
     const sceneModule = await scene()
 
     sceneCleanup = await sceneModule.init()
+
   } catch (e) {
     console.error(e)
   }

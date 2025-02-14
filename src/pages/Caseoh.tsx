@@ -1,30 +1,94 @@
 import "./Caseoh.css";
 
 import React, { Fragment } from 'react';
-import { Viewport } from '../components/Viewport';
+import { Viewport, renderer } from '../components/Viewport';
 import { DialogueBox } from '../components/DialogueBox';
-import { scenes } from "../scenes";
+import { loadScene, scenes } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp"
+import PolaroidPng from "../assets/caseoh/polaroid.png"
+import * as state from "../scenes/crazeoh/state"
+import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 
-export default function Caseoh() {
-  return (
-    <Fragment>
-      <Viewport scene={scenes.crazeoh} />
-      <DialogueBox />
+export const CrazeOh = () => React.useMemo(() => <>
+  <Viewport scene={scenes.crazeoh} />
+  <DialogueBox />
 
-      <div id="caseoh" is-hidden="true">
-        <div className="main">
-          <img src={TvWebp} />
-          <h1>CrazeOh</h1>
-          <button>Play</button>
-        </div>
+  <div id="caseoh" is-hidden="false">
+    <div className="main">
+      <img src={TvWebp} />
+      <h1>CrazeOh</h1>
+      <button onClick={() => {
+        renderer.domElement.requestPointerLock()
+        document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
+        state.setPlaying(true)
 
-        <div className="credits">
-          <p>made by</p>
-          <h2>Kemal Albayrak</h2>
-          <h2>Andres Sweeney-Rios</h2>
-        </div>
+        const canvas = document.querySelector("body")!
+        canvas.requestFullscreen()
+      }}>Play</button>
+    </div>
+
+    <div className="credits">
+      <p>made by</p>
+      <h2>Kemal Albayrak</h2>
+      <h2>Andres Sweeney-Rios</h2>
+    </div>
+  </div>
+
+  <div className="caseoh-polaroid-overlay ingame" is-hidden="true">
+    <img className="background" src={"#"} crossOrigin="anonymous" referrerPolicy="no-referrer" />
+    <img className="polaroid" src={PolaroidPng} />
+  </div>
+
+  <div id="caseoh-decision" is-hidden="true">
+    <div className="main">
+      <div className="caseoh-polaroid-overlay">
+        <img className="background" src={"#"} crossOrigin="anonymous" referrerPolicy="no-referrer" />
+        <img className="polaroid" src={PolaroidPng} />
       </div>
-    </Fragment>
-  )
-}
+      <h1>ANOMALY?</h1>
+      <div className="split">
+        <button className="yes" onClick={() => {
+          if (state.anomaly && state.foundAnomaly) {
+            state.incrementWins()
+
+            removeCurrentAnomaly()
+          } else {
+            state.resetWins()
+          }
+          
+          document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+          renderer.domElement.requestPointerLock()
+
+          loadScene(scenes.crazeoh).then(() => {
+            state.setPlaying(true)
+          })
+
+          const canvas = document.querySelector("body")!
+          canvas.requestFullscreen()
+        }}>YES</button>
+        <button onClick={() => {
+          if (state.anomaly) {
+            state.resetWins()
+          } else {
+            state.incrementWins()
+          }
+
+          document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+          renderer.domElement.requestPointerLock()
+
+          loadScene(scenes.crazeoh).then(() => {
+            state.setPlaying(true)
+          })
+
+          const canvas = document.querySelector("body")!
+          canvas.requestFullscreen()
+        }}>NO</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="caseoh-loading" is-hidden="false">
+    <img src={TvWebp} />
+    <h1>Loading</h1>
+  </div>
+</>, [])

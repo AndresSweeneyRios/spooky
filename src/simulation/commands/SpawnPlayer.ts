@@ -8,6 +8,8 @@ export class SpawnPlayer extends SimulationCommand {
       throw new Error("Position and Rotation must be set before executing SpawnPlayer");
     }
 
-    createPlayer(simulation, this.Position, this.Rotation);
+    createPlayer(simulation, this.Position, this.Rotation).then((view) => {
+      view.enableControls()
+    }).catch(console.error);
   }
 }
