@@ -96,19 +96,19 @@ export default function Spooky() {
       }
     }
 
-    playNotes();
+    // playNotes();
   }, []);
 
   return (
     <Fragment>
       <Viewport scene={scenes.gatesOfHeaven} />
-      <div id="spooky">
+      {/* <div id="spooky">
         <div id="battle-track">
           <div id="dpad-container">
             <SVG id="dpad" src={DpadSvg} />
           </div>
         </div>
-      </div>
+      </div> */}
       <DialogueBox />
     </Fragment>
   )

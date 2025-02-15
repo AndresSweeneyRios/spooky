@@ -25,8 +25,11 @@ type Key = typeof KEYS[number];
 
 const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
   randomPitch: true,
-  detune: - 1000,
+  detune: - 2500,
+  pitchRange: 200,
 })
+
+footstepAudio.then(audio => audio.setVolume(0.5));
 
 export class PlayerView extends EntityView {
   protected yaw: number = 0;
@@ -248,7 +251,7 @@ export class PlayerView extends EntityView {
 
         this.footstepAudioInterval = setInterval(() => {
           footstepAudio.then(audio => audio.play());
-        }, 700);
+        }, 600);
       }
     } else {
       if (this.footstepAudioInterval !== null) {

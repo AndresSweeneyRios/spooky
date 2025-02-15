@@ -8,7 +8,7 @@ import * as player from '../../entities/player';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { ShaderPass } from 'three/examples/jsm/Addons.js';
+import { FXAAShader, ShaderPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { traverse } from "../../utils/traverse";
 import * as state from "./state"
@@ -25,6 +25,9 @@ import { ExecutionMode } from "../../simulation/repository/SensorCommandReposito
 import { SimulationCommand } from "../../simulation/commands/_command";
 import { CollidersDebugger } from "../../views/collidersDebugger";
 
+// import "../../graphics/injections/cel"
+// import "../../graphics/injections/outline"
+
 const SHADOW_BIAS = -0.0009;
 
 const mapLoader = loadGltf("/3d/scenes/island/crazeoh.glb")
@@ -35,6 +38,7 @@ const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
 
 const nightAmbianceAudioPromise = loadAudio("/audio/sfx/night_ambiance.ogg", {
   loop: true,
+  detune: -200,
 })
 
 const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {})
@@ -62,7 +66,7 @@ windAudioPromise.then(audio => {
 })
 
 nightAmbianceAudioPromise.then(audio => {
-  audio.setVolume(0.01)
+  audio.setVolume(0.03)
   audio.play()
 })
 
@@ -98,6 +102,9 @@ export const init = async () => {
 
   const renderPass = new RenderPass(scene, camera)
   effectComposer.addPass(renderPass)
+
+  // const fxaaPass = new ShaderPass(FXAAShader)
+  // effectComposer.addPass(fxaaPass)
 
   ToneMappingShader.uniforms.contrast = { value: 1.07 }
   ToneMappingShader.uniforms.saturation = { value: 0.95 }
@@ -144,8 +151,10 @@ export const init = async () => {
   const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    // fxaaPass.material.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
-    effectComposer.setSize(window.innerWidth, window.innerHeight)
+    crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
+    effectComposer.setSize(renderer.domElement.width, renderer.domElement.height)
+
+    // fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
   }
 
   resize()

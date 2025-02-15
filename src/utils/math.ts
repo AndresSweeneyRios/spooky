@@ -17,40 +17,27 @@ export const vec3ToThree = (v: vec3) => {
   return new THREE.Vector3(v[0], v[1], v[2])
 }
 
-/**
- * Computes the angle (in degrees) between the normalized vector from the object to the player
- * and an adjusted camera forward vector. The adjustment rotates the camera vector downward by 20°.
- *
- * @param {THREE.Vector3} object - The object's position.
- * @param {THREE.Vector3} player - The player's position.
- * @param {THREE.Camera} camera - The active camera.
- * @returns {number} - The angle in degrees.
- */
-export function getAngle(object: THREE.Vector3, player: THREE.Vector3, camera: THREE.Camera) {
-  const objectToPlayer = new THREE.Vector3();
-  objectToPlayer.subVectors(player, object).normalize();
+export function getAngle(
+  object: THREE.Vector3,
+  player: THREE.Vector3,
+  camera: THREE.Camera
+): number {
+  // Compute the normalized vector from the player's position to the object's position.
+  const playerToObj = new THREE.Vector3().subVectors(object, player).normalize();
 
   // Get the camera's forward direction.
-  const cameraDirection = new THREE.Vector3();
-  camera.getWorldDirection(cameraDirection);
+  const camDir = new THREE.Vector3();
+  camera.getWorldDirection(camDir);
 
-  // Invert the camera's forward vector (as required by your setup).
-  cameraDirection.negate();
+  // Project both vectors onto the horizontal (XZ) plane.
+  playerToObj.y = 0;
+  camDir.y = 0;
+  playerToObj.normalize();
+  camDir.normalize();
 
-  // Rotate the cameraDirection downward by 20°.
-  const offsetAngle = THREE.MathUtils.degToRad(-20);
-  // Compute the camera's right axis: cross(camera.up, cameraDirection)
-  const right = new THREE.Vector3();
-  right.crossVectors(camera.up, cameraDirection).normalize();
+  // Compute the angle (in radians) between the two horizontal directions.
+  const angleRad = playerToObj.angleTo(camDir);
+  const angleDeg = THREE.MathUtils.radToDeg(angleRad);
 
-  // Create a quaternion to rotate around the right axis.
-  const quat = new THREE.Quaternion();
-  quat.setFromAxisAngle(right, -offsetAngle); // negative rotates downward
-
-  // Apply the rotation.
-  cameraDirection.applyQuaternion(quat);
-
-  // Compute and return the angle between the adjusted cameraDirection and objectToPlayer.
-  const angle = objectToPlayer.angleTo(cameraDirection) * (180 / Math.PI);
-  return angle;
+  return angleDeg;
 }

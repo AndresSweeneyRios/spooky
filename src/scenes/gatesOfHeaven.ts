@@ -14,6 +14,11 @@ import { ToneMappingShader } from "../graphics/toneMappingShader";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { FXAAShader } from "three/examples/jsm/Addons.js";
+import { SobelOperatorShader } from "../graphics/sobelOberatorShader";
+
+// import "../graphics/injections/cel"
+// import "../graphics/injections/outline"
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -25,6 +30,9 @@ export const init = async () => {
   const renderPass = new RenderPass(scene, camera)
   effectComposer.addPass(renderPass)
 
+  const fxaaPass = new ShaderPass(FXAAShader)
+  effectComposer.addPass(fxaaPass)
+
   ToneMappingShader.uniforms.contrast = { value: 1.07 }
   ToneMappingShader.uniforms.saturation = { value: 0.95 }
   ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 }
@@ -33,6 +41,9 @@ export const init = async () => {
 
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.5, 0.6)
   effectComposer.addPass(bloomPass)
+
+  const sobelPass = new ShaderPass(SobelOperatorShader);
+  effectComposer.addPass(sobelPass);
 
   const crtPass = new ShaderPass(shaders.CRTShader);
   crtPass.uniforms.scanlineIntensity.value = 0.5
@@ -52,6 +63,13 @@ export const init = async () => {
     camera.updateProjectionMatrix();
     crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
     effectComposer.setSize(renderer.domElement.width, renderer.domElement.height)
+
+    sobelPass.uniforms.resolution.value.set(
+      window.innerWidth * window.devicePixelRatio,
+      window.innerHeight * window.devicePixelRatio
+    );
+
+    fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
   }
 
   window.addEventListener('resize', resize, false);

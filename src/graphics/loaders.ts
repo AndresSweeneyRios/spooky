@@ -355,6 +355,7 @@ export const loadAudio = async (path: string, {
   randomPitch = false,
   detune = 0,
   positional = false,
+  pitchRange = 1500, // New parameter to control the range of the random pitch
 }) => {
   const audio = positional ? new THREE.PositionalAudio(listener) : new THREE.Audio(listener);
 
@@ -379,7 +380,7 @@ export const loadAudio = async (path: string, {
       }
 
       if (randomPitch) {
-        audio.detune = Math.random() * 3000 - 1500 + detune;
+        audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
       }
 
       audio.play();

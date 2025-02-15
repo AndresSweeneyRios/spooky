@@ -1,3 +1,4 @@
+import { NoiseMaterial } from "../../graphics/noise"
 import type { Simulation } from "../../simulation"
 import { View } from "../../simulation/View"
 import { traverse } from "../../utils/traverse"
@@ -133,6 +134,136 @@ const ClockSpinFast: Anomaly = {
   },
 }
 
+const Monitors: Anomaly = {
+  Id: Symbol('Monitors'),
+
+  Enable(simulation: Simulation) {
+    const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
+    const big = simulation.ThreeScene.getObjectByName('bigmonitorscreen') as THREE.Mesh
+
+    return simulation.ThreeScene.getObjectByName('Bigmonitorstand')!.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
+    const big = simulation.ThreeScene.getObjectByName('bigmonitorscreen') as THREE.Mesh
+
+    small.material = NoiseMaterial
+    big.material = NoiseMaterial
+  },
+}
+
+const RedDemon: Anomaly = {
+  Id: Symbol('RedDemon'),
+
+  Enable(simulation: Simulation) {
+    const demon = simulation.ThreeScene.getObjectByName('reddemon') as THREE.Mesh
+
+    demon.visible = true
+
+    return demon.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const demon = simulation.ThreeScene.getObjectByName('reddemon') as THREE.Mesh
+
+    demon.visible = false
+  }
+}
+
+const Head: Anomaly = {
+  Id: Symbol('Head'),
+
+  Enable(simulation: Simulation) {
+    const head = simulation.ThreeScene.getObjectByName('head') as THREE.Mesh
+
+    head.visible = true
+
+    const microwave = simulation.ThreeScene.getObjectByName('Microwave001') as THREE.Mesh
+
+    return microwave.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const head = simulation.ThreeScene.getObjectByName('head') as THREE.Mesh
+
+    head.visible = false
+  }
+}
+
+const KitchenKnife: Anomaly = {
+  Id: Symbol('KitchenKnife'),
+
+  Enable(simulation: Simulation) {
+    const knife = simulation.ThreeScene.getObjectByName('Knife_Knife_0') as THREE.Mesh
+
+    knife.visible = true
+
+    return knife.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const knife = simulation.ThreeScene.getObjectByName('Knife_Knife_0') as THREE.Mesh
+
+    knife.visible = false
+  }
+}
+
+const Feet: Anomaly = {
+  Id: Symbol('Feet'),
+
+  Enable(simulation: Simulation) {
+    const feet = simulation.ThreeScene.getObjectByName('feet') as THREE.Mesh
+
+    feet.visible = true
+
+    return feet.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const feet = simulation.ThreeScene.getObjectByName('feet') as THREE.Mesh
+
+    feet.visible = false
+  }
+}
+
+const Buffet: Anomaly = {
+  Id: Symbol('Buffet'),
+
+  Enable(simulation: Simulation) {
+    const buffet = simulation.ThreeScene.getObjectByName('buffet') as THREE.Mesh
+
+    buffet.visible = true
+
+    return buffet.getObjectByName("Food_Warmer_Lid_4_13")!.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const buffet = simulation.ThreeScene.getObjectByName('buffet') as THREE.Mesh
+
+    buffet.visible = false
+  }
+}
+
+const CoatHanger: Anomaly = {
+  Id: Symbol('CoatHanger'),
+
+  Enable(simulation: Simulation) {
+    const coatHanger = simulation.ThreeScene.getObjectByName('coathanger') as THREE.Mesh
+
+    coatHanger.visible = true
+
+    return coatHanger.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const coatHanger = simulation.ThreeScene.getObjectByName('coathanger') as THREE.Mesh
+
+    coatHanger.visible = false
+  }
+}
+
+
 const DEFAULT_ANOMALIES = [
   FrenchFries,
   SeveredHand,
@@ -140,6 +271,13 @@ const DEFAULT_ANOMALIES = [
   ClockSix,
   Demon,
   ClockSpinFast,
+  Monitors,
+  RedDemon,
+  Head,
+  KitchenKnife,
+  Feet,
+  // Buffet,
+  // CoatHanger,
 ]
 
 const anomalies: typeof DEFAULT_ANOMALIES = []
