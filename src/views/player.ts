@@ -1,4 +1,5 @@
 import { loadAudio } from "../graphics/loaders";
+import { JustPressedEvent, playerInput } from "../input/player";
 import type { Simulation } from "../simulation";
 import { SimulationCommand } from "../simulation/commands/_command";
 import type { EntId } from "../simulation/EntityRegistry";
@@ -48,6 +49,7 @@ export class PlayerView extends EntityView {
   public runEnabled: boolean = false;
 
   private runEffectId: symbol | null = null;
+  private controlsEnabled: boolean = false;
 
   private footstepAudioInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -68,7 +70,7 @@ export class PlayerView extends EntityView {
     const dx = Math.max(-maxDelta, Math.min(maxDelta, event.movementX));
     const dy = Math.max(-maxDelta, Math.min(maxDelta, event.movementY));
 
-    this.updateCamera(dx, dy);
+    // this.updateCamera(dx, dy);
   }
 
   private updateCamera(dx: number, dy: number): void {
@@ -99,40 +101,6 @@ export class PlayerView extends EntityView {
     }
 
     if (key === "KeyE") {
-      // we want to get all the sensor commands and invoke the closest one
-
-      const commands = this.simulation.SimulationState.SensorCommandRepository.GetAvailableInteractions(this.EntId);
-
-      let closestDistance = Infinity;
-      let closestCommand: SensorCommand | null = null;
-      let closestEntId: EntId | null = null;
-      let closestCommandSymbol: symbol | null = null;
-
-      for (const { command, entId, symbol } of commands) {
-        const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
-        const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
-
-        const distance = math.getAngle(
-          new THREE.Vector3(position[0], 0, position[2]),
-          new THREE.Vector3(playerPosition[0], 0, playerPosition[2]),
-          this.simulation.Camera,
-        )
-
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestCommand = command;
-          closestEntId = entId;
-          closestCommandSymbol = symbol
-        }
-      }
-
-      if (closestCommand && closestEntId && closestCommandSymbol) {
-        this.simulation.SimulationState.Commands.push(closestCommand.Command);
-
-        if (closestCommand.Once) {
-          this.simulation.SimulationState.SensorCommandRepository.DeleteSensorCommand(closestEntId, closestCommandSymbol);
-        }
-      }
     }
   }
 
@@ -182,12 +150,72 @@ export class PlayerView extends EntityView {
     this.cleanupEvents = () => { };
   }
 
+  private getAvailableInteractionsWithinAngle(maxAngle: number): { command: SensorCommand, entId: EntId, symbol: symbol }[] {
+    const commands = this.simulation.SimulationState.SensorCommandRepository.GetAvailableInteractions(this.EntId);
+    const availableInteractions: { command: SensorCommand, entId: EntId, symbol: symbol }[] = [];
+
+    for (const { command, entId, symbol } of commands) {
+      const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
+      const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
+
+      const angle = math.getAngle(
+        new THREE.Vector3(position[0], 0, position[2]),
+        new THREE.Vector3(playerPosition[0], 0, playerPosition[2]),
+        this.simulation.Camera,
+      );
+
+      if (angle <= maxAngle) {
+        availableInteractions.push({ command, entId, symbol });
+      }
+    }
+
+    return availableInteractions;
+  }
+
+  HandleJustPressed(payload: JustPressedEvent): void {
+    if (payload.action === "interact") {
+      const availableInteractions = this.getAvailableInteractionsWithinAngle(45);
+
+      let closestDistance = Infinity;
+      let closestCommand: SensorCommand | null = null;
+      let closestEntId: EntId | null = null;
+      let closestCommandSymbol: symbol | null = null;
+
+      for (const { command, entId, symbol } of availableInteractions) {
+        const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
+        const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
+
+        const distance = math.getAngle(
+          new THREE.Vector3(position[0], 0, position[2]),
+          new THREE.Vector3(playerPosition[0], 0, playerPosition[2]),
+          this.simulation.Camera,
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestCommand = command;
+          closestEntId = entId;
+          closestCommandSymbol = symbol;
+        }
+      }
+
+      if (closestCommand && closestEntId && closestCommandSymbol) {
+        this.simulation.SimulationState.Commands.push(closestCommand.Command);
+
+        if (closestCommand.Once) {
+          this.simulation.SimulationState.SensorCommandRepository.DeleteSensorCommand(closestEntId, closestCommandSymbol);
+        }
+      }
+    }
+  }
+
   public enableControls(): void {
     const clickHandler = this.Click.bind(this);
     const mousemoveHandler = this.Mousemove.bind(this);
     const keydownHandler = this.KeydownHandler.bind(this);
     const keyupHandler = this.KeyupHandler.bind(this);
     const pointerLockChangeHandler = this.PointerLockChange.bind(this);
+    const justPressedHandler = this.HandleJustPressed.bind(this);
 
     this.canvas.addEventListener("click", clickHandler);
     window.addEventListener("mousemove", mousemoveHandler);
@@ -195,7 +223,11 @@ export class PlayerView extends EntityView {
     document.addEventListener("keyup", keyupHandler);
     document.addEventListener("pointerlockchange", pointerLockChangeHandler)
 
+    playerInput.emitter.on("justpressed", justPressedHandler);
+
     this.updateCamera(0, 0)
+
+    this.controlsEnabled = true;
 
     this.cleanupEvents = () => {
       this.canvas.removeEventListener("click", clickHandler);
@@ -203,12 +235,15 @@ export class PlayerView extends EntityView {
       document.removeEventListener("keydown", keydownHandler);
       document.removeEventListener("keyup", keyupHandler);
       document.removeEventListener("pointerlockchange", pointerLockChangeHandler);
+      playerInput.emitter.off("justpressed", justPressedHandler)
     };
   }
 
   public disableControls(): void {
     this.cleanupEvents();
     this.cleanupEvents = () => { };
+
+    this.controlsEnabled = false;
 
     if (this.footstepAudioInterval !== null) {
       clearInterval(this.footstepAudioInterval);
@@ -234,16 +269,29 @@ export class PlayerView extends EntityView {
 
     basePosition.add(offset);
     this.simulation.Camera.position.set(basePosition.x, basePosition.y, basePosition.z);
+
+    if (!document.pointerLockElement) {
+      this.controlsEnabled = false;
+    }
+
+    if (!this.controlsEnabled) {
+      return
+    }
+
+    const input = playerInput.getState()
+    this.updateCamera(input.look.x, input.look.y);
   }
 
   public Update(simulation: Simulation): void {
+    if (!this.controlsEnabled) {
+      return
+    }
+
     const state = simulation.SimulationState;
 
-    const localDirection = new THREE.Vector3(
-      (this.keysDown.has("KeyD") ? 1 : 0) - (this.keysDown.has("KeyA") ? 1 : 0),
-      0,
-      (this.keysDown.has("KeyS") ? 1 : 0) - (this.keysDown.has("KeyW") ? 1 : 0)
-    );
+    const input = playerInput.getState()
+
+    const localDirection = new THREE.Vector3(input.walk.x, 0, input.walk.y);
 
     if (localDirection.length() > 0) {
       if (this.footstepAudioInterval === null) {
@@ -265,6 +313,10 @@ export class PlayerView extends EntityView {
     localDirection.y = 0; // prevent vertical movement
 
     state.MovementRepository.SetDirection(this.EntId, [localDirection.x, localDirection.y, localDirection.z]);
+
+    const isInteractable = this.getAvailableInteractionsWithinAngle(45).length > 0;
+
+    document.querySelector(".caseoh-interactable")!.setAttribute("is-hidden", isInteractable ? "false" : "true");
   }
 
   public SetCameraHeight(height: number): void {

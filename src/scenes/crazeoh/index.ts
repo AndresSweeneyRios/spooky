@@ -24,6 +24,7 @@ import { PlayerView } from "../../views/player";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { SimulationCommand } from "../../simulation/commands/_command";
 import { CollidersDebugger } from "../../views/collidersDebugger";
+import { JustPressedEvent, playerInput } from "../../input/player";
 
 // import "../../graphics/injections/cel"
 // import "../../graphics/injections/outline"
@@ -270,8 +271,8 @@ export const init = async () => {
 
   let shutterOn = false
 
-  const setPolaroidFromViewport = () => {
-    if (shutterOn || document.pointerLockElement !== renderer.domElement) {
+  const setPolaroidFromViewport = (payload: JustPressedEvent) => {
+    if (shutterOn || document.pointerLockElement !== renderer.domElement || payload.action !== "mainAction1") {
       return
     }
 
@@ -311,7 +312,7 @@ export const init = async () => {
     }, 2000)
   }
 
-  window.addEventListener("click", setPolaroidFromViewport)
+  playerInput.emitter.on("justpressed", setPolaroidFromViewport)
 
   setTimeout(() => {
     disableLoading()
@@ -347,6 +348,6 @@ export const init = async () => {
 
     window.removeEventListener('resize', resize)
 
-    window.removeEventListener("click", setPolaroidFromViewport)
+    playerInput.emitter.off("justpressed", setPolaroidFromViewport)
   }
 }
