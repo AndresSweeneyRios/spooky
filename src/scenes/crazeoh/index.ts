@@ -51,6 +51,8 @@ const ceilingFanAudioPromise = loadAudio("/audio/sfx/ceiling_fan.ogg", {
 
 const eatChipAudioPromise = loadAudio("/audio/sfx/eat_chip.ogg", {
   detune: -600,
+  randomPitch: true,
+  pitchRange: 400,
 })
 
 eatChipAudioPromise.then(audio => {
@@ -139,7 +141,7 @@ export const init = async () => {
   spotLight.shadow.camera.fov = 30;
   spotLight.intensity = 3
   spotLight.decay = 0.3
-  spotLight.angle = Math.PI * 0.25
+  spotLight.angle = Math.PI * 0.35
   spotLight.penumbra = 1
   spotLight.shadow.bias = SHADOW_BIAS
   scene.add(spotLight);
@@ -318,26 +320,41 @@ export const init = async () => {
     disableLoading()
   }, 750)
 
-  const pizzaObject = scene.getObjectByName("pizza") as THREE.Mesh
-  const pizzaEntId = simulation.EntityRegistry.Create()
-  simulation.SimulationState.PhysicsRepository.CreateComponent(pizzaEntId)
-  simulation.SimulationState.PhysicsRepository.AddBoxCollider(pizzaEntId, [2, 2, 2], [
-    pizzaObject.position.x,
-    pizzaObject.position.y,
-    pizzaObject.position.z,
-  ], undefined, true)
-  simulation.SimulationState.SensorCommandRepository.CreateComponent(pizzaEntId)
-  simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
-    entId: pizzaEntId,
-    executionMode: ExecutionMode.Interaction,
-    once: true,
-    command: new class extends SimulationCommand {
-      public Execute(simulation: Simulation): void {
-        pizzaObject.visible = false
-        eatChipAudioPromise.then(audio => audio.play())
+  const eat = (food: string) => {
+    const foodObject = scene.getObjectByName(food) as THREE.Mesh
+    const endId = simulation.EntityRegistry.Create()
+    simulation.SimulationState.PhysicsRepository.CreateComponent(endId)
+    const position = foodObject.getWorldPosition(new THREE.Vector3())
+    simulation.SimulationState.PhysicsRepository.AddBoxCollider(endId, [2, 2, 2], [
+      position.x,
+      position.y,
+      position.z,
+    ], undefined, true)
+    simulation.SimulationState.SensorCommandRepository.CreateComponent(endId)
+    simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
+      entId: endId,
+      executionMode: ExecutionMode.Interaction,
+      once: true,
+      command: new class extends SimulationCommand {
+        public Execute(simulation: Simulation): void {
+          foodObject.visible = false
+          eatChipAudioPromise.then(audio => audio.play())
+        }
       }
-    }
-  })
+    })
+  }
+
+  eat("pizza")
+  eat("burger")
+  eat("Object_3")
+  eat("muffin")
+  eat("strawberyshake")
+  eat("cereal")
+  eat("buffet")
+  eat("crazycola")
+  eat("Object_4")
+  eat("Object_4003")
+  eat("bepis")
 
   simulation.Start()
 

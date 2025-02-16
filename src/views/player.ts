@@ -1,7 +1,6 @@
 import { loadAudio } from "../graphics/loaders";
 import { JustPressedEvent, playerInput } from "../input/player";
 import type { Simulation } from "../simulation";
-import { SimulationCommand } from "../simulation/commands/_command";
 import type { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import { SensorCommand } from "../simulation/repository/SensorCommandRepository";
@@ -33,8 +32,6 @@ const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
 footstepAudio.then(audio => audio.setVolume(0.5));
 
 export class PlayerView extends EntityView {
-  protected yaw: number = 0;
-  protected pitch: number = 0;
   public canvas: HTMLCanvasElement;
   public keysDown = new Set<Key>();
 
@@ -53,38 +50,56 @@ export class PlayerView extends EntityView {
 
   private footstepAudioInterval: ReturnType<typeof setInterval> | null = null;
 
+  private ClickBind = this.Click.bind(this);
+
   public Click(): void {
+    this.enableControls();
+
     this.canvas.requestPointerLock();
 
-    const canvas = document.querySelector("body")!
-    canvas.requestFullscreen()
+    document.body.requestFullscreen()
   }
 
-  public Mousemove(event: MouseEvent): void {
+  private losePointerLockBind = this.losePointerLock.bind(this);
+
+  private losePointerLock(): void {
     if (document.pointerLockElement !== this.canvas) {
-      return;
+      this.disableControls();
     }
-
-    // Clamp the mouse delta to avoid occasional huge jumps.
-    const maxDelta = 50;
-    const dx = Math.max(-maxDelta, Math.min(maxDelta, event.movementX));
-    const dy = Math.max(-maxDelta, Math.min(maxDelta, event.movementY));
-
-    // this.updateCamera(dx, dy);
   }
 
   private updateCamera(dx: number, dy: number): void {
-    // Update yaw and pitch (do not multiply by deltaTime here)
-    this.yaw -= dx / MOUSE_SENSITIVITY;
-    this.pitch -= dy / MOUSE_SENSITIVITY;
-    this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
+    // Adjust these values as needed for your desired sensitivity.
+    const sensitivity = MOUSE_SENSITIVITY; // e.g. 1000
+    // Calculate delta angles in radians.
+    const yawAngle = -dx / sensitivity;
+    const pitchAngle = -dy / sensitivity;
 
-    // Normalize yaw to stay within -π to π
-    this.yaw = THREE.MathUtils.euclideanModulo(this.yaw + Math.PI, 2 * Math.PI) - Math.PI;
+    // --- Yaw Rotation ---
+    // Create a quaternion representing yaw rotation around the world up axis.
+    const yawQuat = new THREE.Quaternion();
+    yawQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawAngle);
 
-    // Update the camera's quaternion using a THREE.Euler in YXZ order.
-    const euler = new THREE.Euler(this.pitch, this.yaw, 0, "YXZ");
-    this.simulation.Camera.quaternion.setFromEuler(euler);
+    // Get the current camera orientation.
+    const currentQuat = this.simulation.Camera.quaternion.clone();
+
+    // Apply the yaw rotation: newQuat = yawQuat * currentQuat.
+    let updatedQuat = yawQuat.multiply(currentQuat);
+
+    // --- Pitch Rotation ---
+    // Compute the camera's right axis from the updated orientation.
+    const rightAxis = new THREE.Vector3(1, 0, 0).applyQuaternion(updatedQuat).normalize();
+
+    // Create a quaternion for pitch rotation about the camera's right axis.
+    const pitchQuat = new THREE.Quaternion();
+    pitchQuat.setFromAxisAngle(rightAxis, pitchAngle);
+
+    // Apply the pitch rotation: finalQuat = pitchQuat * updatedQuat.
+    updatedQuat = pitchQuat.multiply(updatedQuat);
+    updatedQuat.normalize();
+
+    // Update the camera's orientation.
+    this.simulation.Camera.quaternion.copy(updatedQuat);
   }
 
   public Keydown(key: Key): void {
@@ -98,9 +113,6 @@ export class PlayerView extends EntityView {
           value: this.runSpeedModifier,
         }
       );
-    }
-
-    if (key === "KeyE") {
     }
   }
 
@@ -138,16 +150,18 @@ export class PlayerView extends EntityView {
     super(entId);
 
     // Assume initialRotation is [yaw, pitch, ...]
-    this.yaw = initialRotation[0];
-    this.pitch = initialRotation[1];
+    const yaw = initialRotation[0];
+    const pitch = initialRotation[1];
 
     this.canvas = document.querySelector('canvas#viewport')!;
 
     // Initialize camera orientation
-    const euler = new THREE.Euler(this.pitch, this.yaw, 0, "YXZ");
+    const euler = new THREE.Euler(pitch, yaw, 0, "YXZ");
     this.simulation.Camera.quaternion.setFromEuler(euler);
 
     this.cleanupEvents = () => { };
+    this.canvas.addEventListener("click", this.ClickBind);
+    document.addEventListener("pointerlockchange", this.losePointerLockBind);
   }
 
   private getAvailableInteractionsWithinAngle(maxAngle: number): { command: SensorCommand, entId: EntId, symbol: symbol }[] {
@@ -210,15 +224,15 @@ export class PlayerView extends EntityView {
   }
 
   public enableControls(): void {
-    const clickHandler = this.Click.bind(this);
-    const mousemoveHandler = this.Mousemove.bind(this);
+    this.controlsEnabled = true;
+
+    this.cleanupEvents();
+
     const keydownHandler = this.KeydownHandler.bind(this);
     const keyupHandler = this.KeyupHandler.bind(this);
     const pointerLockChangeHandler = this.PointerLockChange.bind(this);
     const justPressedHandler = this.HandleJustPressed.bind(this);
 
-    this.canvas.addEventListener("click", clickHandler);
-    window.addEventListener("mousemove", mousemoveHandler);
     document.addEventListener("keydown", keydownHandler);
     document.addEventListener("keyup", keyupHandler);
     document.addEventListener("pointerlockchange", pointerLockChangeHandler)
@@ -227,11 +241,7 @@ export class PlayerView extends EntityView {
 
     this.updateCamera(0, 0)
 
-    this.controlsEnabled = true;
-
     this.cleanupEvents = () => {
-      this.canvas.removeEventListener("click", clickHandler);
-      window.removeEventListener("mousemove", mousemoveHandler);
       document.removeEventListener("keydown", keydownHandler);
       document.removeEventListener("keyup", keyupHandler);
       document.removeEventListener("pointerlockchange", pointerLockChangeHandler);
@@ -242,6 +252,9 @@ export class PlayerView extends EntityView {
   public disableControls(): void {
     this.cleanupEvents();
     this.cleanupEvents = () => { };
+
+    // stop moving
+    this.simulation.SimulationState.MovementRepository.SetDirection(this.EntId, [0, 0, 0]);
 
     this.controlsEnabled = false;
 
@@ -269,10 +282,6 @@ export class PlayerView extends EntityView {
 
     basePosition.add(offset);
     this.simulation.Camera.position.set(basePosition.x, basePosition.y, basePosition.z);
-
-    if (!document.pointerLockElement) {
-      this.controlsEnabled = false;
-    }
 
     if (!this.controlsEnabled) {
       return
@@ -329,5 +338,7 @@ export class PlayerView extends EntityView {
 
   public Cleanup(): void {
     this.cleanupEvents();
+    this.canvas.removeEventListener("click", this.ClickBind);
+    document.removeEventListener("pointerlockchange", this.losePointerLockBind);
   }
 }
