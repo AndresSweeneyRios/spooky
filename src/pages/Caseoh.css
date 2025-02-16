@@ -209,3 +209,9 @@
   height: auto;
   transform: scaleX(0.9);
 }
+
+.caseoh-interactable {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

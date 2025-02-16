@@ -8,6 +8,9 @@ import TvWebp from "../assets/caseoh/tv.webp"
 import PolaroidPng from "../assets/caseoh/polaroid.png"
 import * as state from "../scenes/crazeoh/state"
 import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
+import _SVG from 'react-inlinesvg';
+const SVG = _SVG as any;
+import InteractableIconSvg from "../assets/icons/interactable.svg"
 
 export const CrazeOh = () => React.useMemo(() => <>
   <Viewport scene={scenes.crazeoh} />
@@ -37,6 +40,10 @@ export const CrazeOh = () => React.useMemo(() => <>
   <div className="caseoh-polaroid-overlay ingame" is-hidden="true">
     <img className="background" src={"#"} crossOrigin="anonymous" referrerPolicy="no-referrer" />
     <img className="polaroid" src={PolaroidPng} />
+  </div>
+
+  <div className="caseoh-interactable" is-hidden="true">
+    <SVG src={InteractableIconSvg} />
   </div>
 
   <div id="caseoh-decision" is-hidden="true">
