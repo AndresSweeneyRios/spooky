@@ -386,12 +386,16 @@ export const loadAudio = async (path: string, {
       audio.play();
     },
 
+    stop() {
+      audio.stop();
+    },
+
     getPositionalAudio() {
       if (!positional) {
         throw new Error("Audio is not positional");
       }
 
       return audio as THREE.PositionalAudio;
-    }
+    },
   };
 }

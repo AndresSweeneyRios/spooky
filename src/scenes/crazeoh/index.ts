@@ -55,6 +55,10 @@ const eatChipAudioPromise = loadAudio("/audio/sfx/eat_chip.ogg", {
   pitchRange: 400,
 })
 
+const heartbeatAudioPromise = loadAudio("/audio/sfx/heartbeat.ogg", {
+  loop: true,
+})
+
 eatChipAudioPromise.then(audio => {
   audio.setVolume(0.5)
 })
@@ -140,7 +144,7 @@ export const init = async () => {
   spotLight.shadow.camera.far = 30;
   spotLight.shadow.camera.fov = 30;
   spotLight.intensity = 3
-  spotLight.decay = 0.3
+  spotLight.decay = 0.7
   spotLight.angle = Math.PI * 0.35
   spotLight.penumbra = 1
   spotLight.shadow.bias = SHADOW_BIAS
@@ -355,6 +359,48 @@ export const init = async () => {
   eat("Object_4")
   eat("Object_4003")
   eat("bepis")
+
+  heartbeatAudioPromise.then(audio => {
+    audio.setVolume(0)
+    audio.play()
+
+    let ready = false
+
+    const timeout = setTimeout(() => {
+      ready = true
+    }, 30000)
+
+    simulation.ViewSync.AddAuxiliaryView(new class extends View {
+      public Draw(): void {
+        if (!state.anomaly || !ready) {
+          audio.setVolume(0)
+
+          return
+        }
+
+        const playerEntId = playerView.EntId
+        const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
+
+        const distance = new THREE.Vector3(
+          playerPosition[0] - state.anomalyPosition.x,
+          playerPosition[1] - state.anomalyPosition.y,
+          playerPosition[2] - state.anomalyPosition.z,
+        ).length()
+
+        const volume = Math.min(1, Math.max(0, 1 - distance / 6)) * 0.2
+
+        audio.setVolume(volume)
+      }
+
+      public Cleanup(): void {
+        try {
+          clearTimeout(timeout)
+
+          audio.stop()
+        } catch { }
+      }
+    })
+  })
 
   simulation.Start()
 
