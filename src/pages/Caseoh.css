@@ -215,3 +215,43 @@
   top: 0;
   right: 0;
 }
+
+#caseoh-decision .split > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2em;
+}
+
+#caseoh-decision .split svg {
+  width: 4em;
+  height: 4em;
+  pointer-events: none;
+}
+
+.caseoh-camera-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+.caseoh-camera-hint[is-hinting="false"] {
+  opacity: 0;
+}
+
+
+.caseoh-camera-hint[is-hinting="true"] {
+  opacity: 1.0;
+}
+
+.caseoh-camera-hint svg {
+  height: 15em;
+  transform: translate(-8em, 2em);
+}

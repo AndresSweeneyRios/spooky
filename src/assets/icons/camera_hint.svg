@@ -1,0 +1,22 @@
+<svg width="618" height="375" viewBox="0 0 618 375" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="308.955" cy="187.227" rx="308.5" ry="187" fill="url(#paint0_radial_92_87)"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M174.405 149C170.349 149 167.06 152.288 167.06 156.345C167.06 156.621 167.075 156.893 167.105 157.161H146.464C139.58 157.161 134 162.742 134 169.625V213.25C134 220.134 139.58 225.715 146.464 225.715H213.771C220.655 225.715 226.236 220.134 226.236 213.25V169.625C226.236 162.742 220.655 157.161 213.771 157.161H193.131C193.161 156.893 193.176 156.621 193.176 156.345C193.176 152.288 189.887 149 185.831 149H174.405ZM217.511 169.625V213.25C217.511 215.316 215.837 216.99 213.771 216.99H146.464C144.399 216.99 142.725 215.316 142.725 213.25V169.625C142.725 167.56 144.399 165.886 146.464 165.886C175.691 165.886 184.544 165.886 213.771 165.886C215.837 165.886 217.511 167.56 217.511 169.625Z" fill="white"/>
+<circle cx="180.934" cy="190.622" r="11.4256" stroke="white" stroke-width="4.89669"/>
+<rect x="264" y="171" width="51" height="10.5" fill="#707070"/>
+<rect x="264" y="192.75" width="51" height="10.5" fill="#707070"/>
+<line x1="428.86" y1="237.86" x2="428.86" y2="127.227" stroke="#707070" stroke-width="4.461"/>
+<circle cx="464.922" cy="182.471" r="6.46845" transform="rotate(-90 464.922 182.471)" stroke="white" stroke-width="2.6766"/>
+<circle cx="499.718" cy="182.471" r="6.46845" transform="rotate(-90 499.718 182.471)" stroke="white" stroke-width="2.6766"/>
+<circle cx="482.766" cy="165.073" r="6.46845" stroke="white" stroke-width="2.6766"/>
+<circle cx="482.766" cy="199.869" r="6.46845" fill="white" stroke="white" stroke-width="2.6766"/>
+<rect x="354.673" y="159.418" width="36.6545" height="51.1636" rx="4.96364" stroke="white" stroke-width="5.34545"/>
+<rect x="356.582" y="178.127" width="32.8364" height="6.87273" fill="white"/>
+<rect x="357.345" y="162.091" width="16.0364" height="16.0364" fill="white"/>
+<path d="M373 157C373 155.5 378.5 149 374.5 146.5C370.5 144 373 140.5 373 136" stroke="white" stroke-width="4"/>
+<defs>
+<radialGradient id="paint0_radial_92_87" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(308.955 187.227) rotate(90) scale(187 308.5)">
+<stop stop-opacity="0.24"/>
+<stop offset="1" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>

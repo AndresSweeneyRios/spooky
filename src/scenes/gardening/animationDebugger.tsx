@@ -53,8 +53,6 @@ export const init = async () => {
     fetch("/3d/animations/_list.json").then((response) => response.json())
   ])
 
-  console.log(playerModelGLTF)
-
   const animationList = animationListJSON as { [directory: string]: string[] }
 
   type AnimationObject = { 

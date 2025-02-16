@@ -11,6 +11,83 @@ import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 import _SVG from 'react-inlinesvg';
 const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg"
+import CameraHintSvg from "../assets/icons/camera_hint.svg"
+import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg"
+import { playerInput } from "../input/player";
+
+const startGame = () => {
+  if (state.gameStarted) {
+    return
+  }
+
+  state.setGameStarted(true)
+  
+  renderer.domElement.requestPointerLock()
+  document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
+  state.setPlaying(true)
+
+  const canvas = document.querySelector("body")!
+  canvas.requestFullscreen()
+}
+
+const handleYesDecision = () => {
+  if (!state.gameStarted || state.playing || !state.tookPicture) {
+    return
+  }
+
+  if (state.anomaly && state.foundAnomaly) {
+    state.incrementWins()
+    removeCurrentAnomaly()
+  } else {
+    state.resetWins()
+  }
+
+  document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+  renderer.domElement.requestPointerLock()
+
+  loadScene(scenes.crazeoh).then(() => {
+    state.setPlaying(true)
+  })
+
+  const canvas = document.querySelector("body")!
+  canvas.requestFullscreen()
+}
+
+const handleNoDecision = () => {
+  if (!state.gameStarted || state.playing) {
+    return
+  }
+
+  if (state.anomaly) {
+    state.resetWins()
+  } else {
+    state.incrementWins()
+  }
+
+  document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+  renderer.domElement.requestPointerLock()
+
+  loadScene(scenes.crazeoh).then(() => {
+    state.setPlaying(true)
+  })
+
+  const canvas = document.querySelector("body")!
+  canvas.requestFullscreen()
+}
+
+playerInput.emitter.on("justpressed", ({ action, inputSource, consume }) => {
+  if (inputSource !== "gamepad") {
+    return;
+  }
+
+  switch (action) {
+    case "mainAction1": startGame(); consume(); break;
+    case "interact": handleYesDecision(); consume(); break;
+    case "cancel": handleNoDecision(); consume(); break;
+  }
+}, {
+  order: 99999,
+})
 
 export const CrazeOh = () => React.useMemo(() => <>
   <Viewport scene={scenes.crazeoh} />
@@ -20,14 +97,21 @@ export const CrazeOh = () => React.useMemo(() => <>
     <div className="main">
       <img src={TvWebp} />
       <h1>CrazeOh</h1>
-      <button onClick={() => {
-        renderer.domElement.requestPointerLock()
-        document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
-        state.setPlaying(true)
-
-        const canvas = document.querySelector("body")!
-        canvas.requestFullscreen()
-      }}>Play</button>
+      <div
+        style={{
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <button onClick={() => {
+          startGame()
+        }}>
+          Play
+        </button>
+        <SVG src={DpadSoloIconSvg} style={{ width: '4em', transform: 'rotate(-90deg)', position: 'absolute', left: '-6em' }} />
+      </div>
     </div>
 
     <div className="credits">
@@ -42,6 +126,10 @@ export const CrazeOh = () => React.useMemo(() => <>
     <img className="polaroid" src={PolaroidPng} />
   </div>
 
+  <div className="caseoh-camera-hint" is-hidden="true">
+    <SVG src={CameraHintSvg} />
+  </div>    
+
   <div className="caseoh-interactable" is-hidden="true">
     <SVG src={InteractableIconSvg} />
   </div>
@@ -54,42 +142,14 @@ export const CrazeOh = () => React.useMemo(() => <>
       </div>
       <h1>ANOMALY?</h1>
       <div className="split">
-        <button className="yes" onClick={() => {
-          if (state.anomaly && state.foundAnomaly) {
-            state.incrementWins()
-
-            removeCurrentAnomaly()
-          } else {
-            state.resetWins()
-          }
-          
-          document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
-          renderer.domElement.requestPointerLock()
-
-          loadScene(scenes.crazeoh).then(() => {
-            state.setPlaying(true)
-          })
-
-          const canvas = document.querySelector("body")!
-          canvas.requestFullscreen()
-        }}>YES</button>
-        <button onClick={() => {
-          if (state.anomaly) {
-            state.resetWins()
-          } else {
-            state.incrementWins()
-          }
-
-          document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
-          renderer.domElement.requestPointerLock()
-
-          loadScene(scenes.crazeoh).then(() => {
-            state.setPlaying(true)
-          })
-
-          const canvas = document.querySelector("body")!
-          canvas.requestFullscreen()
-        }}>NO</button>
+        <div className="yes">
+          <SVG src={DpadSoloIconSvg} />
+          <button onClick={handleYesDecision}>YES</button>
+        </div>
+        <div>
+          <button onClick={handleNoDecision}>NO</button>
+          <SVG style={{ transform: 'rotate(180deg)' }} src={DpadSoloIconSvg} />
+        </div>
       </div>
     </div>
   </div>

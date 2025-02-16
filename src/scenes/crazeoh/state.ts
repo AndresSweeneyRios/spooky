@@ -57,3 +57,9 @@ export const setTookPicture = (value: boolean) => {
 }
 
 // -----
+
+export let gameStarted = false
+
+export const setGameStarted = (value: boolean) => {
+  gameStarted = value
+}

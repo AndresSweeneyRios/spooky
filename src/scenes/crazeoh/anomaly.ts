@@ -7,11 +7,19 @@ import { traverse } from "../../utils/traverse"
 import * as state from "./state"
 import * as THREE from 'three'
 import type { loadAudio } from "../../graphics/loaders"
+import { getAngle } from "../../utils/math"
 
 const loaderPromise = import("../../graphics/loaders")
 
 const monitorAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
   return await loadAudio('/audio/sfx/weba.ogg', {
+    loop: true,
+    positional: true,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
+const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/keyboard_typing.ogg', {
     loop: true,
     positional: true,
   })
@@ -398,6 +406,65 @@ const BurgerLevitate: Anomaly = {
   }
 }
 
+const Keyboard: Anomaly = {
+  Id: Symbol('Keyboard'),
+
+  Enable(simulation: Simulation) {
+    const keyboard = simulation.ThreeScene.getObjectByName('keyboard') as THREE.Mesh
+
+    const audioPromise = keyboardAudioPromise.then((audio) => {
+      keyboard.add(audio.getPositionalAudio())
+      audio.play()
+      audio.setVolume(2.0)
+
+      return audio
+    })
+
+    // add auxiliary view
+    simulation.ViewSync.AddAuxiliaryView(new class KeyboardView extends View {
+      public Draw() {
+        let playerEntId: EntId | null = null
+
+        for (const entId of simulation.SimulationState.SensorTargetRepository.Entities) {
+          playerEntId = entId
+          break
+        }
+
+        if (!playerEntId) {
+          return
+        }
+
+        const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
+        const keyboardPosition = keyboard.getWorldPosition(new THREE.Vector3())
+        const camera = simulation.Camera
+
+        const angle = getAngle(keyboardPosition, new THREE.Vector3(
+          playerPosition[0],
+          playerPosition[1],
+          playerPosition[2]
+        ), camera)
+
+        audioPromise.then((audio) => {
+          if (angle > 90) {
+            audio.setVolume(2.0)
+          } else {
+            audio.setVolume(0.0)
+          }
+        })
+      }
+    })
+
+    return keyboard.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    keyboardAudioPromise.then((audio) => {
+      audio.stop()
+      audio.setVolume(0.0)
+    })
+  }
+}
+
 const DEFAULT_ANOMALIES = [
   FrenchFries,
   SeveredHand,
@@ -412,6 +479,7 @@ const DEFAULT_ANOMALIES = [
   Feet,
   CoatHanger,
   BurgerLevitate,
+  Keyboard,
 ]
 
 const anomalies: typeof DEFAULT_ANOMALIES = []

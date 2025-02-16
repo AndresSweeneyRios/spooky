@@ -59,6 +59,22 @@ const heartbeatAudioPromise = loadAudio("/audio/sfx/heartbeat.ogg", {
   loop: true,
 })
 
+const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
+  loop: true,
+  positional: true,
+  detune: -400,
+})
+
+const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
+  randomPitch: true,
+  pitchRange: 400,
+})
+
+garageScreamAudioPromise.then(audio => {
+  audio.setVolume(0.1)
+  audio.play()
+})
+
 eatChipAudioPromise.then(audio => {
   audio.setVolume(0.5)
 })
@@ -206,11 +222,23 @@ export const init = async () => {
       return
     }
 
+    const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement
+
     if (state.playing) {
       playerView.enableControls()
       pickRandomAnomaly(simulation)
+
+      if (!cameraHint.hasAttribute("is-hinting")) {
+        cameraHint.setAttribute("is-hidden", "false")
+        cameraHint.setAttribute("is-hinting", "true")
+
+        setTimeout(() => {
+          cameraHint.setAttribute("is-hinting", "false")
+        }, 10000)
+      }
     } else {
       playerView.disableControls()
+      cameraHint.setAttribute("is-hidden", "true")
     }
 
     previousPlayStatus = state.playing
@@ -282,6 +310,8 @@ export const init = async () => {
       return
     }
 
+    payload.consume()
+
     shutterOn = true
 
     cameraAudioPromise.then(audio => audio.play())
@@ -306,7 +336,7 @@ export const init = async () => {
         playerPosition[2]
       ), camera)
 
-      state.setFoundAnomaly(angle < 30)
+      state.setFoundAnomaly(angle < 63)
     }
 
     state.setTookPicture(true)
@@ -398,6 +428,67 @@ export const init = async () => {
 
           audio.stop()
         } catch { }
+      }
+    })
+  })
+
+  garageScreamAudioPromise.then(audio => {
+    const positionalAudio = audio.getPositionalAudio()
+
+    const object = scene.getObjectByName("Cylinder_1__0001") as THREE.Mesh
+
+    object.add(positionalAudio)
+
+    const objectPosition = object.getWorldPosition(new THREE.Vector3())
+
+    // set volume to 0 if beyond 2 meters
+    simulation.ViewSync.AddAuxiliaryView(new class extends View {
+      public Update(): void {
+        const playerEntId = playerView.EntId
+        const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
+
+        const distance = new THREE.Vector3(
+          playerPosition[0] - objectPosition.x,
+          playerPosition[1] - objectPosition.y,
+          playerPosition[2] - objectPosition.z,
+        ).length()
+
+        if (distance > 5) {
+          audio.setVolume(0)
+        } else {
+          audio.setVolume(0.1)
+        }
+      }
+
+      public Cleanup(): void {
+        audio.stop()
+      }
+    })
+  })
+
+  sniffAudioPromise.then(() => {
+    let next = simulation.ViewSync.TimeMS + (1000 * 60 * 5 * Math.random())
+
+    const sniff = () => {
+      sniffAudioPromise.then(audio => {
+        audio.setVolume(0.25)
+        if (state.playing) {
+          audio.play()
+        }
+      })
+
+      next = simulation.ViewSync.TimeMS + (1000 * 60 * 5 * Math.random())
+    }
+
+    simulation.ViewSync.AddAuxiliaryView(new class extends View {
+      public Update(): void {
+        if (simulation.ViewSync.TimeMS > next) {
+          sniff()
+        }
+      }
+
+      public Cleanup(): void {
+        sniffAudioPromise.then(audio => audio.stop())
       }
     })
   })

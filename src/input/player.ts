@@ -17,35 +17,47 @@ export interface InputState {
   mainAction1: boolean;
   mainAction2: boolean;
   settings: boolean;
+  cancel: boolean;
 }
 
 // These are the button actions for which we emit “just pressed” events.
-export type InputAction = "interact" | "mainAction1" | "mainAction2" | "settings";
+export type InputAction = "interact" | "mainAction1" | "mainAction2" | "settings" | "cancel";
+
+// Input source types.
+export type InputSource = "keyboard" | "mouse" | "gamepad";
 
 export interface JustPressedEvent {
   action: InputAction;
+  inputSource: InputSource;
+  consume(): void;
 }
 
 // A simple event emitter.
 class EventEmitter {
-  private listeners: { [event: string]: ((payload: JustPressedEvent) => void)[] } = {};
+  private listeners: { [event: string]: { listener: (payload: JustPressedEvent) => void, order: number }[] } = {};
 
-  public on(event: string, listener: (payload: JustPressedEvent) => void) {
+  public on(event: string, listener: (payload: JustPressedEvent) => void, options?: { order: number }) {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
-    this.listeners[event].push(listener);
+    const order = options?.order ?? 0;
+    this.listeners[event].push({ listener, order });
+    this.listeners[event].sort((a, b) => a.order - b.order);
   }
 
   public off(event: string, listener: (payload: JustPressedEvent) => void) {
     if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter((l) => l !== listener);
+    this.listeners[event] = this.listeners[event].filter((l) => l.listener !== listener);
   }
 
-  public emit(event: string, payload: JustPressedEvent) {
+  public *emit(event: string, payload: JustPressedEvent & { _consumed?: boolean }) {
     if (!this.listeners[event]) return;
-    for (const listener of this.listeners[event]) {
+    for (const { listener, order } of this.listeners[event]) {
       listener(payload);
+      yield order;
+      if (payload._consumed) {
+        break;
+      }
     }
   }
 }
@@ -68,6 +80,7 @@ export class InputManager {
     mainAction1: false,
     mainAction2: false,
     settings: false,
+    cancel: false,
   };
 
   // Previous frame’s state for button actions so we can detect “just pressed”.
@@ -76,6 +89,7 @@ export class InputManager {
     mainAction1: false,
     mainAction2: false,
     settings: false,
+    cancel: false,
   };
 
   // An emitter for "just pressed" events.
@@ -83,10 +97,11 @@ export class InputManager {
 
   // Define gamepad button indices (using Standard Gamepad mapping).
   private gamepadMapping = {
-    interact: 2,    // left face button
-    mainAction1: 6, // left trigger (analog)
-    mainAction2: 7, // right trigger (analog)
-    settings: 9,    // start button
+    leftFace: 2,
+    bottomFace: 0,
+    topFace: 3,
+    rightFace: 1,
+    start: 9,
   };
 
   // For analog triggers, consider values above this threshold as “pressed.”
@@ -156,12 +171,14 @@ export class InputManager {
       mainAction1: false,
       mainAction2: false,
       settings: false,
+      cancel: false,
     };
     this.prevButtonStates = {
       interact: false,
       mainAction1: false,
       mainAction2: false,
       settings: false,
+      cancel: false,
     };
   }
 
@@ -188,6 +205,12 @@ export class InputManager {
       const gpY = applyDeadzone(gp.axes[1] || 0);
       walk.x += gpX;
       walk.y += gpY;
+
+      // Add D-Pad support
+      if (gp.buttons[12]?.pressed) walk.y -= 1; // D-Pad Up
+      if (gp.buttons[13]?.pressed) walk.y += 1; // D-Pad Down
+      if (gp.buttons[14]?.pressed) walk.x -= 1; // D-Pad Left
+      if (gp.buttons[15]?.pressed) walk.x += 1; // D-Pad Right
     }
     const mag = Math.hypot(walk.x, walk.y);
     if (mag > 1) {
@@ -216,18 +239,30 @@ export class InputManager {
     }
 
     // Process Button Actions (Digital)
-    const interact =
-      this.keyboardPressed.has("e") ||
-      this.getGamepadButtonPressed(this.gamepadMapping.interact);
-    const mainAction1 =
-      this.mouseButtonsPressed.has(0) ||
-      this.getGamepadButtonPressed(this.gamepadMapping.mainAction1, true);
-    const mainAction2 =
-      this.mouseButtonsPressed.has(2) ||
-      this.getGamepadButtonPressed(this.gamepadMapping.mainAction2, true);
-    const settings =
-      this.keyboardPressed.has("escape") ||
-      this.getGamepadButtonPressed(this.gamepadMapping.settings);
+    const interactKeyboard = this.keyboardPressed.has("e");
+    const interactMouse = false; // No mouse interaction for "interact"
+    const interactGamepad = this.getGamepadButtonPressed(this.gamepadMapping.leftFace);
+    const interact = interactKeyboard || interactMouse || interactGamepad;
+
+    const mainAction1Keyboard = false; // No keyboard interaction for "mainAction1"
+    const mainAction1Mouse = this.mouseButtonsPressed.has(0);
+    const mainAction1Gamepad = this.getGamepadButtonPressed(this.gamepadMapping.bottomFace, true);
+    const mainAction1 = mainAction1Keyboard || mainAction1Mouse || mainAction1Gamepad;
+
+    const mainAction2Keyboard = false; // No keyboard interaction for "mainAction2"
+    const mainAction2Mouse = this.mouseButtonsPressed.has(2);
+    const mainAction2Gamepad = this.getGamepadButtonPressed(this.gamepadMapping.topFace, true);
+    const mainAction2 = mainAction2Keyboard || mainAction2Mouse || mainAction2Gamepad;
+
+    const cancelKeyboard = this.keyboardPressed.has("backspace");
+    const cancelMouse = false; // No mouse interaction for "cancel"
+    const cancelGamepad = this.getGamepadButtonPressed(this.gamepadMapping.rightFace);
+    const cancel = cancelKeyboard || cancelMouse || cancelGamepad;
+
+    const settingsKeyboard = this.keyboardPressed.has("escape");
+    const settingsMouse = false; // No mouse interaction for "settings"
+    const settingsGamepad = this.getGamepadButtonPressed(this.gamepadMapping.start);
+    const settings = settingsKeyboard || settingsMouse || settingsGamepad;
 
     const newState: InputState = {
       walk,
@@ -236,23 +271,54 @@ export class InputManager {
       mainAction1,
       mainAction2,
       settings,
+      cancel,
     };
 
-    this.checkJustPressed("interact", newState.interact);
-    this.checkJustPressed("mainAction1", newState.mainAction1);
-    this.checkJustPressed("mainAction2", newState.mainAction2);
-    this.checkJustPressed("settings", newState.settings);
+    this.checkJustPressed("interact", newState.interact, interactKeyboard ? "keyboard" : interactGamepad ? "gamepad" : "mouse");
+    this.checkJustPressed("mainAction1", newState.mainAction1, mainAction1Mouse ? "mouse" : mainAction1Gamepad ? "gamepad" : "keyboard");
+    this.checkJustPressed("mainAction2", newState.mainAction2, mainAction2Mouse ? "mouse" : mainAction2Gamepad ? "gamepad" : "keyboard");
+    this.checkJustPressed("settings", newState.settings, settingsKeyboard ? "keyboard" : settingsGamepad ? "gamepad" : "mouse");
+    this.checkJustPressed("cancel", newState.cancel, cancelKeyboard ? "keyboard" : cancelGamepad ? "gamepad" : "mouse");
 
     this.currentState = newState;
     this.prevButtonStates.interact = newState.interact;
     this.prevButtonStates.mainAction1 = newState.mainAction1;
     this.prevButtonStates.mainAction2 = newState.mainAction2;
     this.prevButtonStates.settings = newState.settings;
+    this.prevButtonStates.cancel = newState.cancel;
   }
 
-  private checkJustPressed(action: InputAction, newState: boolean) {
+  private debounceTimers: { [key in InputAction]?: number } = {};
+
+  private checkJustPressed(action: InputAction, newState: boolean, inputSource: InputSource) {
     if (newState && !this.prevButtonStates[action]) {
-      this.emitter.emit("justpressed", { action });
+      // Mark this button as pressed for the next frame.
+      this.prevButtonStates[action] = true;
+
+      // Debounce the just pressed event.
+      if (this.debounceTimers[action]) {
+        return;
+      }
+
+      // Create a payload that carries a consumed flag.
+      const payload: JustPressedEvent & { _consumed?: boolean } = {
+        action,
+        inputSource,
+        consume: () => {
+          payload._consumed = true;
+        }
+      };
+
+      // Emit the event. The generator will yield the "order" of each listener.
+      const generator = this.emitter.emit("justpressed", payload);
+      for (const _ of generator) {
+        if (payload._consumed) break;
+      }
+
+      this.debounceTimers[action] = window.setTimeout(() => {
+        // Clear the debounce timer.
+        delete this.debounceTimers[action];
+      }, 200);
     }
   }
 

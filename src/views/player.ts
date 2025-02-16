@@ -216,6 +216,8 @@ export class PlayerView extends EntityView {
       if (closestCommand && closestEntId && closestCommandSymbol) {
         this.simulation.SimulationState.Commands.push(closestCommand.Command);
 
+        payload.consume()
+
         if (closestCommand.Once) {
           this.simulation.SimulationState.SensorCommandRepository.DeleteSensorCommand(closestEntId, closestCommandSymbol);
         }
@@ -325,7 +327,7 @@ export class PlayerView extends EntityView {
 
     const isInteractable = this.getAvailableInteractionsWithinAngle(45).length > 0;
 
-    document.querySelector(".caseoh-interactable")!.setAttribute("is-hidden", isInteractable ? "false" : "true");
+    document.querySelector(".caseoh-interactable")?.setAttribute("is-hidden", isInteractable ? "false" : "true");
   }
 
   public SetCameraHeight(height: number): void {

@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import { renderer } from "../components/Viewport";
 
 function createNoiseShaderMaterial() {
   // Define the custom shader material
   const material = new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
-      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+      resolution: { value: new THREE.Vector2(0, 0) }
     },
     vertexShader: /*glsl*/`
       varying vec2 vUv;
@@ -44,17 +45,36 @@ function createNoiseShaderMaterial() {
     transparent: true // Allow the material to have transparent cutout sections
   });
 
-  const updateTime = (time: number) => {
+  let previousWidth = 0;
+  let previousHeight = 0;
+
+  const render = (time: number) => {
+    requestAnimationFrame(render);
+
     material.uniforms.time.value = time;
-    requestAnimationFrame(updateTime);
-  }
 
-  updateTime(0);
+    if (renderer === null) {
+      return
+    }
 
-  // Update resolution on window resize
-  window.addEventListener('resize', () => {
-    material.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
-  });
+    const width = renderer.domElement.clientWidth;
+    const height = renderer.domElement.clientHeight;
+
+    console.log(width - previousWidth, height - previousHeight)
+
+    if (width === previousWidth && height === previousHeight) {
+      return;
+    }
+
+    console.log('change')
+
+    previousWidth = width;
+    previousHeight = height;
+
+    material.uniforms.resolution.value.set(width, height);
+  };
+
+  render(0);
 
   return material;
 }
