@@ -25,6 +25,7 @@ import { ExecutionMode } from "../../simulation/repository/SensorCommandReposito
 import { SimulationCommand } from "../../simulation/commands/_command";
 import { CollidersDebugger } from "../../views/collidersDebugger";
 import { JustPressedEvent, playerInput } from "../../input/player";
+import "./scripts"
 
 // import "../../graphics/injections/cel"
 // import "../../graphics/injections/outline"
@@ -84,7 +85,7 @@ cameraAudioPromise.then(audio => {
 })
 
 windAudioPromise.then(audio => {
-  audio.setVolume(0.06)
+  audio.setVolume(0.02)
   audio.play()
 })
 
@@ -305,7 +306,23 @@ export const init = async () => {
 
   let shutterOn = false
 
-  const setPolaroidFromViewport = (payload: JustPressedEvent) => {
+  const justPressed = (payload: JustPressedEvent) => {
+    if (state.gameStarted && !state.picking) {
+      try {
+        renderer.domElement.requestPointerLock()
+      } catch { }
+    }
+
+    try {
+      document.body.requestFullscreen()
+    } catch { }
+
+    if (state.playing) {
+      playerView.enableControls();
+    } else {
+      return
+    }
+
     if (shutterOn || document.pointerLockElement !== renderer.domElement || payload.action !== "mainAction1") {
       return
     }
@@ -348,7 +365,7 @@ export const init = async () => {
     }, 2000)
   }
 
-  playerInput.emitter.on("justpressed", setPolaroidFromViewport)
+  playerInput.emitter.on("justpressed", justPressed)
 
   setTimeout(() => {
     disableLoading()
@@ -398,7 +415,7 @@ export const init = async () => {
 
     const timeout = setTimeout(() => {
       ready = true
-    }, 30000)
+    }, 1000 * 120)
 
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
       public Draw(): void {
@@ -502,6 +519,6 @@ export const init = async () => {
 
     window.removeEventListener('resize', resize)
 
-    playerInput.emitter.off("justpressed", setPolaroidFromViewport)
+    playerInput.emitter.off("justpressed", justPressed)
   }
 }

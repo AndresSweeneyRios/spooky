@@ -63,3 +63,35 @@ export let gameStarted = false
 export const setGameStarted = (value: boolean) => {
   gameStarted = value
 }
+
+// -----
+
+export let winScriptIndex = -1
+
+export const incrementWinScriptIndex = () => {
+  winScriptIndex++
+}
+
+// -----
+
+export let inDialogue = false
+
+export const setInDialogue = (value: boolean) => {
+  inDialogue = value
+}
+
+// -----
+
+export let picking = false
+
+export const setPicking = (value: boolean) => {
+  picking = value
+}
+
+// -----
+
+export let isTutorial = true
+
+export const setIsTutorial = (value: boolean) => {
+  isTutorial = value
+}

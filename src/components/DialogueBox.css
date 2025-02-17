@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  z-index: 100;
+  /* z-index: 100; */
   pointer-events: none;
 }
 
@@ -32,7 +32,7 @@
 
 #dialogue-box p {
   font-size: 2.4em;
-  font-family: 'HellsCemetery-Regular', sans-serif; 
+  font-family: 'HellsCemetery-Regular', monospace, sans-serif; 
   font-weight: 400;
   color: rgb(235, 235, 235);
   max-width: 100%;
@@ -46,6 +46,12 @@
   color: rgb(255, 74, 89);
 }
 
+#dialogue-box p {
+  text-align: center;
+  max-width: 30em;
+  line-height: 1.2em;
+}
+
 #dialogue-box .background {
   position: absolute;
   top: 0;
@@ -54,4 +60,8 @@
   height: 100% !important;
   opacity: 1.0;
   background-color: transparent;
+}
+
+#dialogue-box {
+  background-color: rgba(0, 0, 0, 0.445);
 }

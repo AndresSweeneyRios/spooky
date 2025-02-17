@@ -86,8 +86,6 @@ export const Viewport: React.FC<{
     
       // Update your renderer with the canvas's pixel dimensions.
       renderer.setSize(canvas.width, canvas.height);
-    
-      console.log(`Window: ${windowWidth}x${windowHeight}, Canvas: ${canvasWidth}x${canvasHeight}, Scale Factor: ${bestS}`);
     };
     
 
