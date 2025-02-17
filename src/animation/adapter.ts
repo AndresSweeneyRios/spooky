@@ -105,7 +105,5 @@ export const adaptAnimation = (animation: THREE.AnimationClip) => {
     const originalTrackName = track.name
 
     track.name = `${mapName(name)}.${key}`
-
-    console.log(`${originalTrackName} mapped to ${track.name}`)
   }
 }

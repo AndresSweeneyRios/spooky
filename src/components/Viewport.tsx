@@ -31,36 +31,65 @@ export const Viewport: React.FC<{
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
     const resize = () => {
-
-      if (RENDERER.limitResolution) {
-        const targetHeight = RENDERER.height; // your desired renderer height
-        const windowHeight = window.innerHeight;
-        let closestDivisibleHeight = 1;
-        let smallestDiff = Infinity;
-
-        // Iterate over all numbers from 1 to windowHeight
-        for (let d = 1; d <= windowHeight; d++) {
-          // Check if d is a divisor of windowHeight
-          if (windowHeight % d === 0) {
-            const diff = Math.abs(d - targetHeight);
-            if (diff < smallestDiff) {
-              smallestDiff = diff;
-              closestDivisibleHeight = d;
-            }
-          }
-        }
-
-        // Set the canvas dimensions based on the chosen height
-        const aspectRatio = window.innerWidth / window.innerHeight;
-        canvas.height = closestDivisibleHeight;
-        canvas.width = closestDivisibleHeight * aspectRatio;
-      } else {
+      if (!RENDERER.limitResolution) {
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
+        renderer.setSize(window.innerWidth, window.innerHeight)
+        return
       }
-      
-      renderer.setSize(canvas.width, canvas.height)
-    }
+
+      // Helper to ensure an even number
+      const ensureEven = (value: number) => value % 2 === 0 ? value : value - 1;
+    
+      // Get window dimensions (ensured even)
+      const windowWidth = ensureEven(window.innerWidth);
+      const windowHeight = ensureEven(window.innerHeight);
+      const targetHeight = RENDERER.height; // desired downscaled renderer height
+    
+      // Compute the GCD of windowWidth and windowHeight
+      const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+      const commonDivisor = gcd(windowWidth, windowHeight);
+    
+      // Gather all divisors of the commonDivisor.
+      // Each divisor S is a candidate integer scale factor.
+      let candidateScaleFactors: number[] = [];
+      for (let i = 1; i <= commonDivisor; i++) {
+        if (commonDivisor % i === 0) {
+          candidateScaleFactors.push(i);
+        }
+      }
+    
+      // Now choose the S that makes canvas.height = windowHeight/S as close as possible to targetHeight.
+      let bestS = candidateScaleFactors[0];
+      let bestDiff = Infinity;
+      for (const s of candidateScaleFactors) {
+        const candidateCanvasHeight = windowHeight / s; // integer because s divides windowHeight
+        const diff = Math.abs(candidateCanvasHeight - targetHeight);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestS = s;
+        }
+      }
+    
+      // Now, set the canvas resolution based on the chosen scale factor.
+      const canvasHeight = windowHeight / bestS;
+      const canvasWidth  = windowWidth / bestS;
+    
+      // These are the low-resolution (downscaled) dimensions used for rendering
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+    
+      // For display, set the CSS size to the full window dimensions.
+      // (This causes the browser to scale up the canvas by an integer factor of bestS.)
+      canvas.parentElement!.style.width  = `${windowWidth}px`;
+      canvas.parentElement!.style.height = `${windowHeight}px`;
+    
+      // Update your renderer with the canvas's pixel dimensions.
+      renderer.setSize(canvas.width, canvas.height);
+    
+      console.log(`Window: ${windowWidth}x${windowHeight}, Canvas: ${canvasWidth}x${canvasHeight}, Scale Factor: ${bestS}`);
+    };
+    
 
     window.addEventListener("resize", resize)
     resize()
