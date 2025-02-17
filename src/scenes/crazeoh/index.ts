@@ -109,7 +109,7 @@ const enableLoading = () => {
   loading.setAttribute("is-hidden", "false")
 }
 
-const mapLoader = loadGltf("/3d/scenes/island/crazeoh.glb").then(async gltf => {
+const mapLoader = loadGltf("/3d/scenes/island/crazeoh_OPTIMIZED.glb").then(async gltf => {
   const scene = gltf.scene
 
   return scene
