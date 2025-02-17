@@ -20,10 +20,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  user-select: none;
 }
 
 :root {
-  font-size: 1vw;
+  font-size: 0.7vw;
 }
 
 html, body, #root {

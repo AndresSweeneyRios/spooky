@@ -240,10 +240,13 @@
   overflow: hidden;
   opacity: 0;
   transition: opacity 1s;
+  height: 15em;
+  width: 35em;
+  font-size: 1.2em;
 }
 
 .caseoh-camera-hint[is-hinting="false"] {
-  opacity: 0;
+  opacity: 0.0;
 }
 
 
@@ -252,8 +255,10 @@
 }
 
 .caseoh-camera-hint svg {
-  height: 15em;
-  transform: translate(-8em, 2em);
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transform: translate(-6em, 2em);
 } 
 
 #caseoh-anybutton {

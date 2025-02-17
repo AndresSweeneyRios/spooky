@@ -46,17 +46,9 @@ function gameLoop(simulation: Simulation) {
     // Update game logic here
     accumulatedTime -= FPS;
 
-    simulation.SimulationState.DeltaTime = FPS / 1000;
+    const deltaTime = FPS / 1000;
 
-    for (const command of simulation.SimulationState.Commands) {
-      command.Execute(simulation)
-    }
-
-    simulation.SimulationState.Commands = []
-
-    Tick(simulation.SimulationState);
-
-    simulation.ViewSync.Update(simulation);
+    updateGameLogic(simulation, deltaTime);
   }
 
   simulation.ViewSync.Draw(simulation, accumulatedTime / FPS);
@@ -66,4 +58,19 @@ function gameLoop(simulation: Simulation) {
 
   // Call the game loop again
   requestAnimationFrame(() => gameLoop(simulation));
+}
+
+// Function to update the game logic independently
+export function updateGameLogic(simulation: Simulation, deltaTime: number) {
+  simulation.SimulationState.DeltaTime = deltaTime;
+
+  for (const command of simulation.SimulationState.Commands) {
+    command.Execute(simulation);
+  }
+
+  simulation.SimulationState.Commands = [];
+
+  Tick(simulation.SimulationState);
+
+  simulation.ViewSync.Update(simulation);
 }

@@ -26,13 +26,12 @@ import { SimulationCommand } from "../../simulation/commands/_command";
 import { CollidersDebugger } from "../../views/collidersDebugger";
 import { JustPressedEvent, playerInput } from "../../input/player";
 import "./scripts"
+import { updateGameLogic } from "../../simulation/loop";
 
 // import "../../graphics/injections/cel"
 // import "../../graphics/injections/outline"
 
 const SHADOW_BIAS = -0.0009;
-
-const mapLoader = loadGltf("/3d/scenes/island/crazeoh.glb")
 
 const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
   loop: true,
@@ -110,15 +109,21 @@ const enableLoading = () => {
   loading.setAttribute("is-hidden", "false")
 }
 
+const mapLoader = loadGltf("/3d/scenes/island/crazeoh.glb").then(async gltf => {
+  const scene = gltf.scene
+
+  return scene
+})
+
 export let currentPlayerView: PlayerView | null = null
 
 export const init = async () => {
+  enableLoading()
+
   state.setAnomalyPosition(new THREE.Vector3(0, 0, 0))
   state.setFoundAnomaly(false)
   state.setTookPicture(false)
   state.setPlaying(false)
-
-  enableLoading()
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -200,9 +205,7 @@ export const init = async () => {
 
   currentPlayerView = playerView
 
-
-
-  const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal.scene)
+  const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal)
 
   for (const child of traverse(sceneGltf)) {
     if (child instanceof THREE.Mesh) {
@@ -230,6 +233,8 @@ export const init = async () => {
       return
     }
 
+    previousPlayStatus = state.playing
+
     const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement
 
     if (state.playing) {
@@ -241,7 +246,7 @@ export const init = async () => {
 
       simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [
         playerPosition.x,
-        0,
+        0.5,
         playerPosition.z,
       ])
 
@@ -276,20 +281,24 @@ export const init = async () => {
           cameraHint.setAttribute("is-hinting", "false")
         }, 10000)
       }
+
+      try {
+        updateGameLogic(simulation, 0)
+
+        simulation.ViewSync.Draw(simulation, 1.0)
+      } catch (e) {
+        console.error(e)
+      }
     } else {
       playerView.disableControls()
       cameraHint.setAttribute("is-hidden", "true")
     }
-
-    previousPlayStatus = state.playing
   }
 
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
-    public Update(): void {
-      detectPlayStateChange()
-    }
-
     public Draw(): void {
+      detectPlayStateChange()
+
       camera.updateMatrixWorld()
 
       // For example, offset the spotlight from the camera:
@@ -406,9 +415,7 @@ export const init = async () => {
 
   playerInput.emitter.on("justpressed", justPressed)
 
-  setTimeout(() => {
-    disableLoading()
-  }, 750)
+  disableLoading()
 
   const eat = (food: string) => {
     const foodObject = scene.getObjectByName(food) as THREE.Mesh
@@ -449,46 +456,35 @@ export const init = async () => {
   eat("Object_4011")
 
   heartbeatAudioPromise.then(audio => {
-    audio.setVolume(0)
-    audio.play()
+    audio.setVolume(0);
+    audio.play();
 
-    let ready = false
-
-    const timeout = setTimeout(() => {
-      ready = true
-    }, 1000 * 120)
+    const readyTime = Date.now() + 1000 * 120;
 
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
       public Draw(): void {
-        if (!state.anomaly || !ready) {
-          audio.setVolume(0)
-
-          return
+        if (!state.anomaly || Date.now() < readyTime) {
+          audio.setVolume(0);
+          return;
         }
 
-        const playerEntId = playerView.EntId
-        const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
-
+        const playerEntId = playerView.EntId;
+        const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId);
         const distance = new THREE.Vector3(
           playerPosition[0] - state.anomalyPosition.x,
           playerPosition[1] - state.anomalyPosition.y,
           playerPosition[2] - state.anomalyPosition.z,
-        ).length()
+        ).length();
 
-        const volume = Math.min(1, Math.max(0, 1 - distance / 6)) * 0.2
-
-        audio.setVolume(volume)
+        const volume = Math.min(1, Math.max(0, 1 - distance / 6)) * 0.2;
+        audio.setVolume(volume);
       }
 
       public Cleanup(): void {
-        try {
-          clearTimeout(timeout)
-
-          audio.stop()
-        } catch { }
+        audio.stop();
       }
-    })
-  })
+    });
+  });
 
   burgerkingAudioPromise.then(audio => {
     const object = scene.getObjectByName("Sketchfab_model001") as THREE.Mesh

@@ -9,7 +9,7 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
 
   for (const child of traverse(object)) {
     if (child.name === 'ORIGIN') {
-      // object.position.set(child.position.x, child.position.y, child.position.z)
+      object.position.set(child.position.x, child.position.y, child.position.z)
       object.translateX(-child.position.x)
       object.translateY(-child.position.y)
       object.translateZ(-child.position.z)
@@ -65,6 +65,6 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
   }
 
   for (const child of removalList) {
-    child.parent?.remove(child)
+    child.visible = false
   }
 }

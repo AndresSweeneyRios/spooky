@@ -240,14 +240,16 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     return collider
   }
 
-  public AddCollidersFromObject(entId: EntId, object: THREE.Object3D, addCharacter: boolean = false, sensor: boolean = false) {
+  public AddCollidersFromObject(entId: EntId, object: Readonly<THREE.Object3D>, addCharacter: boolean = false, sensor: boolean = false) {
     const component = this.entities.get(entId)!
+
+    const worldPosition = object.getWorldPosition(new THREE.Vector3())
 
     if (addCharacter && !component.GetFirstCharacter()) {
       const rigidBody = this.CreateRigidBody(vec3.fromValues(
-        object.position.x,
-        object.position.y,
-        object.position.z
+        worldPosition.x,
+        worldPosition.y,
+        worldPosition.z
       )).rigidBody
 
       rigidBody.setRotation(new RAPIER.Quaternion(
@@ -269,13 +271,15 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       }
 
       const geometry = (child as THREE.Mesh).geometry as THREE.BufferGeometry
-      const vertices = geometry.getAttribute("position").array as Float32Array
+      const vertices = new Float32Array(geometry.getAttribute("position").array)
 
       const indices = geometry.getIndex()
         ? geometry.getIndex()!.array as Uint32Array
         : new Uint32Array(Array.from({ length: vertices.length / 3 }, (_, i) => i)); // Generate sequential indices for non-indexed geometry
 
-      const translation = new RAPIER.Vector3(child.position.x, child.position.y, child.position.z)
+      const worldPosition = child.getWorldPosition(new THREE.Vector3())
+
+      const translation = new RAPIER.Vector3(worldPosition.x, worldPosition.y, worldPosition.z)
       const rotation = new RAPIER.Quaternion(child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w)
       const scaledScale = new RAPIER.Vector3(child.scale.x, child.scale.y, child.scale.z)
 
@@ -284,18 +288,9 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
           continue
         }
 
-        translation.x += parent.position.x
-        translation.y += parent.position.y
-        translation.z += parent.position.z
-
         scaledScale.x *= parent.scale.x
         scaledScale.y *= parent.scale.y
         scaledScale.z *= parent.scale.z
-
-        rotation.x *= parent.quaternion.x
-        rotation.y *= parent.quaternion.y
-        rotation.z *= parent.quaternion.z
-        rotation.w *= parent.quaternion.w
       }
 
       for (let i = 0; i < vertices.length; i += 3) {
