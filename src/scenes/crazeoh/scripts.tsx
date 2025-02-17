@@ -49,7 +49,7 @@ export const intro = async () => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  0: intro,
+  // 0: intro,
 }
 
 export const executeWinScript = async () => {
