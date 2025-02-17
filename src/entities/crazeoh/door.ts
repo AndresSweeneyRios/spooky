@@ -25,5 +25,7 @@ export const createDoor = (simulation: Simulation) => {
     worldPosition.z,
   ], undefined, true)
 
+  doorObject.visible = false
+
   return entId
 }

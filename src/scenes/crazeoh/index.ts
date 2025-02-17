@@ -66,6 +66,11 @@ const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
   detune: -400,
 })
 
+const burgerkingAudioPromise = loadAudio("/audio/sfx/burgerking.ogg", {
+  loop: false,
+  positional: true,
+})
+
 const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
   randomPitch: true,
   pitchRange: 400,
@@ -406,6 +411,8 @@ export const init = async () => {
   eat("Object_4")
   eat("Object_4003")
   eat("bepis")
+  eat("23b099929e614d9a927b4ec8f3d72063fbx")
+  eat("Object_4011")
 
   heartbeatAudioPromise.then(audio => {
     audio.setVolume(0)
@@ -449,10 +456,39 @@ export const init = async () => {
     })
   })
 
+  burgerkingAudioPromise.then(audio => {
+    const object = scene.getObjectByName("Sketchfab_model001") as THREE.Mesh
+
+    object.add(audio.getPositionalAudio())
+
+    audio.setVolume(0.5)
+  })
+
+  {
+    const globalPosition = scene.getObjectByName("Sketchfab_model001")!.getWorldPosition(new THREE.Vector3())
+    const entId = simulation.EntityRegistry.Create()
+    simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
+    simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [2, 2, 2], [
+      globalPosition.x,
+      globalPosition.y,
+      globalPosition.z,
+    ], undefined, true)
+    simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
+    simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
+      entId,
+      executionMode: ExecutionMode.Interaction,
+      command: new class extends SimulationCommand {
+        public Execute(simulation: Simulation): void {
+          burgerkingAudioPromise.then(audio => audio.play())
+        }
+      }
+    })
+  }
+
   garageScreamAudioPromise.then(audio => {
     const positionalAudio = audio.getPositionalAudio()
 
-    const object = scene.getObjectByName("Cylinder_1__0001") as THREE.Mesh
+    const object = scene.getObjectByName("Plane001_01_-_Default_0001") as THREE.Mesh
 
     object.add(positionalAudio)
 
