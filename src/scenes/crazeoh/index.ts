@@ -102,6 +102,9 @@ nightAmbianceAudioPromise.then(audio => {
 const disableLoading = () => {
   const loading = document.getElementById("caseoh-loading")!
   loading.setAttribute("is-hidden", "true")
+
+  const splash = document.getElementById("splash")!
+  splash.setAttribute("is-hidden", "true")
 }
 
 const enableLoading = () => {
@@ -170,8 +173,8 @@ export const init = async () => {
   spotLight.shadow.camera.near = 0.1;
   spotLight.shadow.camera.far = 30;
   spotLight.shadow.camera.fov = 30;
-  spotLight.intensity = 2.5
-  spotLight.decay = 0.99
+  spotLight.intensity = 4
+  spotLight.decay = 0.999
   spotLight.angle = Math.PI * 0.35
   spotLight.penumbra = 1
   spotLight.shadow.bias = SHADOW_BIAS
