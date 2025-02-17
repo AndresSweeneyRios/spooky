@@ -200,6 +200,8 @@ export const init = async () => {
 
   currentPlayerView = playerView
 
+
+
   const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal.scene)
 
   for (const child of traverse(sceneGltf)) {
@@ -231,6 +233,38 @@ export const init = async () => {
     const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement
 
     if (state.playing) {
+      const playerSpawnObject = scene.getObjectByName("PLAYER") as THREE.Mesh
+
+      const playerPosition = playerSpawnObject.getWorldPosition(new THREE.Vector3())
+
+      const playerEntId = playerView.EntId
+
+      simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [
+        playerPosition.x,
+        0,
+        playerPosition.z,
+      ])
+
+      const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh
+      const lookTargetPosition = lookTarget.getWorldPosition(new THREE.Vector3())
+
+      const yaw = Math.atan2(
+        playerPosition.x - lookTargetPosition.x,
+        playerPosition.z - lookTargetPosition.z,
+      )
+
+      const pitch = Math.atan2(
+        lookTargetPosition.y - playerPosition.y,
+        Math.sqrt(
+          Math.pow(playerPosition.x - lookTargetPosition.x, 2) +
+          Math.pow(playerPosition.z - lookTargetPosition.z, 2)
+        )
+      )
+
+      playerSpawnObject.visible = false
+
+      camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"))
+
       playerView.enableControls()
       pickRandomAnomaly(simulation)
 

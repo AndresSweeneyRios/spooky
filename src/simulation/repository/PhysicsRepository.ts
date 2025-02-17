@@ -71,6 +71,18 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
     }
   }
 
+  public SetPosition(entId: EntId, position: vec3) {
+    const component = this.entities.get(entId)!
+
+    for (const body of component.bodies.values()) {
+      body.setTranslation(new RAPIER.Vector3(position[0], position[1], position[2]), true)
+    }
+
+    for (const collider of component.colliders.values()) {
+      collider.setTranslation(new RAPIER.Vector3(position[0], position[1], position[2]))
+    }
+  }
+
   public GetPreviousPosition(entId: EntId): vec3 {
     return vec3.clone(this.entities.get(entId)!.previousPosition)
   }
