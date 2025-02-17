@@ -3,7 +3,7 @@ import "./Caseoh.css";
 import React, { Fragment } from 'react';
 import { Viewport, renderer } from '../components/Viewport';
 import { DialogueBox } from '../components/DialogueBox';
-import { loadScene, scenes } from "../scenes";
+import { loadScene, scenes, unloadScene } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp"
 import PolaroidPng from "../assets/caseoh/polaroid.png"
 import * as state from "../scenes/crazeoh/state"
@@ -73,6 +73,8 @@ const handleYesDecision = async () => {
     if (!state.gameStarted || state.playing || !state.tookPicture) {
       return
     }
+    
+    unloadScene()
 
     if (state.isTutorial) {
       if (state.anomaly && state.foundAnomaly) {
@@ -111,6 +113,8 @@ const handleNoDecision = async () => {
     if (!state.gameStarted || state.playing) {
       return
     }
+    
+    unloadScene()
 
     if (!state.isTutorial) {
       if (state.anomaly) {
@@ -143,15 +147,37 @@ const handleNoDecision = async () => {
   }
 }
 
+const cancelDecision = async () => {
+  try {
+    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+    state.setPlaying(true)
+    state.setPicking(false)
+
+    try {
+      document.body.requestFullscreen()
+    } catch {}
+
+    try {
+      renderer.domElement.requestPointerLock()
+    } catch {}
+    
+    import("../scenes/crazeoh").then(({ currentPlayerView }) => {
+      currentPlayerView?.enableControls()
+    })
+  } catch (error) {
+    console.error("Error canceling decision:", error)
+  }
+}
+
 playerInput.emitter.on("justpressed", ({ action, inputSource, consume }) => {
   if (inputSource !== "gamepad") {
     return;
   }
 
   switch (action) {
-    case "mainAction1": startGame(); consume(); break;
+    case "mainAction1": startGame(); handleNoDecision(); consume(); break;
     case "interact": handleYesDecision(); consume(); break;
-    case "cancel": handleNoDecision(); consume(); break;
+    case "cancel": cancelDecision(); consume(); break;
   }
 }, {
   order: 99999,
@@ -211,11 +237,15 @@ export const CrazeOh = () => React.useMemo(() => <>
       <h1>ANOMALY?</h1>
       <div className="split">
         <div className="yes">
-          <SVG src={DpadSoloIconSvg} />
           <button onClick={handleYesDecision}>YES</button>
+          <SVG src={DpadSoloIconSvg} />
         </div>
         <div>
           <button onClick={handleNoDecision}>NO</button>
+          <SVG style={{ transform: 'rotate(-90deg)' }} src={DpadSoloIconSvg} />
+        </div>
+        <div>
+          <button onClick={cancelDecision}>CANCEL</button>
           <SVG style={{ transform: 'rotate(180deg)' }} src={DpadSoloIconSvg} />
         </div>
       </div>

@@ -170,8 +170,8 @@ export const init = async () => {
   spotLight.shadow.camera.near = 0.1;
   spotLight.shadow.camera.far = 30;
   spotLight.shadow.camera.fov = 30;
-  spotLight.intensity = 3
-  spotLight.decay = 0.7
+  spotLight.intensity = 2.5
+  spotLight.decay = 0.99
   spotLight.angle = Math.PI * 0.35
   spotLight.penumbra = 1
   spotLight.shadow.bias = SHADOW_BIAS
@@ -228,6 +228,8 @@ export const init = async () => {
 
   disableAllAnomalies(simulation)
 
+  let teleportedPlayer = false
+
   const detectPlayStateChange = async () => {
     if (state.playing === previousPlayStatus) {
       return
@@ -238,37 +240,39 @@ export const init = async () => {
     const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement
 
     if (state.playing) {
-      const playerSpawnObject = scene.getObjectByName("PLAYER") as THREE.Mesh
+      if (!teleportedPlayer) {
+        const playerSpawnObject = scene.getObjectByName("PLAYER") as THREE.Mesh
+        const playerPosition = playerSpawnObject.getWorldPosition(new THREE.Vector3())
+        const playerEntId = playerView.EntId
 
-      const playerPosition = playerSpawnObject.getWorldPosition(new THREE.Vector3())
+        simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [
+          playerPosition.x,
+          0.5,
+          playerPosition.z,
+        ])
 
-      const playerEntId = playerView.EntId
+        teleportedPlayer = true
 
-      simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [
-        playerPosition.x,
-        0.5,
-        playerPosition.z,
-      ])
+        const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh
+        const lookTargetPosition = lookTarget.getWorldPosition(new THREE.Vector3())
 
-      const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh
-      const lookTargetPosition = lookTarget.getWorldPosition(new THREE.Vector3())
-
-      const yaw = Math.atan2(
-        playerPosition.x - lookTargetPosition.x,
-        playerPosition.z - lookTargetPosition.z,
-      )
-
-      const pitch = Math.atan2(
-        lookTargetPosition.y - playerPosition.y,
-        Math.sqrt(
-          Math.pow(playerPosition.x - lookTargetPosition.x, 2) +
-          Math.pow(playerPosition.z - lookTargetPosition.z, 2)
+        const yaw = Math.atan2(
+          playerPosition.x - lookTargetPosition.x,
+          playerPosition.z - lookTargetPosition.z,
         )
-      )
 
-      playerSpawnObject.visible = false
+        const pitch = Math.atan2(
+          lookTargetPosition.y - playerPosition.y,
+          Math.sqrt(
+            Math.pow(playerPosition.x - lookTargetPosition.x, 2) +
+            Math.pow(playerPosition.z - lookTargetPosition.z, 2)
+          )
+        )
 
-      camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"))
+        playerSpawnObject.visible = false
+
+        camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"))
+      }
 
       playerView.enableControls()
       pickRandomAnomaly(simulation)

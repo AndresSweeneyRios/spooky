@@ -88,6 +88,11 @@ export class PlayerView extends EntityView {
     updatedQuat = pitchQuat.multiply(updatedQuat);
     updatedQuat.normalize();
 
+    // Lock the Y axis to 0
+    const euler = new THREE.Euler().setFromQuaternion(updatedQuat, "YXZ");
+    euler.z = 0;
+    updatedQuat.setFromEuler(euler);
+
     // Update the camera's orientation.
     this.simulation.Camera.quaternion.copy(updatedQuat);
   }
@@ -215,6 +220,10 @@ export class PlayerView extends EntityView {
   }
 
   public enableControls(): void {
+    if (!this.controlsEnabled) {
+      this.updateCamera(0, 0)
+    }
+
     this.controlsEnabled = true;
 
     this.cleanupEvents();
@@ -229,8 +238,6 @@ export class PlayerView extends EntityView {
     document.addEventListener("pointerlockchange", pointerLockChangeHandler)
 
     playerInput.emitter.on("justpressed", justPressedHandler);
-
-    this.updateCamera(0, 0)
 
     this.cleanupEvents = () => {
       document.removeEventListener("keydown", keydownHandler);

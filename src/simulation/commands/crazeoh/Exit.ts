@@ -2,12 +2,9 @@ import type { Simulation } from "../..";
 import { SimulationCommand } from "../_command";
 import * as state from "../../../scenes/crazeoh/state";
 import { currentPlayerView } from "../../../scenes/crazeoh";
-import { unloadScene } from "../../../scenes";
 
 export class Exit extends SimulationCommand {
   public Execute(simulation: Simulation): void {
-    unloadScene()
-
     currentPlayerView?.disableControls()
 
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "false")

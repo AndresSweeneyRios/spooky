@@ -358,6 +358,8 @@ export const firstClick = new Promise<void>((resolve) => {
 
 export const listener = new THREE.AudioListener();
 
+listener.setMasterVolume(2.0);
+
 export const loadAudio = async (path: string, {
   loop = false,
   randomPitch = false,
