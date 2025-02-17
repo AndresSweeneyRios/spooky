@@ -364,7 +364,7 @@ export const CRTShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1, 1) },
     time: { value: 0.0 },
-    scanlineIntensity: { value: 0.3 },
+    scanlineIntensity: { value: 0.7 },
     vignetteIntensity: { value: 0.0 },
     curvature: { value: 1.0 },
     noiseIntensity: { value: 0.3 },
@@ -412,7 +412,7 @@ export const CRTShader = {
       uv = (uv - 0.5) * edgeScale + 0.5;
       
       // Create a scanline pattern based on the screen's vertical resolution.
-      float scanline = sin((vUv.y) * resolution.y * 3.14159) * 0.5 + 0.5;
+      float scanline = sin((vUv.y) * (resolution.y / 2.0) * 3.14159) * 0.5 + 0.5;
       scanline = mix(1.0, scanline, scanlineIntensity);
       
       // Apply vignette by darkening toward the edges.

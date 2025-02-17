@@ -1,28 +1,29 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
+import React, { Suspense, lazy } from 'react';
+import ReactDOM from 'react-dom';
 import {
   createBrowserRouter,
   RouterProvider,
-} from "react-router-dom"
-import './index.css'
+} from "react-router-dom";
+import './index.css';
 
 // Preload
-import { processAttributes } from "./utils/processAttributes"
-processAttributes
+import { processAttributes } from "./utils/processAttributes";
+processAttributes;
 
-import { EntityView } from "./simulation/EntityView"
-import type { EntId } from './simulation/EntityRegistry'
+import type { EntId } from './simulation/EntityRegistry';
 class A extends EntityView {}
-new A(Symbol() as EntId)
+new A(Symbol() as EntId);
 
-import "./graphics/shaders"
-import "./graphics/injections"
-import NotFound from './pages/_notfound'
-import Landing from './pages/Landing'
-import { CrazeOh } from "./pages/Caseoh"
-import Spooky from "./pages/Spooky"
+import "./graphics/shaders";
+import "./graphics/injections";
+import { EntityView } from "./simulation/EntityView";
 
-console.log(`%cJOIN US — https://tripshred.com`, "font-weight: bold; font-size: 16px; padding: 20px; color: #FF4D4D;")
+const NotFound = lazy(() => import('./pages/_notfound'));
+const Landing = lazy(() => import('./pages/Landing'));
+const CrazeOh = lazy(() => import('./pages/Caseoh'));
+const Spooky = lazy(() => import('./pages/Spooky'));
+
+console.log(`%cJOIN US — https://tripshred.com`, "font-weight: bold; font-size: 16px; padding: 20px; color: #FF4D4D;");
 
 console.log(`%c
               ######################             
@@ -53,32 +54,32 @@ console.log(`%c
            ##                              
                    #                       
                   ###                      
-                  `, "font-weight: bold; font-size: 14px; color: #FFF375;")
+                  `, "font-weight: bold; font-size: 14px; color: #FFF375;");
 
 const router = createBrowserRouter([
   // Home
   {
     path: "/",
-    element: <CrazeOh />,
+    element: <Suspense fallback={<div></div>}><CrazeOh /></Suspense>,
   },
   {
     path: "/spooky",
-    element: <Spooky />,
+    element: <Suspense fallback={<div></div>}><Spooky /></Suspense>,
   },
   {
     path: "/landing",
-    element: <Landing />,
+    element: <Suspense fallback={<div></div>}><Landing /></Suspense>,
   },
   // 404
   {
     path: "*",
-    element: <NotFound />,
+    element: <Suspense fallback={<div></div>}><NotFound /></Suspense>,
   },
-])
+]);
 
 ReactDOM.render(
   <React.StrictMode>
     <RouterProvider router={router} />
   </React.StrictMode>,
   document.getElementById('root')
-)
+);

@@ -14,65 +14,133 @@ import InteractableIconSvg from "../assets/icons/interactable.svg"
 import CameraHintSvg from "../assets/icons/camera_hint.svg"
 import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg"
 import { playerInput } from "../input/player";
+import { executeWinScript } from "../scenes/crazeoh/scripts";
+import { type loadAudio } from "../graphics/loaders";
 
-const startGame = () => {
-  if (state.gameStarted) {
-    return
-  }
+const loaderPromise = import("../graphics/loaders")
 
-  state.setGameStarted(true)
+let stopMusic: () => void = () => {}
+
+loaderPromise.then(async ({ loadAudio, firstClick }) => {
+  firstClick.then(() => {
+    document.querySelector("#caseoh-anybutton")!.setAttribute("is-hidden", "true")
+  })
   
-  renderer.domElement.requestPointerLock()
-  document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
-  state.setPlaying(true)
-
-  const canvas = document.querySelector("body")!
-  canvas.requestFullscreen()
-}
-
-const handleYesDecision = () => {
-  if (!state.gameStarted || state.playing || !state.tookPicture) {
-    return
-  }
-
-  if (state.anomaly && state.foundAnomaly) {
-    state.incrementWins()
-    removeCurrentAnomaly()
-  } else {
-    state.resetWins()
-  }
-
-  document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
-  renderer.domElement.requestPointerLock()
-
-  loadScene(scenes.crazeoh).then(() => {
-    state.setPlaying(true)
+  const audio = await loadAudio('/audio/music/caseoh.ogg', {
+    loop: true,
   })
 
-  const canvas = document.querySelector("body")!
-  canvas.requestFullscreen()
+  audio.setVolume(0.1)
+  audio.play()
+
+  stopMusic = () => {
+    audio.stop()
+  }
+
+  return audio
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
+const startGame = async () => {
+  try {
+    if (state.gameStarted || document.querySelector("#caseoh-anybutton")!.getAttribute("is-hidden") === "false") {
+      return
+    }
+
+    stopMusic()
+
+    state.setGameStarted(true)
+
+    document.querySelector("#caseoh")!.setAttribute("is-hidden", "true")
+
+    try {
+      document.body.requestFullscreen()
+    } catch {}
+
+    try {
+      renderer.domElement.requestPointerLock()
+    } catch {}
+    
+    await executeWinScript()
+
+    state.setPlaying(true)
+  } catch (error) {
+    console.error("Error starting game:", error)
+  }
 }
 
-const handleNoDecision = () => {
-  if (!state.gameStarted || state.playing) {
-    return
-  }
+const handleYesDecision = async () => {
+  try {
+    if (!state.gameStarted || state.playing || !state.tookPicture) {
+      return
+    }
 
-  if (state.anomaly) {
-    state.resetWins()
-  } else {
-    state.incrementWins()
-  }
+    if (state.isTutorial) {
+      if (state.anomaly && state.foundAnomaly) {
+        state.incrementWins()
+        removeCurrentAnomaly()
+      } else {
+        state.resetWins()
+      }
+    }
 
-  document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
-  renderer.domElement.requestPointerLock()
+    state.setIsTutorial(false)
 
-  loadScene(scenes.crazeoh).then(() => {
+    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+
+    try {
+      document.body.requestFullscreen()
+    } catch {}
+
+    try {
+      renderer.domElement.requestPointerLock()
+    } catch {}
+
+    await loadScene(scenes.crazeoh)
+
+    await executeWinScript()
+
     state.setPlaying(true)
-  })
+    state.setPicking(false)
+  } catch (error) {
+    console.error("Error handling yes decision:", error)
+  }
+}
 
-  const canvas = document.querySelector("body")!
-  canvas.requestFullscreen()
+const handleNoDecision = async () => {
+  try {
+    if (!state.gameStarted || state.playing) {
+      return
+    }
+
+    if (!state.isTutorial) {
+      if (state.anomaly) {
+        state.resetWins()
+      } else {
+        state.incrementWins()
+      }
+    }
+
+    state.setIsTutorial(false)
+
+    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true")
+
+    try {
+      document.body.requestFullscreen()
+    } catch {}
+
+    try {
+      renderer.domElement.requestPointerLock()
+    } catch {}
+
+    await loadScene(scenes.crazeoh)
+
+    await executeWinScript()
+
+    state.setPlaying(true)
+    state.setPicking(false)
+  } catch (error) {
+    console.error("Error handling no decision:", error)
+  }
 }
 
 playerInput.emitter.on("justpressed", ({ action, inputSource, consume }) => {
@@ -154,8 +222,14 @@ export const CrazeOh = () => React.useMemo(() => <>
     </div>
   </div>
 
+  <div id="caseoh-anybutton" is-hidden="false">
+    <h1>Press Any Button</h1>
+  </div>
+
   <div id="caseoh-loading" is-hidden="false">
     <img src={TvWebp} />
     <h1>Loading</h1>
   </div>
 </>, [])
+
+export default CrazeOh;

@@ -18,6 +18,7 @@ export class Exit extends SimulationCommand {
     const yes = document.querySelector("#caseoh-decision .yes") as HTMLElement
 
     state.setPlaying(false)
+    state.setPicking(true)
 
     if (state.tookPicture) {
       // show yes, show polaroid

@@ -20,7 +20,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 :root {
@@ -32,6 +31,7 @@ html, body, #root {
   min-height: 100vh;
   background-color: #010101;
   color: white;
+  overflow: hidden;
 }
 
 .font-hells-cemetery {

@@ -60,13 +60,9 @@ function createNoiseShaderMaterial() {
     const width = renderer.domElement.clientWidth;
     const height = renderer.domElement.clientHeight;
 
-    console.log(width - previousWidth, height - previousHeight)
-
     if (width === previousWidth && height === previousHeight) {
       return;
     }
-
-    console.log('change')
 
     previousWidth = width;
     previousHeight = height;

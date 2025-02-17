@@ -50,16 +50,6 @@ export class PlayerView extends EntityView {
 
   private footstepAudioInterval: ReturnType<typeof setInterval> | null = null;
 
-  private ClickBind = this.Click.bind(this);
-
-  public Click(): void {
-    this.enableControls();
-
-    this.canvas.requestPointerLock();
-
-    document.body.requestFullscreen()
-  }
-
   private losePointerLockBind = this.losePointerLock.bind(this);
 
   private losePointerLock(): void {
@@ -160,7 +150,6 @@ export class PlayerView extends EntityView {
     this.simulation.Camera.quaternion.setFromEuler(euler);
 
     this.cleanupEvents = () => { };
-    this.canvas.addEventListener("click", this.ClickBind);
     document.addEventListener("pointerlockchange", this.losePointerLockBind);
   }
 
@@ -340,7 +329,6 @@ export class PlayerView extends EntityView {
 
   public Cleanup(): void {
     this.cleanupEvents();
-    this.canvas.removeEventListener("click", this.ClickBind);
     document.removeEventListener("pointerlockchange", this.losePointerLockBind);
   }
 }

@@ -10,6 +10,7 @@ import { vec2, vec3 } from "gl-matrix";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { traverse } from "../utils/traverse";
 import * as animation from "../animation"
+import { playerInput } from "../input/player";
 
 const fbxLoader = new FBXLoader();
 
@@ -342,11 +343,18 @@ export const loadTiledJSON = async (path: string) => {
   };
 }
 
-const firstClick = new Promise<void>((resolve) => {
-  document.addEventListener('click', () => {
-    resolve()
-  }, { once: true })
-})
+export const firstClick = new Promise<void>((resolve) => {
+  const handler = () => {
+    resolve();
+    window.removeEventListener("click", handler);
+    window.removeEventListener("keydown", handler);
+    playerInput.emitter.off("justpressed", handler);
+  };
+
+  window.addEventListener("click", handler);
+  window.addEventListener("keydown", handler);
+  playerInput.emitter.on("justpressed", handler);
+});
 
 export const listener = new THREE.AudioListener();
 

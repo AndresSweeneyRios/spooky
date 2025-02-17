@@ -465,6 +465,191 @@ const Keyboard: Anomaly = {
   }
 }
 
+const Pitchfork: Anomaly = {
+  Id: Symbol('Pitchfork'),
+
+  Enable(simulation: Simulation) {
+    const pitchfork = simulation.ThreeScene.getObjectByName('pitchfork') as THREE.Mesh
+    const leftfork = simulation.ThreeScene.getObjectByName('leftfork') as THREE.Mesh
+
+    pitchfork.visible = true
+    leftfork.visible = false
+
+
+    return pitchfork.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const pitchfork = simulation.ThreeScene.getObjectByName('pitchfork') as THREE.Mesh
+    const leftfork = simulation.ThreeScene.getObjectByName('leftfork') as THREE.Mesh
+
+    pitchfork.visible = false
+    leftfork.visible = true
+  }
+}
+
+// pPlane1_Poster_01_Mat_0.001
+const Poster = {
+  Id: Symbol('Poster'),
+
+  Enable(simulation: Simulation) {
+    const poster = simulation.ThreeScene.getObjectByName('pPlane1_Poster_01_Mat_0001') as THREE.Mesh
+
+    poster.visible = true
+
+    return poster.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const poster = simulation.ThreeScene.getObjectByName('pPlane1_Poster_01_Mat_0001') as THREE.Mesh
+
+    poster.visible = false
+  }
+}
+
+//lburger on, burger off
+const LettuceBurger: Anomaly = {
+  Id: Symbol('LettuceBurger'),
+
+  Enable(simulation: Simulation) {
+    const lburger = simulation.ThreeScene.getObjectByName('lburger') as THREE.Mesh
+    const burger = simulation.ThreeScene.getObjectByName('burger') as THREE.Mesh
+
+    lburger.visible = true
+    burger.visible = false
+
+    return lburger.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const lburger = simulation.ThreeScene.getObjectByName('lburger') as THREE.Mesh
+    const burger = simulation.ThreeScene.getObjectByName('burger') as THREE.Mesh
+
+    lburger.visible = false
+    burger.visible = true
+  }
+}
+
+// reallabel off, fakelabel on
+const RealLabel: Anomaly = {
+  Id: Symbol('RealLabel'),
+
+  Enable(simulation: Simulation) {
+    const reallabel = simulation.ThreeScene.getObjectByName('fakelabel') as THREE.Mesh
+    const fakelabel = simulation.ThreeScene.getObjectByName('reallabel') as THREE.Mesh
+
+    reallabel.visible = false
+    fakelabel.visible = true
+
+    return fakelabel.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const reallabel = simulation.ThreeScene.getObjectByName('fakelabel') as THREE.Mesh
+    const fakelabel = simulation.ThreeScene.getObjectByName('reallabel') as THREE.Mesh
+
+    reallabel.visible = true
+    fakelabel.visible = false
+  }
+}
+
+// glock
+const Glock: Anomaly = {
+  Id: Symbol('Glock'),
+
+  Enable(simulation: Simulation) {
+    const glock = simulation.ThreeScene.getObjectByName('glock') as THREE.Mesh
+
+    glock.visible = true
+
+    return glock.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const glock = simulation.ThreeScene.getObjectByName('glock') as THREE.Mesh
+
+    glock.visible = false
+  }
+}
+
+// can_bepis_0.001
+const CanBepis: Anomaly = {
+  Id: Symbol('CanBepis'),
+
+  Enable(simulation: Simulation) {
+    const can = simulation.ThreeScene.getObjectByName('longbepis') as THREE.Mesh
+
+    can.visible = true
+
+    return can.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const can = simulation.ThreeScene.getObjectByName('longbepis') as THREE.Mesh
+
+    can.visible = false
+  }
+}
+
+// bloodshake on, milkshake off
+
+const Bloodshake: Anomaly = {
+  Id: Symbol('Bloodshake'),
+
+  Enable(simulation: Simulation) {
+    const bloodshake = simulation.ThreeScene.getObjectByName('bloodshake') as THREE.Mesh
+    const milkshake = simulation.ThreeScene.getObjectByName('milkshake') as THREE.Mesh
+
+    bloodshake.visible = true
+    milkshake.visible = false
+
+    return bloodshake.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const bloodshake = simulation.ThreeScene.getObjectByName('bloodshake') as THREE.Mesh
+    const milkshake = simulation.ThreeScene.getObjectByName('milkshake') as THREE.Mesh
+
+    bloodshake.visible = false
+    milkshake.visible = true
+  }
+}
+
+const FakeBuffet: Anomaly = {
+  Id: Symbol('FakeBuffet'),
+
+  Enable(simulation: Simulation) {
+    const fakeb1 = simulation.ThreeScene.getObjectByName('fakeb1') as THREE.Mesh
+    const fakeb2 = simulation.ThreeScene.getObjectByName('fakeb2') as THREE.Mesh
+    const fakeb3 = simulation.ThreeScene.getObjectByName('fakeb3') as THREE.Mesh
+    const fakeb4 = simulation.ThreeScene.getObjectByName('fakeb4') as THREE.Mesh
+    const object = simulation.ThreeScene.getObjectByName('Object_53002') as THREE.Mesh
+
+    fakeb1.visible = true
+    fakeb2.visible = true
+    fakeb3.visible = true
+    fakeb4.visible = true
+    object.visible = true
+
+    return object.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const fakeb1 = simulation.ThreeScene.getObjectByName('fakeb1') as THREE.Mesh
+    const fakeb2 = simulation.ThreeScene.getObjectByName('fakeb2') as THREE.Mesh
+    const fakeb3 = simulation.ThreeScene.getObjectByName('fakeb3') as THREE.Mesh
+    const fakeb4 = simulation.ThreeScene.getObjectByName('fakeb4') as THREE.Mesh
+    const object = simulation.ThreeScene.getObjectByName('Object_53002') as THREE.Mesh
+
+    fakeb1.visible = false
+    fakeb2.visible = false
+    fakeb3.visible = false
+    fakeb4.visible = false
+    object.visible = false
+  }
+}
+
+
 const DEFAULT_ANOMALIES = [
   FrenchFries,
   SeveredHand,
@@ -480,6 +665,14 @@ const DEFAULT_ANOMALIES = [
   CoatHanger,
   BurgerLevitate,
   Keyboard,
+  Pitchfork,
+  Poster,
+  RealLabel,
+  Glock,
+  CanBepis,
+  Bloodshake,
+  LettuceBurger,
+  FakeBuffet,
 ]
 
 const anomalies: typeof DEFAULT_ANOMALIES = []
@@ -494,6 +687,14 @@ export const disableAllAnomalies = (simulation: Simulation) => {
 
 export const pickRandomAnomaly = (simulation: Simulation) => {
   disableAllAnomalies(simulation)
+
+  if (state.isTutorial) {
+    // Skip anomalies in tutorial
+    state.setAnomaly(false)
+    state.setFoundAnomaly(false)
+
+    return
+  }
 
   if (anomalies.length === 0) {
     anomalies.push(...DEFAULT_ANOMALIES)
@@ -512,7 +713,7 @@ export const pickRandomAnomaly = (simulation: Simulation) => {
 
   currentAnomalyIndex = Math.floor(randomIndex)
 
-  const anomaly = anomalies[currentAnomalyIndex]
+  const anomaly = anomalies.splice(currentAnomalyIndex, 1)[0]
 
   const position = anomaly.Enable(simulation)
 
