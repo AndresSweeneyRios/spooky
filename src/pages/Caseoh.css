@@ -187,14 +187,23 @@
 #caseoh-decision {
   background-color: black;
   z-index: 10;
+  font-size: 0.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8em;
 }
 
 #caseoh-decision .main {
   font-size: 0.8em;
 }
 
-#caseoh-decision .main .polaroid {
-  width: 15em;
+#caseoh-decision .polaroid {
+  width: 14em;
+}
+
+#caseoh-decision .polaroid, #caseoh-decision .background {
+  font-size: 1.5em;
 }
 
 #caseoh-decision .main .split {

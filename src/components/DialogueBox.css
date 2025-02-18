@@ -65,3 +65,7 @@
 #dialogue-box {
   background-color: rgba(0, 0, 0, 0.445);
 }
+
+#dialogue-box .cursor {
+  color: white;
+}

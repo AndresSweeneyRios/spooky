@@ -28,6 +28,7 @@ import { JustPressedEvent, playerInput } from "../../input/player";
 import "./scripts";
 import { updateGameLogic } from "../../simulation/loop";
 import { EntId } from "../../simulation/EntityRegistry";
+import { executeWinScript } from "./scripts";
 
 const SHADOW_BIAS = -0.0009;
 
@@ -373,7 +374,7 @@ export const init = async () => {
 
   // Setup play state detection.
   let prevPlay = false, prevDialogue = false, prevPicking = false, prevGameStarted = false;
-  let teleportedPlayer = false, pickedAnomaly = false;
+  let teleportedPlayer = false, pickedAnomaly = false, startedDialogue = false;
 
   const teleportPlayer = () => {
     teleportedPlayer = true;
@@ -407,14 +408,31 @@ export const init = async () => {
       ? playerView.enableControls()
       : playerView.disableControls();
 
-    if (state.playing && !state.picking && !state.inDialogue) {
+    console.table({
+      play: state.playing,
+      picking: state.picking,
+      dialogue: state.inDialogue,
+      gameStarted: state.gameStarted,
+    })
+
+    if (state.gameStarted && !state.picking && !state.inDialogue && !startedDialogue) {
+      executeWinScript(simulation).then(detectPlayStateChange).catch(console.error);
+
+      startedDialogue = true;
+    }
+
+    state.setPlaying(state.gameStarted && !state.picking && !state.inDialogue);
+
+    if (state.playing) {
       if (!teleportedPlayer) {
         teleportPlayer();
       }
+
       if (!pickedAnomaly) {
         pickRandomAnomaly(simulation);
         pickedAnomaly = true;
       }
+
       const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement;
       if (!cameraHint.hasAttribute("is-hinting")) {
         cameraHint.setAttribute("is-hidden", "false");
@@ -475,10 +493,6 @@ export const init = async () => {
   };
   playerInput.emitter.on("justpressed", justPressed);
 
-  if (state.gameStarted && !state.inDialogue) {
-    teleportPlayer();
-  }
-
   for (let i = 0; i < 10; i++) {
     const name = `chip${i + 1}`
 
@@ -491,8 +505,9 @@ export const init = async () => {
     }
   }
 
-  simulation.Start();
   disableLoading();
+
+  simulation.Start();
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger());
 

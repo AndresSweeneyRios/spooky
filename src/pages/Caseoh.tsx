@@ -72,9 +72,6 @@ const startGame = async () => {
     state.setGameStarted(true);
     document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
 
-    await executeWinScript();
-    state.setPlaying(true);
-
     if (!document.fullscreenElement) {
       try {
         document.body.requestFullscreen();
@@ -129,11 +126,6 @@ const handleDecision = async (isYes: boolean) => {
     state.setIsTutorial(false);
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
 
-    const winPromise = executeWinScript();
-    await loadScene(scenes.crazeoh);
-    await winPromise;
-
-    state.setPlaying(true);
     state.setPicking(false);
 
     if (!document.fullscreenElement) {
@@ -146,6 +138,8 @@ const handleDecision = async (isYes: boolean) => {
         renderer.domElement.requestPointerLock();
       } catch { }
     }
+
+    await loadScene(scenes.crazeoh);
   } catch (error) {
     console.error(`Error handling ${isYes ? "yes" : "no"} decision:`, error);
   }
@@ -259,11 +253,11 @@ export const CrazeOh = () => {
 
       {/* Decision screen */}
       <div id="caseoh-decision" is-hidden="true">
+        <div className="caseoh-polaroid-overlay">
+          <img className="background" src="#" crossOrigin="anonymous" referrerPolicy="no-referrer" alt="Decision Background" />
+          <img className="polaroid" src={PolaroidPng} alt="Polaroid" />
+        </div>
         <div className="main">
-          <div className="caseoh-polaroid-overlay">
-            <img className="background" src="#" crossOrigin="anonymous" referrerPolicy="no-referrer" alt="Decision Background" />
-            <img className="polaroid" src={PolaroidPng} alt="Polaroid" />
-          </div>
           <h1>ANOMALY?</h1>
           <div className="split">
             <div className="yes">
