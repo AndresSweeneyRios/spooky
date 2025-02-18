@@ -117,6 +117,7 @@
   width: 13em;
   transform: rotate(3deg);
   position: relative;
+  font-size: 1.5em;
 }
 
 .caseoh-polaroid-overlay img.background {
@@ -128,6 +129,7 @@
   left: 10.8em; */
   transform: rotate(3deg) translateY(-1.1em);
   object-fit: cover;
+  font-size: 1.5em;
 }
 
 #caseoh-loading {

@@ -15,6 +15,7 @@ import CameraHintSvg from "../assets/icons/camera_hint.svg";
 import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg";
 import { playerInput } from "../input/player";
 import { executeWinScript } from "../scenes/crazeoh/scripts";
+import { ArgumentsType } from "vitest";
 
 // Lazy–load loaders so we don’t block startup.
 const loaderPromise = import("../graphics/loaders");
@@ -26,10 +27,9 @@ let stopMusic: () => void = () => {};
 /**
  * Loads an audio file with the given options and sets a default volume.
  */
-const loadAudioFile = async (path: string, options: { loop: boolean }) => {
+const loadAudioFile = async (path: string, options: Parameters<Awaited<typeof loaderPromise>["loadAudio"]>[1]) => {
   const { loadAudio } = await loaderPromise;
   const audio = await loadAudio(path, options);
-  audio.setVolume(0.1);
   return audio;
 };
 
@@ -42,7 +42,7 @@ const initializeAudio = async () => {
     });
 
     // Load and play background music.
-    const audio = await loadAudioFile('/audio/music/caseoh.ogg', { loop: true });
+    const audio = await loadAudioFile('/audio/music/caseoh.ogg', { loop: true, volume: 0.05 });
     audio.play();
     stopMusic = () => audio.stop();
   } catch (error) {
@@ -50,8 +50,8 @@ const initializeAudio = async () => {
   }
 };
 
-const errorAudio = loadAudioFile('/audio/sfx/error.ogg', { loop: false });
-const coinsAudio = loadAudioFile('/audio/sfx/coins.ogg', { loop: false });
+const errorAudio = loadAudioFile('/audio/sfx/error.ogg', { loop: false, volume: 0.05 });
+const coinsAudio = loadAudioFile('/audio/sfx/coins.ogg', { loop: false, volume: 0.05 });
 
 // ─── GAME START & DECISION HANDLERS ─────────────────────────────────────────────
 
@@ -119,14 +119,19 @@ const handleDecision = async (isYes: boolean) => {
         }
       }
     } else {
-      errorAudio.then(audio => audio.play());
+      if (isYes) {
+        errorAudio.then(audio => audio.play());
+      } else {
+        coinsAudio.then(audio => audio.play());
+      }
     }
 
     state.setIsTutorial(false);
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
 
+    const winPromise = executeWinScript();
     await loadScene(scenes.crazeoh);
-    await executeWinScript();
+    await winPromise;
 
     state.setPlaying(true);
     state.setPicking(false);

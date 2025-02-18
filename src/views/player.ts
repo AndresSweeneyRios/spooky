@@ -13,7 +13,7 @@ const MOUSE_SENSITIVITY = 1000;
 const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
   randomPitch: true,
   detune: -2500,
-  pitchRange: 200,
+  pitchRange: 400,
 });
 footstepAudio.then(audio => audio.setVolume(0.5));
 

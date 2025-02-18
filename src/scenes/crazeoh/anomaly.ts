@@ -681,11 +681,11 @@ let currentAnomalyIndex = 0
 
 export const disableAllAnomalies = (simulation: Simulation) => {
   for (const anomaly of DEFAULT_ANOMALIES) {
-    anomaly.Disable(simulation)
+    anomaly?.Disable(simulation)
   }
 }
 
-export const pickRandomAnomaly = (simulation: Simulation) => {
+export const pickRandomAnomaly = (simulation: Simulation): void => {
   disableAllAnomalies(simulation)
 
   if (state.isTutorial) {
@@ -700,24 +700,20 @@ export const pickRandomAnomaly = (simulation: Simulation) => {
     anomalies.push(...DEFAULT_ANOMALIES)
   }
 
-  const randomIndex = Math.random() * anomalies.length
+  const randomIndex = Math.floor(Math.random() * (state.wins === 0 ? anomalies.length : (anomalies.length + 3)))
 
-  const isNoAnomaly = Math.random() < 0.2
+  const anomaly = anomalies.splice(randomIndex, 1)[0]
 
-  state.setAnomaly(!isNoAnomaly)
+  state.setAnomaly(Boolean(anomaly))
   state.setFoundAnomaly(false)
 
-  if (isNoAnomaly) {
-    return
+  if (anomaly) {
+    const position = anomaly.Enable(simulation)
+
+    state.setAnomalyPosition(position)
   }
 
-  currentAnomalyIndex = Math.floor(randomIndex)
-
-  const anomaly = anomalies.splice(currentAnomalyIndex, 1)[0]
-
-  const position = anomaly.Enable(simulation)
-
-  state.setAnomalyPosition(position)
+  console.log(anomaly?.Id || "NO ANOMALY")
 }
 
 export const removeCurrentAnomaly = () => {

@@ -34,12 +34,13 @@ const SHADOW_BIAS = -0.0009;
 // ─── AUDIO SETUP ─────────────────────────────────────────────────────────────
 
 const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {
-  volume: 0.3,
+  volume: 0.1,
 });
 
 const ceilingFanAudioPromise = loadAudio("/audio/sfx/ceiling_fan.ogg", {
   loop: true,
   positional: true,
+  volume: 0.6,
 });
 
 const eatChipAudioPromise = loadAudio("/audio/sfx/eat_chip.ogg", {
@@ -66,9 +67,17 @@ const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
   volume: 0.1,
 });
 
+const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
+  loop: true,
+  positional: true,
+  autoplay: true,
+  volume: 0.2,
+});
+
 const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
   randomPitch: true,
   pitchRange: 400,
+  volume: 0.15
 });
 
 // ─── AUDIO HELPER SETUP FUNCTIONS ─────────────────────────────────────────────
@@ -127,7 +136,6 @@ const setupSniff = (simulation: Simulation) => {
     let next = simulation.ViewSync.TimeMS + (1000 * 60 * 5 * Math.random());
     const sniff = () => {
       sniffAudioPromise.then(audio => {
-        audio.setVolume(0.25);
         if (state.playing) audio.play();
       });
       next = simulation.ViewSync.TimeMS + (1000 * 60 * 5 * Math.random());
@@ -146,7 +154,6 @@ const setupSniff = (simulation: Simulation) => {
 const setupFan = (simulation: Simulation, scene: THREE.Scene) => {
   const fanBlades = scene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh;
   ceilingFanAudioPromise.then(audio => {
-    audio.setVolume(1);
     fanBlades?.add(audio.getPositionalAudio());
     audio.play();
   });
@@ -157,34 +164,35 @@ const setupFan = (simulation: Simulation, scene: THREE.Scene) => {
   });
 };
 
-const setupEat = (simulation: Simulation, scene: THREE.Scene) => {
-  const eat = (food: string) => {
-    const foodObject = scene.getObjectByName(food) as THREE.Mesh;
-    if (!foodObject) return;
-    const endId = simulation.EntityRegistry.Create();
-    simulation.SimulationState.PhysicsRepository.CreateComponent(endId);
-    const pos = foodObject.getWorldPosition(new THREE.Vector3());
-    simulation.SimulationState.PhysicsRepository.AddBoxCollider(endId, [2, 2, 2], [pos.x, pos.y, pos.z], undefined, true);
-    simulation.SimulationState.SensorCommandRepository.CreateComponent(endId);
-    simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
-      entId: endId,
-      executionMode: ExecutionMode.Interaction,
-      once: true,
-      command: new class extends SimulationCommand {
-        public Execute(sim: Simulation): void {
-          foodObject.visible = false;
-          eatChipAudioPromise.then(audio => audio.play());
-        }
+const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
+  const foodObject = scene.getObjectByName(food) as THREE.Mesh;
+  if (!foodObject) return;
+  const endId = simulation.EntityRegistry.Create();
+  simulation.SimulationState.PhysicsRepository.CreateComponent(endId);
+  const pos = foodObject.getWorldPosition(new THREE.Vector3());
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(endId, [2, 2, 2], [pos.x, pos.y, pos.z], undefined, true);
+  simulation.SimulationState.SensorCommandRepository.CreateComponent(endId);
+  simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
+    entId: endId,
+    executionMode: ExecutionMode.Interaction,
+    once: true,
+    command: new class extends SimulationCommand {
+      public Execute(sim: Simulation): void {
+        foodObject.visible = false;
+        eatChipAudioPromise.then(audio => audio.play());
       }
-    });
-  };
+    }
+  });
+};
 
+const setupEat = (simulation: Simulation, scene: THREE.Scene) => {
   const foods = [
     "pizza", "burger", "Object_3", "muffin", "strawberyshake",
     "cereal", "buffet", "crazycola", "Object_4", "Object_4003",
     "bepis", "23b099929e614d9a927b4ec8f3d72063fbx", "Object_4011"
   ];
-  foods.forEach(eat);
+
+  foods.forEach(food => eat(food, simulation, scene));
 };
 
 const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
@@ -209,6 +217,16 @@ const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
     }
   });
 };
+
+const setupCarIdling = (simulation: Simulation, scene: THREE.Scene) => {
+  // WinP_steclo_0
+  const car = scene.getObjectByName("WinP_steclo_0") as THREE.Mesh;
+
+  carIdling.then(audio => {
+    const posAudio = audio.getPositionalAudio();
+    car.add(posAudio);
+  });
+}
 
 // ─── LOADING UI ───────────────────────────────────────────────────────────────
 
@@ -333,6 +351,7 @@ export const init = async () => {
   setupSniff(simulation);
   setupGarageScream(simulation, playerView.EntId);
   setupHeartbeat(simulation, playerView.EntId);
+  setupCarIdling(simulation, scene);
 
   // Set up spotlight.
   const spotLight = new THREE.SpotLight(0xffffff);
@@ -342,7 +361,7 @@ export const init = async () => {
   spotLight.shadow.camera.near = 0.1;
   spotLight.shadow.camera.far = 30;
   spotLight.shadow.camera.fov = 30;
-  spotLight.intensity = 4;
+  spotLight.intensity = 6;
   spotLight.decay = 0.999;
   spotLight.angle = Math.PI * 0.35;
   spotLight.penumbra = 1;
@@ -355,6 +374,27 @@ export const init = async () => {
   // Setup play state detection.
   let prevPlay = false, prevDialogue = false, prevPicking = false, prevGameStarted = false;
   let teleportedPlayer = false, pickedAnomaly = false;
+
+  const teleportPlayer = () => {
+    teleportedPlayer = true;
+    const playerSpawnObject = scene.getObjectByName("PLAYER") as THREE.Mesh;
+    const playerSpawnPosition = playerSpawnObject.getWorldPosition(new THREE.Vector3());
+    simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z]);
+    camera.position.set(playerSpawnPosition.x, 0.5, playerSpawnPosition.z);
+    const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh;
+    const lookPos = lookTarget.getWorldPosition(new THREE.Vector3());
+    const yaw = Math.atan2(playerSpawnPosition.x - lookPos.x, playerSpawnPosition.z - lookPos.z);
+    const pitch = Math.atan2(lookPos.y - playerSpawnPosition.y, Math.hypot(playerSpawnPosition.x - lookPos.x, playerSpawnPosition.z - lookPos.z));
+    playerSpawnObject.visible = false;
+    camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
+    try {
+      updateGameLogic(simulation, 0);
+      simulation.ViewSync.Draw(simulation, 1.0);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const detectPlayStateChange = async () => {
     if (state.playing === prevPlay && state.picking === prevPicking &&
       state.inDialogue === prevDialogue && state.gameStarted === prevGameStarted) return;
@@ -369,22 +409,7 @@ export const init = async () => {
 
     if (state.playing && !state.picking && !state.inDialogue) {
       if (!teleportedPlayer) {
-        const spawn = scene.getObjectByName("PLAYER") as THREE.Mesh;
-        const pos = spawn.getWorldPosition(new THREE.Vector3());
-        simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [pos.x, 0.5, pos.z]);
-        teleportedPlayer = true;
-        const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh;
-        const lookPos = lookTarget.getWorldPosition(new THREE.Vector3());
-        const yaw = Math.atan2(pos.x - lookPos.x, pos.z - lookPos.z);
-        const pitch = Math.atan2(lookPos.y - pos.y, Math.hypot(pos.x - lookPos.x, pos.z - lookPos.z));
-        spawn.visible = false;
-        camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
-        try {
-          updateGameLogic(simulation, 0);
-          simulation.ViewSync.Draw(simulation, 1.0);
-        } catch (e) {
-          console.error(e);
-        }
+        teleportPlayer();
       }
       if (!pickedAnomaly) {
         pickRandomAnomaly(simulation);
@@ -450,12 +475,30 @@ export const init = async () => {
   };
   playerInput.emitter.on("justpressed", justPressed);
 
+  if (state.gameStarted && !state.inDialogue) {
+    teleportPlayer();
+  }
+
+  for (let i = 0; i < 10; i++) {
+    const name = `chip${i + 1}`
+
+    eat(name, simulation, scene);
+
+    if (state.wins <= i) {
+      const object = scene.getObjectByName(name) as THREE.Mesh;
+      object.material = new THREE.MeshBasicMaterial({ color: 0x773333, wireframe: true });
+      object.material.side = THREE.DoubleSide;
+    }
+  }
+
   simulation.Start();
   disableLoading();
 
   // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger());
 
   requestAnimationFrame(() => {
+    detectPlayStateChange();
+
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
       public Draw(): void {
         detectPlayStateChange();
@@ -471,6 +514,8 @@ export const init = async () => {
       }
     });
   })
+
+  detectPlayStateChange();
 
   // Return cleanup function.
   return () => {
