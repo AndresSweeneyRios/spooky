@@ -198,6 +198,7 @@
 #caseoh-decision .main .split {
   display: flex;
   gap: 2em;
+  position: relative;
 }
 
 #caseoh-decision .caseoh-polaroid-overlay {
@@ -227,6 +228,8 @@
   width: 4em;
   height: 4em;
   pointer-events: none;
+  position: absolute;
+  top: calc(100% + 3em);
 }
 
 .caseoh-camera-hint {

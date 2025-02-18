@@ -5,7 +5,8 @@ import os from 'os';
 
 const __dirname = import.meta.dirname;
 
-const skipRegex = /(\.br|\.gz|.blend.*|.xcf)$/;
+const skipRegex = /(\.br|\.gz|\.blend.*|\.xcf|\.wav|\.zip)$/;
+const skipFoldersRegex = /(\bhdr\b|\btextures\b|\banimations\b)/; // Add your folder patterns here
 
 // Collect all files in the directory recursively
 const collectFiles = (dir, fileList = []) => {
@@ -14,7 +15,9 @@ const collectFiles = (dir, fileList = []) => {
     const stat = fs.statSync(filePath);
 
     if (stat.isDirectory()) {
-      collectFiles(filePath, fileList);
+      if (!skipFoldersRegex.test(filePath)) {
+        collectFiles(filePath, fileList);
+      }
     } else {
       if (!skipRegex.test(filePath) && !fs.existsSync(`${filePath}.br`)) {
         fileList.push(filePath);
