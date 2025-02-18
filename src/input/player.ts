@@ -344,10 +344,4 @@ export class InputManager {
 
 // Setup a global instance and update loop.
 const inputManager = new InputManager();
-(window as any).inputManager = inputManager;
-function updateLoop() {
-  inputManager.update();
-  requestAnimationFrame(updateLoop);
-}
-requestAnimationFrame(updateLoop);
 export const playerInput = inputManager;

@@ -9,7 +9,11 @@ export class Exit extends SimulationCommand {
 
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "false")
 
-    document.exitPointerLock()
+    try {
+      document.exitPointerLock()
+    } catch (error) {
+      console.error("Failed to exit pointer lock:", error)
+    }
 
     const polaroid = document.querySelector("#caseoh-decision .caseoh-polaroid-overlay") as HTMLImageElement
     const yes = document.querySelector("#caseoh-decision .yes") as HTMLElement

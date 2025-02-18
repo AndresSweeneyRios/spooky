@@ -347,13 +347,13 @@ export const firstClick = new Promise<void>((resolve) => {
   const handler = () => {
     resolve();
     window.removeEventListener("click", handler);
-    window.removeEventListener("keydown", handler);
-    playerInput.emitter.off("justpressed", handler);
+    // window.removeEventListener("keydown", handler);
+    // playerInput.emitter.off("justpressed", handler);
   };
 
   window.addEventListener("click", handler);
-  window.addEventListener("keydown", handler);
-  playerInput.emitter.on("justpressed", handler);
+  // window.addEventListener("keydown", handler);
+  // playerInput.emitter.on("justpressed", handler);
 });
 
 export const listener = new THREE.AudioListener();
@@ -366,6 +366,8 @@ export const loadAudio = async (path: string, {
   detune = 0,
   positional = false,
   pitchRange = 1500, // New parameter to control the range of the random pitch
+  autoplay = false,
+  volume = 0.2,
 }) => {
   const audio = positional ? new THREE.PositionalAudio(listener) : new THREE.Audio(listener);
 
@@ -374,38 +376,47 @@ export const loadAudio = async (path: string, {
   const buffer = await audioLoader.loadAsync(path);
   audio.setBuffer(buffer);
   audio.setLoop(loop);
-  audio.setVolume(0.2);
+  audio.setVolume(volume);
   audio.detune = detune;
 
-  return {
-    setVolume(volume: number) {
-      audio.setVolume(volume);
-    },
+  const setVolume = (volume: number) => {
+    audio.setVolume(volume);
+  };
 
-    async play() {
-      await firstClick;
+  const play = async () => {
+    await firstClick;
 
-      if (audio.isPlaying) {
-        audio.stop();
-      }
-
-      if (randomPitch) {
-        audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
-      }
-
-      audio.play();
-    },
-
-    stop() {
+    if (audio.isPlaying) {
       audio.stop();
-    },
+    }
 
-    getPositionalAudio() {
-      if (!positional) {
-        throw new Error("Audio is not positional");
-      }
+    if (randomPitch) {
+      audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
+    }
 
-      return audio as THREE.PositionalAudio;
-    },
+    audio.play();
+  };
+
+  const stop = () => {
+    audio.stop();
+  };
+
+  const getPositionalAudio = () => {
+    if (!positional) {
+      throw new Error("Audio is not positional");
+    }
+
+    return audio as THREE.PositionalAudio;
+  };
+
+  if (autoplay) {
+    play();
+  }
+
+  return {
+    setVolume,
+    play,
+    stop,
+    getPositionalAudio,
   };
 }

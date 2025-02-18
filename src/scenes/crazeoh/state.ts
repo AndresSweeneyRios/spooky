@@ -38,14 +38,10 @@ export let wins = 0
 
 export const incrementWins = () => {
   wins++
-
-  console.log("WINNER WINNER CHICKEN DINNER")
 }
 
 export const resetWins = () => {
   wins = 0
-
-  console.log("LOSER LOSER CHICKEN DINNER")
 }
 
 // -----
