@@ -277,21 +277,21 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
         ? geometry.getIndex()!.array as Uint32Array
         : new Uint32Array(Array.from({ length: vertices.length / 3 }, (_, i) => i)); // Generate sequential indices for non-indexed geometry
 
-      const worldPosition = child.getWorldPosition(new THREE.Vector3())
+      const worldPosition = child.position
 
       const translation = new RAPIER.Vector3(worldPosition.x, worldPosition.y, worldPosition.z)
       const rotation = new RAPIER.Quaternion(child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w)
       const scaledScale = new RAPIER.Vector3(child.scale.x, child.scale.y, child.scale.z)
 
-      for (const parent of traverseParents(child)) {
-        if (addCharacter && parent.uuid === object.uuid) {
-          continue
-        }
+      // for (const parent of traverseParents(child)) {
+      //   if (addCharacter && parent.uuid === object.uuid) {
+      //     continue
+      //   }
 
-        scaledScale.x *= parent.scale.x
-        scaledScale.y *= parent.scale.y
-        scaledScale.z *= parent.scale.z
-      }
+      //   scaledScale.x *= parent.scale.x
+      //   scaledScale.y *= parent.scale.y
+      //   scaledScale.z *= parent.scale.z
+      // }
 
       for (let i = 0; i < vertices.length; i += 3) {
         vertices[i] *= scaledScale.x

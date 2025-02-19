@@ -17,14 +17,10 @@ export class ThroneView extends EntityView {
   eye: THREE.Mesh | null = null
   throneYPosition = 0
 
-  async init (simulation: Simulation, entId: EntId, startPosition: vec3) {
+  async init(simulation: Simulation, entId: EntId, startPosition: vec3) {
     const gltf = await gltfPromise
 
     this.throne = gltf.scene.clone()
-
-    this.throne.position.set(startPosition[0], startPosition[1], startPosition[2])
-
-    processAttributes(this.throne, simulation, entId, true)
 
     shaders.applyInjectedMaterials(this.throne)
 
@@ -58,6 +54,10 @@ export class ThroneView extends EntityView {
       }
     }
 
+    this.throne.position.set(startPosition[0], startPosition[1] + 30, startPosition[2])
+
+    processAttributes(this.throne, simulation, entId, true)
+
     this.scene.add(this.throne);
   }
 
@@ -77,7 +77,7 @@ export class ThroneView extends EntityView {
 
       // use i to generate a unique rotation for each circle
       // this is a biblically accurate Throne, with 4 circles spinning in opposite directions
-      circle.rotation.y += (0.002 * (i+1)) * (i % 2 === 0 ? 1 : -1)
+      circle.rotation.y += (0.002 * (i + 1)) * (i % 2 === 0 ? 1 : -1)
     }
 
     this.throneYPosition += simulation.SimulationState.DeltaTime * 2

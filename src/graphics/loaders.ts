@@ -347,13 +347,13 @@ export const firstClick = new Promise<void>((resolve) => {
   const handler = () => {
     resolve();
     window.removeEventListener("click", handler);
-    // window.removeEventListener("keydown", handler);
-    // playerInput.emitter.off("justpressed", handler);
+    window.removeEventListener("keydown", handler);
+    playerInput.emitter.off("justpressed", handler);
   };
 
   window.addEventListener("click", handler);
-  // window.addEventListener("keydown", handler);
-  // playerInput.emitter.on("justpressed", handler);
+  window.addEventListener("keydown", handler);
+  playerInput.emitter.on("justpressed", handler);
 });
 
 export const listener = new THREE.AudioListener();

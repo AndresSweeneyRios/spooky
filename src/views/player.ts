@@ -28,6 +28,7 @@ export class PlayerView extends EntityView {
   protected cameraPositionOffset: vec3 = vec3.fromValues(0, 0, 0);
   protected runSpeedModifier = 2;
   public runEnabled = false;
+  public debugElement = document.createElement("div");
 
   constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3) {
     super(entId);
@@ -35,6 +36,8 @@ export class PlayerView extends EntityView {
     this.canvas = document.querySelector('canvas#viewport')!;
     const euler = new THREE.Euler(pitch, yaw, 0, "YXZ");
     this.simulation.Camera.quaternion.setFromEuler(euler);
+
+    document.querySelector("#debug")?.appendChild(this.debugElement);
   }
 
   protected updateCamera(dx: number, dy: number): void {
@@ -140,6 +143,8 @@ export class PlayerView extends EntityView {
     basePosition.add(offset);
     this.simulation.Camera.position.set(basePosition.x, basePosition.y, basePosition.z);
 
+    // this.debugElement.innerText = `${JSON.stringify(this.simulation.Camera.getWorldPosition(new THREE.Vector3()))}\n${JSON.stringify(this.simulation.Camera.getWorldDirection(new THREE.Vector3()))}`;
+
     if (!this.controlsEnabled) return;
 
     const input = playerInput.getState();
@@ -147,6 +152,8 @@ export class PlayerView extends EntityView {
   }
 
   public Update(simulation: Simulation): void {
+    document.querySelector(".caseoh-interactable")?.setAttribute("is-hidden", "true");
+
     if (!this.controlsEnabled) return;
 
     const state = simulation.SimulationState;
@@ -180,5 +187,7 @@ export class PlayerView extends EntityView {
 
   public Cleanup(): void {
     this.cleanupEvents();
+
+    this.debugElement.remove();
   }
 }

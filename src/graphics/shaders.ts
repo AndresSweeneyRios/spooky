@@ -399,9 +399,10 @@ export const CRTShader = {
       return coord + cc * amt * dist * dist;
     }
     
-    // Random noise function
     float random(vec2 st) {
-      return fract(sin(dot(st.xy, vec2(12.9898, 78.233) + time)) * 43758.5453123);
+      float r1 = fract(sin(dot(st * time, vec2(127.1, 311.7))) * 43758.5453123);
+      float r2 = fract(sin(dot(st * time, vec2(269.5, 183.3))) * 43758.5453123);
+      return fract(r1 + r2);
     }
 
     void main() {
@@ -426,7 +427,7 @@ export const CRTShader = {
 
       // Convert normalized uv (0-1) into pixel coordinates for the noise grid,
       // then use floor() to quantize to discrete noise cells.
-      vec2 noiseUV = floor(uv * resolution);
+      vec2 noiseUV = floor(vUv * resolution);
 
       // Now, to animate the noise, add time as an offset (you can tweak which axis to add time)
       float noise = random(noiseUV);
@@ -444,9 +445,15 @@ export const CRTShader = {
       // Combine the effects.
       color.rgb *= scanline;
       // color.rgb *= vignette;
-      color.r += noise * 0.12;
-      color.g += noise * 0.09;
-      color.b += noise * 0.1;
+
+      if (noiseIntensity == 1.0) {
+        color.rgb = vec3(noise);
+        color.rgb *= scanline;
+      } else {
+        color.r += noise * 0.12;
+        color.g += noise * 0.09;
+        color.b += noise * 0.1;
+      }
       
       gl_FragColor = color;
     }

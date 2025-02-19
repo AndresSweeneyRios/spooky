@@ -91,3 +91,11 @@ export let isTutorial = true
 export const setIsTutorial = (value: boolean) => {
   isTutorial = value
 }
+
+// -----
+
+export let outro = false
+
+export const setOutro = (value: boolean) => {
+  outro = value
+}

@@ -231,18 +231,20 @@ const setupCarIdling = (simulation: Simulation, scene: THREE.Scene) => {
 
 // ─── LOADING UI ───────────────────────────────────────────────────────────────
 
-const disableLoading = (): void => {
+export const disableLoading = (): void => {
   document.getElementById("caseoh-loading")?.setAttribute("is-hidden", "true");
   document.getElementById("splash")?.setAttribute("is-hidden", "true");
 };
 
-const enableLoading = (): void => {
+export const enableLoading = (): void => {
   document.getElementById("caseoh-loading")?.setAttribute("is-hidden", "false");
 };
 
 // ─── SCENE INITIALIZATION ───────────────────────────────────────────────────────
 
 const mapLoader = loadGltf("/3d/scenes/island/crazeoh_OPTIMIZED.glb").then(gltf => gltf.scene);
+
+export let currentCrtPass: ShaderPass | null = null;
 
 const initScene = () => {
   const scene = new THREE.Scene();
@@ -262,6 +264,7 @@ const initScene = () => {
   const crtPass = new ShaderPass(shaders.CRTShader);
   crtPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
   effectComposer.addPass(crtPass);
+  currentCrtPass = crtPass;
 
   effectComposer.addPass(new OutputPass());
 
@@ -269,7 +272,7 @@ const initScene = () => {
     public Draw(): void {
       crtPass.uniforms.time.value = (Date.now() / 1000) % 1.0;
       crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
-      if (!state.playing) camera.rotateY(-0.0005);
+      if (!state.playing && !state.outro) camera.rotateY(-0.0005);
       effectComposer.render();
     }
     public Cleanup(): void {
@@ -408,13 +411,6 @@ export const init = async () => {
       ? playerView.enableControls()
       : playerView.disableControls();
 
-    console.table({
-      play: state.playing,
-      picking: state.picking,
-      dialogue: state.inDialogue,
-      gameStarted: state.gameStarted,
-    })
-
     if (state.gameStarted && !state.picking && !state.inDialogue && !startedDialogue) {
       executeWinScript(simulation).then(detectPlayStateChange).catch(console.error);
 
@@ -457,16 +453,14 @@ export const init = async () => {
   const justPressed = (payload: JustPressedEvent) => {
     if (payload.action !== "mainAction1") return;
     // Use requestAnimationFrame to batch pointer lock/fullscreen requests.
-    requestAnimationFrame(() => {
-      if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
-        try { renderer.domElement.requestPointerLock(); } catch { }
+    if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
+      try { renderer.domElement.requestPointerLock(); } catch { }
+    }
+    try {
+      if (document.fullscreenElement !== document.body) {
+        document.body.requestFullscreen();
       }
-      try {
-        if (document.fullscreenElement !== document.body) {
-          document.body.requestFullscreen();
-        }
-      } catch { }
-    });
+    } catch { }
     if (!(state.gameStarted && !state.picking && !state.inDialogue)) return;
     playerView.enableControls();
     if (shutterOn || document.pointerLockElement !== renderer.domElement) return;

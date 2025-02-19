@@ -712,8 +712,6 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
 
     state.setAnomalyPosition(position)
   }
-
-  console.log(anomaly?.Id || "NO ANOMALY")
 }
 
 export const removeCurrentAnomaly = () => {

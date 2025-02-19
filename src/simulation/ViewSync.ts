@@ -92,6 +92,10 @@ export class ViewSync {
     }
   }
 
+  public GetAllViews(): View[] {
+    return [...this.entityViews.values(), ...this.auxiliaryViews.values()]
+  }
+
   constructor(simulation: Simulation) {
     this.CameraUpdate(simulation)
 

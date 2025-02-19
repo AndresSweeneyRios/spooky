@@ -183,6 +183,12 @@ export class InputManager {
   }
 
   public update() {
+    if (document.pointerLockElement === null) {
+      this.resetInputs();
+
+      return;
+    }
+
     // Process Walk Input (Analog)
     let walk: Vector2 = { x: 0, y: 0 };
     if (this.keyboardPressed.has("w")) walk.y -= 1;
