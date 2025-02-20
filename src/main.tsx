@@ -60,7 +60,7 @@ console.log(`%c
 const router = createBrowserRouter([
   // Home
   {
-    path: "/",
+    path: "/crazeoh",
     element: <Suspense fallback={<div></div>}><CrazeOh /></Suspense>,
   },
   {

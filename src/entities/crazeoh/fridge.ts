@@ -5,7 +5,7 @@ import { ExecutionMode } from "../../simulation/repository/SensorCommandReposito
 import { FridgeView } from "../../views/crazeoh/fridge";
 import { loadAudio } from "../../graphics/loaders";
 
-const fridgeAudioPromise = loadAudio("/audio/sfx/old_fridge.ogg", {
+export const fridgeAudioPromise = loadAudio("/audio/sfx/old_fridge.ogg", {
   loop: true,
   positional: true,
 })

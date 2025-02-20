@@ -4,9 +4,11 @@ import * as state from "./state"
 import { JustPressedEvent, playerInput } from "../../input/player"
 import { Simulation } from "../../simulation"
 import { createCaseoh } from "../../entities/crazeoh/caseoh"
-import { currentCrtPass, currentPlayerView, disableLoading, enableLoading } from "."
+import { carIdling, ceilingFanAudioPromise, currentCrtPass, currentPlayerView, disableLoading, enableLoading, garageScreamAudioPromise, sniffAudioPromise, windAudioPromise } from "."
 import type { loadAudio } from "../../graphics/loaders"
 import * as THREE from "three"
+import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
+import { DEFAULT_ANOMALIES } from "./anomaly"
 
 const loaderPromise = import("../../graphics/loaders")
 
@@ -14,7 +16,7 @@ const voicePromise = loaderPromise.then(async ({ loadAudio }) => {
   return await loadAudio('/audio/sfx/voice.ogg', {
     loop: false,
     positional: false,
-    volume: 0.1,
+    volume: 0.2,
     detune: -500,
     pitchRange: 500,
     randomPitch: true,
@@ -27,6 +29,14 @@ const noisePromise = loaderPromise.then(async ({ loadAudio }) => {
     positional: false,
     volume: 0.1,
     detune: -500,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
+const oofPromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/oof.ogg', {
+    loop: false,
+    positional: false,
+    volume: 0.1,
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
@@ -78,13 +88,13 @@ const waitForAction = () => new Promise<void>(resolve => {
 
 export const intro = async (simulation: Simulation) => {
   const dialogueTexts = state.isTutorial ? [
-    // <>You had a childhood friend nicknamed Craze, an <b>obese</b> kid who dreamed of becoming a famous streamer.</>,
-    // <>He finally made it big — millions of views, sponsors, fans spamming “W” in chat.</>,
-    // <>But then he changed.</>,
-    // <>He stopped replying to messages, his streams grew eerie, and he’d just stare at the screen. Viewers left; mods vanished.</>,
-    // <>One day, his stream cut off mid-broadcast, and he disappeared.</>,
-    // <>As his old friend, you go to check on him.</>,
-    // <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
+    <>You had a childhood friend nicknamed Craze, an <b>obese</b> kid who dreamed of becoming a famous streamer.</>,
+    <>He finally made it big — millions of views, sponsors, fans spamming “W” in chat.</>,
+    <>But then he changed.</>,
+    <>He stopped replying to messages, his streams grew eerie, and he’d just stare at the screen. Viewers left; mods vanished.</>,
+    <>One day, his stream cut off mid-broadcast, and he disappeared.</>,
+    <>As his old friend, you go to check on him.</>,
+    <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
     <i>[Be alert: <b>rooms can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
   ] : [
     <i>(Something feels off. Maybe I should look around.)</i>
@@ -140,6 +150,7 @@ const outro = async (simulation: Simulation) => {
   ])
 
   mesh.translateZ(5)
+  mesh.translateY(-0.3)
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 1.0
 
@@ -159,7 +170,22 @@ const outro = async (simulation: Simulation) => {
     <>A new chapter begins, unfolding into realms where every secret is drenched in divine mystery.</>,
   ])
 
-  location.assign("./spooky")
+  setDialogue("")
+
+  ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,sniffAudioPromise,ceilingFanAudioPromise,windAudioPromise].forEach(promise => promise.then(audio => audio.stop()))
+
+  DEFAULT_ANOMALIES.forEach(anomaly => anomaly.Enable(simulation))
+
+  await new Promise(resolve => setTimeout(resolve, 5000))
+
+  oofPromise.then(oof => oof.play())
+
+  mesh.translateZ(0.5)
+  currentCrtPass!.uniforms["rgbOffset"].value.set(0.01, 0.01)
+
+  await new Promise(resolve => setTimeout(resolve, 300))
+  
+  location.assign("/spooky")
 }
 
 const winScript: Record<number, typeof intro> = {

@@ -650,7 +650,7 @@ const FakeBuffet: Anomaly = {
 }
 
 
-const DEFAULT_ANOMALIES = [
+export const DEFAULT_ANOMALIES = [
   FrenchFries,
   SeveredHand,
   FanFast,

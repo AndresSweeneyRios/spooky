@@ -38,10 +38,11 @@ const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {
   volume: 0.1,
 });
 
-const ceilingFanAudioPromise = loadAudio("/audio/sfx/ceiling_fan.ogg", {
+export const ceilingFanAudioPromise = loadAudio("/audio/sfx/ceiling_fan.ogg", {
   loop: true,
   positional: true,
   volume: 0.6,
+  autoplay: true,
 });
 
 const eatChipAudioPromise = loadAudio("/audio/sfx/eat_chip.ogg", {
@@ -60,7 +61,7 @@ const heartbeatAudioPromise = loadAudio("/audio/sfx/heartbeat.ogg", {
   loop: true,
 });
 
-const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
+export const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
   loop: true,
   positional: true,
   detune: -400,
@@ -68,18 +69,24 @@ const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
   volume: 0.1,
 });
 
-const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
+export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
   loop: true,
   positional: true,
   autoplay: true,
   volume: 0.2,
 });
 
-const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
+export const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
   randomPitch: true,
   pitchRange: 400,
   volume: 0.15
 });
+
+export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
+  loop: true,
+  volume: 0.03,
+  autoplay: true,
+})
 
 // ─── AUDIO HELPER SETUP FUNCTIONS ─────────────────────────────────────────────
 

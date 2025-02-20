@@ -398,19 +398,7 @@ export const loadAudio = async (path: string, {
   };
 
   const stop = async () => {
-    const fadeOut = async (duration: number) => {
-      const initialVolume = audio.getVolume();
-      const steps = 10;
-      const stepDuration = duration / steps;
-      for (let i = 0; i < steps; i++) {
-        audio.setVolume(initialVolume * (1 - (i + 1) / steps));
-        await new Promise(resolve => setTimeout(resolve, stepDuration));
-      }
-      audio.stop();
-      audio.setVolume(initialVolume); // Reset volume to initial value
-    };
-
-    await fadeOut(10); // Adjust the duration as needed
+    audio.stop(0.05);
   };
 
   const getPositionalAudio = () => {
