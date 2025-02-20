@@ -225,7 +225,7 @@ export class InputManager {
     this.smoothedLookDelta.y = this.smoothedLookDelta.y * (1 - this.smoothingFactor) +
       this.rawLookDelta.y * this.smoothingFactor;
     // Use the smoothed value as the look delta.
-    const look: Vector2 = { x: this.smoothedLookDelta.x, y: this.smoothedLookDelta.y };
+    let look: Vector2 = { x: this.smoothedLookDelta.x, y: this.smoothedLookDelta.y };
     // Clear the raw look delta for the next frame.
     this.rawLookDelta = { x: 0, y: 0 };
 
@@ -237,6 +237,13 @@ export class InputManager {
       look.x += gpX * 20.0;
       look.y += gpY * 20.0;
     }
+
+    if (document.pointerLockElement === null) {
+      // reset look and walk if not in pointer lock
+      walk = { x: 0, y: 0 };
+      look = { x: 0, y: 0 };
+    }
+
 
     // Process Button Actions (Digital)
     const interactKeyboard = this.keyboardPressed.has("e");
@@ -344,10 +351,4 @@ export class InputManager {
 
 // Setup a global instance and update loop.
 const inputManager = new InputManager();
-(window as any).inputManager = inputManager;
-function updateLoop() {
-  inputManager.update();
-  requestAnimationFrame(updateLoop);
-}
-requestAnimationFrame(updateLoop);
 export const playerInput = inputManager;

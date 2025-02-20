@@ -366,6 +366,8 @@ export const loadAudio = async (path: string, {
   detune = 0,
   positional = false,
   pitchRange = 1500, // New parameter to control the range of the random pitch
+  autoplay = false,
+  volume = 0.2,
 }) => {
   const audio = positional ? new THREE.PositionalAudio(listener) : new THREE.Audio(listener);
 
@@ -374,38 +376,59 @@ export const loadAudio = async (path: string, {
   const buffer = await audioLoader.loadAsync(path);
   audio.setBuffer(buffer);
   audio.setLoop(loop);
-  audio.setVolume(0.2);
+  audio.setVolume(volume);
   audio.detune = detune;
 
-  return {
-    setVolume(volume: number) {
-      audio.setVolume(volume);
-    },
+  const setVolume = (volume: number) => {
+    audio.setVolume(volume);
+  };
 
-    async play() {
-      await firstClick;
+  const play = async () => {
+    await firstClick;
 
-      if (audio.isPlaying) {
-        audio.stop();
+    if (audio.isPlaying) {
+      await stop();
+    }
+
+    if (randomPitch) {
+      audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
+    }
+
+    audio.play();
+  };
+
+  const stop = async () => {
+    const fadeOut = async (duration: number) => {
+      const initialVolume = audio.getVolume();
+      const steps = 10;
+      const stepDuration = duration / steps;
+      for (let i = 0; i < steps; i++) {
+        audio.setVolume(initialVolume * (1 - (i + 1) / steps));
+        await new Promise(resolve => setTimeout(resolve, stepDuration));
       }
-
-      if (randomPitch) {
-        audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
-      }
-
-      audio.play();
-    },
-
-    stop() {
       audio.stop();
-    },
+      audio.setVolume(initialVolume); // Reset volume to initial value
+    };
 
-    getPositionalAudio() {
-      if (!positional) {
-        throw new Error("Audio is not positional");
-      }
+    await fadeOut(10); // Adjust the duration as needed
+  };
 
-      return audio as THREE.PositionalAudio;
-    },
+  const getPositionalAudio = () => {
+    if (!positional) {
+      throw new Error("Audio is not positional");
+    }
+
+    return audio as THREE.PositionalAudio;
+  };
+
+  if (autoplay) {
+    play();
+  }
+
+  return {
+    setVolume,
+    play,
+    stop,
+    getPositionalAudio,
   };
 }

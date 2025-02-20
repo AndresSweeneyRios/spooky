@@ -1,4 +1,4 @@
-import type * as THREE from "three"
+import * as THREE from "three"
 import type { Simulation } from "../simulation"
 import type { EntId } from "../simulation/EntityRegistry"
 import { traverse } from "./traverse"
@@ -9,14 +9,14 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
 
   for (const child of traverse(object)) {
     if (child.name === 'ORIGIN') {
-      object.position.set(child.position.x, child.position.y, child.position.z)
-      object.translateX(-child.position.x)
-      object.translateY(-child.position.y)
-      object.translateZ(-child.position.z)
+      // object.position.set(child.position.x, child.position.y, child.position.z)
+      // object.translateX(-child.position.x)
+      // object.translateY(-child.position.y)
+      // object.translateZ(-child.position.z)
 
-      removalList.push(child)
+      // removalList.push(child)
 
-      continue
+      // continue
     } else if (child.name === 'COLLIDERS' || child.name.includes('COLLIDER')) {
       simulation.SimulationState.PhysicsRepository.AddCollidersFromObject(entId, child, addRigidBody)
 
@@ -31,10 +31,12 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
 
             const commandInstance = new commandClass()
 
+            const worldPosition = new THREE.Vector3()
+            command.getWorldPosition(worldPosition)
             commandInstance.Position = [
-              command.position.x,
-              command.position.y,
-              command.position.z,
+              worldPosition.x,
+              worldPosition.y,
+              worldPosition.z,
             ]
 
             commandInstance.Rotation = [

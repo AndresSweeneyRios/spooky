@@ -16,6 +16,9 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { FXAAShader } from "three/examples/jsm/Addons.js";
 import { SobelOperatorShader } from "../graphics/sobelOberatorShader";
+import { playerInput } from "../input/player";
+import { PlayerView } from "../views/player";
+import { CollidersDebugger } from "../views/collidersDebugger";
 
 // import "../graphics/injections/cel"
 // import "../graphics/injections/outline"
@@ -160,6 +163,8 @@ export const init = async () => {
       crtPass.uniforms.time.value = Date.now() / 1000.0 % 1.0;
 
       effectComposer.render()
+
+      playerInput.update()
     }
 
     public Cleanup(): void {
@@ -167,7 +172,36 @@ export const init = async () => {
     }
   })
 
+  const refocusHandler = () => {
+    if (document.pointerLockElement !== renderer.domElement) {
+      try {
+        renderer.domElement.requestPointerLock();
+
+        // find player view
+        const playerView = simulation.ViewSync.GetAllViews().find((view) => view instanceof PlayerView)
+
+        if (playerView) {
+          playerView.enableControls()
+        }
+      } catch { }
+    }
+    try {
+      if (document.fullscreenElement !== document.body) {
+        document.body.requestFullscreen();
+      }
+    } catch { }
+  }
+
+  window.addEventListener("click", refocusHandler)
+  playerInput.emitter.on("justpressed", refocusHandler)
+
+  document.getElementById("splash")?.setAttribute("is-hidden", "true");
+
   return () => {
     simulation.Stop()
+    window.removeEventListener('resize', resize)
+    window.removeEventListener("click", refocusHandler)
+    window.removeEventListener("keydown", refocusHandler)
+    playerInput.emitter.off("justpressed", refocusHandler)
   }
 }

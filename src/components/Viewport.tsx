@@ -103,11 +103,11 @@ export const Viewport: React.FC<{
 
   React.useEffect(() => {
     return () => {
+      unloadScene()
+
       if (renderer) {
         renderer.dispose()
       }
-
-      stopGameLoop()
     }
   }, [])
 

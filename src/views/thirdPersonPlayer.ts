@@ -154,23 +154,23 @@ export class ThirdPersonPlayerView extends PlayerView {
           playAnimation(skinnedMesh, clip, IDLE_TIMESCALE)
         }
       } else if (vec3.length(direction) > 0) {
-        if (this.keysDown.has("ShiftLeft") && !this.isRunning) {
-          this.isRunning = true;
+        // if (this.keysDown.has("ShiftLeft") && !this.isRunning) {
+        //   this.isRunning = true;
 
-          const clip = getAnimation(RUN_ANIMATION)
+        //   const clip = getAnimation(RUN_ANIMATION)
 
-          for (const skinnedMesh of this.skinnedMeshes) {
-            playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
-          }
-        } else if (!this.keysDown.has("ShiftLeft") && this.isRunning) {
-          this.isRunning = false;
+        //   for (const skinnedMesh of this.skinnedMeshes) {
+        //     playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
+        //   }
+        // } else if (!this.keysDown.has("ShiftLeft") && this.isRunning) {
+        //   this.isRunning = false;
 
-          const clip = getAnimation(WALK_ANIMATION)
+        //   const clip = getAnimation(WALK_ANIMATION)
 
-          for (const skinnedMesh of this.skinnedMeshes) {
-            playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
-          }
-        }
+        //   for (const skinnedMesh of this.skinnedMeshes) {
+        //     playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
+        //   }
+        // }
       }
 
       // reverse direction

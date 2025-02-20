@@ -5,6 +5,7 @@ export const createThrone = (simulation: Simulation, position: vec3) => {
   const entId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
   simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
+  simulation.SimulationState.PhysicsRepository.SetPosition(entId, position)
 
   import("../views/throne").then(({ ThroneView }) => {
     const view = new ThroneView(simulation, entId, position)

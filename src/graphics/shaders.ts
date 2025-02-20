@@ -426,7 +426,7 @@ export const CRTShader = {
 
       // Convert normalized uv (0-1) into pixel coordinates for the noise grid,
       // then use floor() to quantize to discrete noise cells.
-      vec2 noiseUV = floor(uv * resolution);
+      vec2 noiseUV = floor(vUv * resolution);
 
       // Now, to animate the noise, add time as an offset (you can tweak which axis to add time)
       float noise = random(noiseUV);
@@ -444,9 +444,15 @@ export const CRTShader = {
       // Combine the effects.
       color.rgb *= scanline;
       // color.rgb *= vignette;
-      color.r += noise * 0.12;
-      color.g += noise * 0.09;
-      color.b += noise * 0.1;
+
+      if (noiseIntensity == 1.0) {
+        color.rgb = vec3(noise);
+        color.rgb *= scanline;
+      } else {
+        color.r += noise * 0.12;
+        color.g += noise * 0.09;
+        color.b += noise * 0.1;
+      }
       
       gl_FragColor = color;
     }
