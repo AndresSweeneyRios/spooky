@@ -5,7 +5,62 @@ import { JustPressedEvent, playerInput } from "../../input/player"
 import { Simulation } from "../../simulation"
 import { createCaseoh } from "../../entities/crazeoh/caseoh"
 import { currentCrtPass, currentPlayerView, disableLoading, enableLoading } from "."
+import type { loadAudio } from "../../graphics/loaders"
 import * as THREE from "three"
+
+const loaderPromise = import("../../graphics/loaders")
+
+const voicePromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/voice.ogg', {
+    loop: false,
+    positional: false,
+    volume: 0.1,
+    detune: -500,
+    pitchRange: 500,
+    randomPitch: true,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
+const noisePromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/noise.ogg', {
+    loop: true,
+    positional: false,
+    volume: 0.1,
+    detune: -500,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
+let voiceTimeout: NodeJS.Timeout | null = null
+
+const startLoopingVoice = async () => {
+  const voice = await voicePromise
+
+  voice.play()
+
+  voiceTimeout = setTimeout(() => {
+    startLoopingVoice()
+  }, 100)
+}
+
+const stopLoopingVoice = async () => {
+  await voicePromise
+
+  clearTimeout(voiceTimeout!)
+}
+
+const playDialogueWithVoice = async (texts: React.ReactNode[]) => {
+  for (const text of texts) {
+    startLoopingVoice()
+
+    for await (const parts of timedDialogue({ texts: [text], ms: 25 })) {
+      setDialogue(<>{parts[0]}</>)
+    }
+
+    stopLoopingVoice()
+    
+    await waitForAction()
+  }
+}
 
 const waitForAction = () => new Promise<void>(resolve => {
   const handler = (payload: JustPressedEvent) => {
@@ -32,23 +87,18 @@ export const intro = async (simulation: Simulation) => {
     // <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
     <i>[Be alert: <b>rooms can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
   ] : [
-    <b>(Something feels off. Maybe I should look around.)</b>
+    <i>(Something feels off. Maybe I should look around.)</i>
   ]
 
-  for (const text of dialogueTexts) {
-    for await (const parts of timedDialogue({ texts: [text], ms: 25 })) {
-      setDialogue(<>{parts[0]}</>)
-    }
-    await waitForAction()
-  }
-
-  setDialogue("")
+  await playDialogueWithVoice(dialogueTexts)
 }
 
 const outro = async (simulation: Simulation) => {
   enableLoading()
 
   state.setOutro(true)
+  state.setPicking(false)
+  state.setInDialogue(true)
 
   setInterval(() => {
     currentPlayerView!.disableControls()
@@ -64,16 +114,11 @@ const outro = async (simulation: Simulation) => {
   
   disableLoading()
 
-  for (const text of [
+  await playDialogueWithVoice([
     <>Why did it have to end like this?</>,
     <>My neon haven... my last refuge, McDonald's.</>,
     <i>Now swallowed by the void.</i>,
-  ]) {
-    for await (const parts of timedDialogue({ texts: [text], ms: 25 })) {
-      setDialogue(<>{parts[0]}</>)
-    }
-    await waitForAction()
-  }
+  ])
 
   setDialogue("")
 
@@ -81,45 +126,45 @@ const outro = async (simulation: Simulation) => {
 
   mesh.translateZ(6)
 
+  noisePromise.then(noise => noise.play())
+
   await new Promise(resolve => setTimeout(resolve, 500))
+
+  noisePromise.then(noise => noise.stop())
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 0.6
 
-  for (const text of [
+  await playDialogueWithVoice([
     <>I wandered through the ruins, chasing echoes of a lost past.</>,
     <>In that silence, a presence stirred—a whisper of something both ancient and profound.</>,
-  ]) {
-    for await (const parts of timedDialogue({ texts: [text], ms: 25 })) {
-      setDialogue(<>{parts[0]}</>)
-    }
-    await waitForAction()
-  }
+  ])
 
   mesh.translateZ(5)
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 1.0
 
+  noisePromise.then(noise => noise.play())
+
   await new Promise(resolve => setTimeout(resolve, 1000))
 
-  currentCrtPass!.uniforms["noiseIntensity"].value = 2.0
+  noisePromise.then(noise => noise.stop())
 
-  for (const text of [
+  currentCrtPass!.uniforms["noiseIntensity"].value = 1.1
+  currentCrtPass!.uniforms["scanlineIntensity"].value = 1.0
+  currentCrtPass!.uniforms["rgbOffset"].value.set(0.003, 0.003)
+
+  await playDialogueWithVoice([
     <span style={{ fontSize: "1em"}}><b>Not salvation, nor damnation... but a call from beyond the mortal veil.</b></span>,
     <>It beckoned me toward shadows where faith and fear entwine.</>,
     <>A new chapter begins, unfolding into realms where every secret is drenched in divine mystery.</>,
-  ]) {
-    for await (const parts of timedDialogue({ texts: [text], ms: 25 })) {
-      setDialogue(<>{parts[0]}</>)
-    }
-    await waitForAction()
-  }
+  ])
 
   location.assign("./spooky")
 }
 
 const winScript: Record<number, typeof intro> = {
-  // 0: intro,
-  0: outro,
+  0: intro,
+  10: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
@@ -138,6 +183,8 @@ export const executeWinScript = async (simulation: Simulation) => {
       }
 
       await winScript[index](simulation)
+
+      setDialogue("")
 
       state.setInDialogue(false)
     }

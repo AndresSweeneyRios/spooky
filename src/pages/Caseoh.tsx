@@ -63,7 +63,7 @@ const startGame = async () => {
   try {
     const anyButton = document.querySelector("#caseoh-anybutton");
     if (
-      state.gameStarted ||
+      state.gameStarted || state.picking || state.outro || state.inDialogue ||
       (anyButton && anyButton.getAttribute("is-hidden") === "false")
     ) {
       return;
@@ -92,7 +92,9 @@ const startGame = async () => {
  */
 const handleDecision = async (isYes: boolean) => {
   try {
-    if (!state.gameStarted || state.playing) return;
+    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking) return;
+
+    if (isYes && !state.tookPicture) return
 
     unloadScene();
 

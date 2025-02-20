@@ -451,16 +451,18 @@ export const init = async () => {
   // Shutter handling for taking a picture.
   let shutterOn = false;
   const justPressed = (payload: JustPressedEvent) => {
-    if (payload.action !== "mainAction1") return;
     // Use requestAnimationFrame to batch pointer lock/fullscreen requests.
     if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
+      payload.consume()
       try { renderer.domElement.requestPointerLock(); } catch { }
     }
     try {
       if (document.fullscreenElement !== document.body) {
+        payload.consume()
         document.body.requestFullscreen();
       }
     } catch { }
+    if (payload.action !== "mainAction1") return;
     if (!(state.gameStarted && !state.picking && !state.inDialogue)) return;
     playerView.enableControls();
     if (shutterOn || document.pointerLockElement !== renderer.domElement) return;
@@ -477,7 +479,13 @@ export const init = async () => {
     const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
     if (state.anomaly && pPos) {
       const angle = getAngle(state.anomalyPosition, new THREE.Vector3(pPos[0], pPos[1], pPos[2]), camera);
-      state.setFoundAnomaly(angle < 63);
+      // get distance
+      const distance = new THREE.Vector3(
+        pPos[0] - state.anomalyPosition.x,
+        pPos[1] - state.anomalyPosition.y,
+        pPos[2] - state.anomalyPosition.z,
+      ).length();
+      state.setFoundAnomaly(angle < 63 && distance < 10);
     }
     state.setTookPicture(true);
     setTimeout(() => {
@@ -485,6 +493,7 @@ export const init = async () => {
       shutterOn = false;
     }, 2000);
   };
+
   playerInput.emitter.on("justpressed", justPressed);
 
   for (let i = 0; i < 10; i++) {

@@ -399,10 +399,9 @@ export const CRTShader = {
       return coord + cc * amt * dist * dist;
     }
     
+    // Random noise function
     float random(vec2 st) {
-      float r1 = fract(sin(dot(st * time, vec2(127.1, 311.7))) * 43758.5453123);
-      float r2 = fract(sin(dot(st * time, vec2(269.5, 183.3))) * 43758.5453123);
-      return fract(r1 + r2);
+      return fract(sin(dot(st.xy, vec2(12.9898, 78.233) + time)) * 43758.5453123);
     }
 
     void main() {

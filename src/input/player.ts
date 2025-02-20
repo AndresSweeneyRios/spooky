@@ -183,12 +183,6 @@ export class InputManager {
   }
 
   public update() {
-    if (document.pointerLockElement === null) {
-      this.resetInputs();
-
-      return;
-    }
-
     // Process Walk Input (Analog)
     let walk: Vector2 = { x: 0, y: 0 };
     if (this.keyboardPressed.has("w")) walk.y -= 1;
@@ -231,7 +225,7 @@ export class InputManager {
     this.smoothedLookDelta.y = this.smoothedLookDelta.y * (1 - this.smoothingFactor) +
       this.rawLookDelta.y * this.smoothingFactor;
     // Use the smoothed value as the look delta.
-    const look: Vector2 = { x: this.smoothedLookDelta.x, y: this.smoothedLookDelta.y };
+    let look: Vector2 = { x: this.smoothedLookDelta.x, y: this.smoothedLookDelta.y };
     // Clear the raw look delta for the next frame.
     this.rawLookDelta = { x: 0, y: 0 };
 
@@ -243,6 +237,13 @@ export class InputManager {
       look.x += gpX * 20.0;
       look.y += gpY * 20.0;
     }
+
+    if (document.pointerLockElement === null) {
+      // reset look and walk if not in pointer lock
+      walk = { x: 0, y: 0 };
+      look = { x: 0, y: 0 };
+    }
+
 
     // Process Button Actions (Digital)
     const interactKeyboard = this.keyboardPressed.has("e");
