@@ -29,7 +29,7 @@ class PhysicsComponent extends SimulationComponent {
   public characters = new Map<symbol, InstanceType<typeof RAPIER.KinematicCharacterController>>()
   public bodies = new Map<symbol, InstanceType<typeof RAPIER.RigidBody>>()
 
-  public offset: vec3 = vec3.create()
+  public offset: vec3 = [-Infinity, -Infinity, -Infinity]
 
   public GetFirstCollider(): InstanceType<typeof RAPIER.Collider> | undefined {
     for (const collider of this.colliders.values()) {
@@ -63,6 +63,10 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
   public GetPosition(entId: EntId): vec3 {
     const component = this.entities.get(entId)!
 
+    if (component.offset[0] !== -Infinity) {
+      return component.offset
+    }
+
     let position: vec3
 
     if (component.bodies.size > 0) {
@@ -75,7 +79,6 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       position = vec3.create()
     }
 
-    vec3.add(position, position, component.offset)
     return position
   }
 

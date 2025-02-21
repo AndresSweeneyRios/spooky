@@ -8,7 +8,7 @@ import * as player from '../../entities/player';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { ShaderPass } from 'three/examples/jsm/Addons.js';
+import { PositionalAudioHelper, ShaderPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { traverse } from "../../utils/traverse";
 import * as state from "./state";
@@ -18,7 +18,7 @@ import { createStove } from "../../entities/crazeoh/stove";
 import { createMicrowave } from "../../entities/crazeoh/microwave";
 import * as shaders from '../../graphics/shaders';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { getAngle } from "../../utils/math";
+import { getAngle, getMeshCenter } from "../../utils/math";
 import { createDoor } from "../../entities/crazeoh/door";
 import { PlayerView } from "../../views/player";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
@@ -73,7 +73,7 @@ export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
   loop: true,
   positional: true,
   autoplay: true,
-  volume: 0.2,
+  volume: 0.4,
 });
 
 // export const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
@@ -122,8 +122,10 @@ const setupGarageScream = (simulation: Simulation, playerEntId: EntId) => {
   garageScreamAudioPromise.then(audio => {
     const posAudio = audio.getPositionalAudio();
     posAudio.setRolloffFactor(3);
-    const object = simulation.ThreeScene.getObjectByName("Plane001_01_-_Default_0001") as THREE.Mesh;
-    object?.add(posAudio);
+    const mesh = simulation.ThreeScene.getObjectByName("Plane001_01_-_Default_0001") as THREE.Mesh;
+    const centerPoint = getMeshCenter(mesh);
+    posAudio.position.copy(centerPoint);
+    simulation.ThreeScene.add(posAudio);
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
       public Draw(): void {
         if (!state.gameStarted || !state.playing || state.picking || state.inDialogue) {
@@ -183,12 +185,18 @@ const setupEat = (simulation: Simulation, scene: THREE.Scene) => {
 };
 
 const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
+  const mesh = scene.getObjectByName("Sketchfab_model001")!.getObjectByProperty("type", "Mesh") as THREE.Mesh;
+
   burgerkingAudioPromise.then(audio => {
-    const object = scene.getObjectByName("Sketchfab_model001") as THREE.Mesh;
-    object?.add(audio.getPositionalAudio());
+    const centerPoint = getMeshCenter(mesh);
+    const posAudio = audio.getPositionalAudio();
+    posAudio.position.copy(centerPoint);
+    simulation.ThreeScene.add(posAudio);
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+    material.side = THREE.DoubleSide
     audio.setVolume(0.5);
   });
-  const globalPos = scene.getObjectByName("Sketchfab_model001")?.getWorldPosition(new THREE.Vector3());
+  const globalPos = mesh.getWorldPosition(new THREE.Vector3());
   if (!globalPos) return;
   const entId = simulation.EntityRegistry.Create();
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId);
@@ -528,6 +536,8 @@ export const init = async () => {
   })
 
   detectPlayStateChange();
+
+  // sceneGltf.visible = false
 
   // Return cleanup function.
   return () => {
