@@ -26,13 +26,13 @@ const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 interface Anomaly {
-  Id: symbol
+  Id: number
   Enable(simulation: Simulation): THREE.Vector3
   Disable(simulation: Simulation): void
 }
 
 const FrenchFries: Anomaly = {
-  Id: Symbol('FrenchFries'),
+  Id: 1,
 
   Enable(simulation: Simulation) {
     const fries = simulation.ThreeScene.getObjectByName('fries')!.getObjectByProperty('type', 'Mesh') as THREE.Mesh
@@ -46,7 +46,7 @@ const FrenchFries: Anomaly = {
 }
 
 const SeveredHand: Anomaly = {
-  Id: Symbol('SeveredHand'),
+  Id: 2,
 
   Enable(simulation: Simulation) {
     const hand = simulation.ThreeScene.getObjectByName('hand')!
@@ -64,7 +64,7 @@ const SeveredHand: Anomaly = {
 }
 
 const FanFast: Anomaly = {
-  Id: Symbol('FanFast'),
+  Id: 3,
 
   Enable(simulation: Simulation) {
     const fanBlades = simulation.ThreeScene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh
@@ -83,7 +83,7 @@ const FanFast: Anomaly = {
 }
 
 const ClockSix: Anomaly = {
-  Id: Symbol('ClockSix'),
+  Id: 4,
 
   Enable(simulation: Simulation) {
     const clock1 = simulation.ThreeScene.getObjectByName('6_0002') as THREE.Mesh
@@ -109,7 +109,7 @@ const ClockSix: Anomaly = {
 }
 
 const Demon: Anomaly = {
-  Id: Symbol('Demon'),
+  Id: 5,
 
   Enable(simulation: Simulation) {
     const demon = simulation.ThreeScene.getObjectByName('demon') as THREE.Mesh
@@ -132,7 +132,7 @@ const Demon: Anomaly = {
 // second hand_0
 
 const ClockSpinFast: Anomaly = {
-  Id: Symbol('ClockSpinFast'),
+  Id: 6,
 
   Enable(simulation: Simulation) {
     const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh
@@ -155,7 +155,7 @@ const ClockSpinFast: Anomaly = {
 }
 
 const Monitors: Anomaly = {
-  Id: Symbol('Monitors'),
+  Id: 7,
 
   Enable(simulation: Simulation) {
     const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
@@ -193,7 +193,7 @@ const Monitors: Anomaly = {
 }
 
 const RedDemon: Anomaly = {
-  Id: Symbol('RedDemon'),
+  Id: 8,
 
   Enable(simulation: Simulation) {
     const demon = simulation.ThreeScene.getObjectByName('reddemon') as THREE.Mesh
@@ -241,7 +241,7 @@ const RedDemon: Anomaly = {
 }
 
 const Head: Anomaly = {
-  Id: Symbol('Head'),
+  Id: 9,
 
   Enable(simulation: Simulation) {
     const head = simulation.ThreeScene.getObjectByName('head') as THREE.Mesh
@@ -261,7 +261,7 @@ const Head: Anomaly = {
 }
 
 const KitchenKnife: Anomaly = {
-  Id: Symbol('KitchenKnife'),
+  Id: 10,
 
   Enable(simulation: Simulation) {
     const knife = simulation.ThreeScene.getObjectByName('Knife_Knife_0') as THREE.Mesh
@@ -279,7 +279,7 @@ const KitchenKnife: Anomaly = {
 }
 
 const Feet: Anomaly = {
-  Id: Symbol('Feet'),
+  Id: 11,
 
   Enable(simulation: Simulation) {
     const feet = simulation.ThreeScene.getObjectByName('feet') as THREE.Mesh
@@ -297,7 +297,7 @@ const Feet: Anomaly = {
 }
 
 const CoatHanger: Anomaly = {
-  Id: Symbol('CoatHanger'),
+  Id: 12,
 
   Enable(simulation: Simulation) {
     const coatHanger = simulation.ThreeScene.getObjectByName('mask') as THREE.Mesh
@@ -314,7 +314,7 @@ const CoatHanger: Anomaly = {
   }
 }
 const BurgerLevitate: Anomaly = {
-  Id: Symbol('BurgerLevitate'),
+  Id: 13,
 
   Enable(simulation: Simulation) {
     const burger = simulation.ThreeScene.getObjectByName('burger') as THREE.Mesh;
@@ -407,7 +407,7 @@ const BurgerLevitate: Anomaly = {
 }
 
 const Keyboard: Anomaly = {
-  Id: Symbol('Keyboard'),
+  Id: 14,
 
   Enable(simulation: Simulation) {
     const keyboard = simulation.ThreeScene.getObjectByName('keyboard') as THREE.Mesh
@@ -466,7 +466,7 @@ const Keyboard: Anomaly = {
 }
 
 const Pitchfork: Anomaly = {
-  Id: Symbol('Pitchfork'),
+  Id: 15,
 
   Enable(simulation: Simulation) {
     const pitchfork = simulation.ThreeScene.getObjectByName('pitchfork') as THREE.Mesh
@@ -490,7 +490,7 @@ const Pitchfork: Anomaly = {
 
 // pPlane1_Poster_01_Mat_0.001
 const Poster = {
-  Id: Symbol('Poster'),
+  Id: 16,
 
   Enable(simulation: Simulation) {
     const poster = simulation.ThreeScene.getObjectByName('pPlane1_Poster_01_Mat_0001') as THREE.Mesh
@@ -509,7 +509,7 @@ const Poster = {
 
 //lburger on, burger off
 const LettuceBurger: Anomaly = {
-  Id: Symbol('LettuceBurger'),
+  Id: 17,
 
   Enable(simulation: Simulation) {
     const lburger = simulation.ThreeScene.getObjectByName('lburger') as THREE.Mesh
@@ -532,7 +532,7 @@ const LettuceBurger: Anomaly = {
 
 // reallabel off, fakelabel on
 const RealLabel: Anomaly = {
-  Id: Symbol('RealLabel'),
+  Id: 18,
 
   Enable(simulation: Simulation) {
     const reallabel = simulation.ThreeScene.getObjectByName('fakelabel') as THREE.Mesh
@@ -555,7 +555,7 @@ const RealLabel: Anomaly = {
 
 // glock
 const Glock: Anomaly = {
-  Id: Symbol('Glock'),
+  Id: 19,
 
   Enable(simulation: Simulation) {
     const glock = simulation.ThreeScene.getObjectByName('glock') as THREE.Mesh
@@ -574,7 +574,7 @@ const Glock: Anomaly = {
 
 // can_bepis_0.001
 const CanBepis: Anomaly = {
-  Id: Symbol('CanBepis'),
+  Id: 20,
 
   Enable(simulation: Simulation) {
     const can = simulation.ThreeScene.getObjectByName('longbepis') as THREE.Mesh
@@ -594,7 +594,7 @@ const CanBepis: Anomaly = {
 // bloodshake on, milkshake off
 
 const Bloodshake: Anomaly = {
-  Id: Symbol('Bloodshake'),
+  Id: 21,
 
   Enable(simulation: Simulation) {
     const bloodshake = simulation.ThreeScene.getObjectByName('bloodshake') as THREE.Mesh
@@ -616,7 +616,7 @@ const Bloodshake: Anomaly = {
 }
 
 const FakeBuffet: Anomaly = {
-  Id: Symbol('FakeBuffet'),
+  Id: 22,
 
   Enable(simulation: Simulation) {
     const fakeb1 = simulation.ThreeScene.getObjectByName('fakeb1') as THREE.Mesh
@@ -650,15 +650,12 @@ const FakeBuffet: Anomaly = {
 }
 
 
-const DEFAULT_ANOMALIES = [
+export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FrenchFries,
   SeveredHand,
-  // FanFast,
   ClockSix,
   Demon,
   ClockSpinFast,
-  // Monitors,
-  // RedDemon,
   Head,
   KitchenKnife,
   Feet,
@@ -670,48 +667,59 @@ const DEFAULT_ANOMALIES = [
   RealLabel,
   Glock,
   CanBepis,
-  // Bloodshake,
   LettuceBurger,
   FakeBuffet,
 ]
 
+export const getHighestAnomalyId = () => {
+  let highestId = 0
+
+  for (const anomaly of DEFAULT_ANOMALIES) {
+    if (anomaly.Id > highestId) {
+      highestId = anomaly.Id
+    }
+  }
+
+  return highestId
+}
+
 const anomalies: typeof DEFAULT_ANOMALIES = []
 
-let currentAnomalyIndex = 0
+export let currentAnomalyIndex = 0
+export let currentAnomalyId = 0
 
 export const disableAllAnomalies = (simulation: Simulation) => {
   for (const anomaly of DEFAULT_ANOMALIES) {
     anomaly?.Disable(simulation)
   }
+
+  Monitors.Disable(simulation)
+  RedDemon.Disable(simulation)
+  Bloodshake.Disable(simulation)
+  FanFast.Disable(simulation)
 }
 
 export const pickRandomAnomaly = (simulation: Simulation): void => {
   disableAllAnomalies(simulation)
 
-  if (state.isTutorial) {
-    // Skip anomalies in tutorial
-    state.setAnomaly(false)
-    state.setFoundAnomaly(false)
-
-    return
-  }
-
   if (anomalies.length === 0) {
     anomalies.push(...DEFAULT_ANOMALIES)
   }
 
-  const randomIndex = Math.floor(Math.random() * (state.wins === 0 ? anomalies.length : (anomalies.length + 3)))
+  const randomIndex = state.isTutorial ? 0 : Math.floor(Math.random() * anomalies.length)
 
-  const anomaly = anomalies.splice(randomIndex, 1)[0]
+  currentAnomalyIndex = randomIndex
 
-  state.setAnomaly(Boolean(anomaly))
+  const anomaly = anomalies[randomIndex]
+
+  currentAnomalyId = anomaly.Id
+
+  state.setAnomaly(true)
   state.setFoundAnomaly(false)
 
-  if (anomaly) {
-    const position = anomaly.Enable(simulation)
+  const position = anomaly.Enable(simulation)
 
-    state.setAnomalyPosition(position)
-  }
+  state.setAnomalyPosition(position)
 }
 
 export const removeCurrentAnomaly = () => {

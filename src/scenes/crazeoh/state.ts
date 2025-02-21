@@ -41,7 +41,7 @@ export const incrementWins = () => {
 }
 
 export const resetWins = () => {
-  wins = 0
+  // wins = 0
 }
 
 // -----

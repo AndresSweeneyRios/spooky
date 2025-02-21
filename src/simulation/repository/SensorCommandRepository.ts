@@ -15,6 +15,7 @@ export interface SensorCommand {
   ExecutionMode: ExecutionMode
   Sensors: symbol[] | undefined
   Once: boolean
+  Enabled: boolean
 }
 
 class SensorCommandComponent extends SimulationComponent {
@@ -23,7 +24,7 @@ class SensorCommandComponent extends SimulationComponent {
 }
 
 export class SensorCommandRepository extends SimulationRepository<SensorCommandComponent> {
-  public SensorCommandMap = new Map<symbol, Readonly<SensorCommand>>()
+  public SensorCommandMap = new Map<symbol, SensorCommand>()
   public SymbolEntIdMap = new Map<symbol, EntId>()
 
   public AddSensorCommand({
@@ -43,17 +44,31 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
 
     const symbol = Symbol()
 
-    this.SensorCommandMap.set(symbol, Object.freeze({
+    this.SensorCommandMap.set(symbol, {
       Command: command,
       ExecutionMode: executionMode,
       Sensors: sensors,
       Once: once,
-    }))
+      Enabled: true,
+    })
 
     this.SymbolEntIdMap.set(symbol, entId)
 
     component.Commands.push(symbol)
+
+    return symbol
   }
+
+  public SetCommandEnabled(symbol: symbol, enabled: boolean) {
+    const command = this.SensorCommandMap.get(symbol)
+
+    if (command === undefined) {
+      return
+    }
+
+    command.Enabled = enabled
+  }
+
 
   public DeleteSensorCommand(entId: EntId, symbol: symbol) {
     const component = this.entities.get(entId)!
@@ -84,16 +99,23 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
   public GetAvailableInteractions(entId: EntId) {
     const component = this.entities.get(entId)!
 
-    return component.AvailableInteractions.map((symbol) => {
-      const command = this.SensorCommandMap.get(symbol)!
-      const entId = this.SymbolEntIdMap.get(symbol)!
+    return component.AvailableInteractions
+      .map((symbol) => {
+        const command = this.SensorCommandMap.get(symbol)!
 
-      return {
-        command,
-        entId,
-        symbol,
-      }
-    })
+        if (!command.Enabled) {
+          return undefined
+        }
+
+        const entId = this.SymbolEntIdMap.get(symbol)!
+
+        return {
+          command,
+          entId,
+          symbol,
+        }
+      })
+      .filter((item) => item !== undefined)
   }
 
   public PushAvailableInteractions(entId: EntId, commands: symbol[]) {

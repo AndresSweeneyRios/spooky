@@ -76,15 +76,15 @@ export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
   volume: 0.2,
 });
 
-export const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
-  randomPitch: true,
-  pitchRange: 400,
-  volume: 0.15
-});
+// export const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
+//   randomPitch: true,
+//   pitchRange: 400,
+//   volume: 0.15
+// });
 
 export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
   loop: true,
-  volume: 0.03,
+  volume: 0.05,
   autoplay: true,
 })
 
@@ -139,26 +139,6 @@ const setupGarageScream = (simulation: Simulation, playerEntId: EntId) => {
   });
 };
 
-const setupSniff = (simulation: Simulation) => {
-  sniffAudioPromise.then(() => {
-    let next = simulation.ViewSync.TimeMS + (1000 * 60 * 5 * Math.random());
-    const sniff = () => {
-      sniffAudioPromise.then(audio => {
-        if (state.playing) audio.play();
-      });
-      next = simulation.ViewSync.TimeMS + (1000 * 60 * 5 * Math.random());
-    };
-    simulation.ViewSync.AddAuxiliaryView(new class extends View {
-      public Update(): void {
-        if (simulation.ViewSync.TimeMS > next) sniff();
-      }
-      public Cleanup(): void {
-        sniffAudioPromise.then(audio => audio.stop());
-      }
-    });
-  });
-};
-
 const setupFan = (simulation: Simulation, scene: THREE.Scene) => {
   const fanBlades = scene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh;
   ceilingFanAudioPromise.then(audio => {
@@ -195,9 +175,8 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 
 const setupEat = (simulation: Simulation, scene: THREE.Scene) => {
   const foods = [
-    "pizza", "burger", "Object_3", "muffin", "strawberyshake",
-    "cereal", "buffet", "crazycola", "Object_4", "Object_4003",
-    "bepis", "23b099929e614d9a927b4ec8f3d72063fbx", "Object_4011"
+    "pizza", "muffin", "strawberyshake",
+    "cereal", "23b099929e614d9a927b4ec8f3d72063fbx",
   ];
 
   foods.forEach(food => eat(food, simulation, scene));
@@ -359,9 +338,8 @@ export const init = async () => {
   setupFan(simulation, scene);
   setupEat(simulation, scene);
   setupBurgerKing(simulation, scene);
-  setupSniff(simulation);
   setupGarageScream(simulation, playerView.EntId);
-  setupHeartbeat(simulation, playerView.EntId);
+  // setupHeartbeat(simulation, playerView.EntId);
   setupCarIdling(simulation, scene);
 
   // Set up spotlight.
@@ -505,8 +483,6 @@ export const init = async () => {
 
   for (let i = 0; i < 10; i++) {
     const name = `chip${i + 1}`
-
-    eat(name, simulation, scene);
 
     if (state.wins <= i) {
       const object = scene.getObjectByName(name) as THREE.Mesh;

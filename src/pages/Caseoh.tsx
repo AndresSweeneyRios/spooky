@@ -7,7 +7,7 @@ import { loadScene, scenes, unloadScene } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp";
 import PolaroidPng from "../assets/caseoh/polaroid.png";
 import * as state from "../scenes/crazeoh/state";
-import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
+import { currentAnomalyId, currentAnomalyIndex, getHighestAnomalyId, removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 import _SVG from 'react-inlinesvg';
 const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
@@ -90,42 +90,21 @@ const startGame = async () => {
 /**
  * Handles a decision from the user (YES/NO) regarding the anomaly.
  */
-const handleDecision = async (isYes: boolean) => {
+const handleConfirm = async () => {
   try {
-    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking) return;
-
-    if (isYes && !state.tookPicture) return
+    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking || !state.tookPicture) return;
 
     unloadScene();
 
-    if (!state.isTutorial) {
-      if (isYes) {
-        if (state.anomaly && state.foundAnomaly) {
-          state.incrementWins();
-          removeCurrentAnomaly();
-          coinsAudio.then(audio => audio.play());
-        } else {
-          state.resetWins();
-          errorAudio.then(audio => audio.play());
-        }
-      } else {
-        if (state.anomaly) {
-          state.resetWins();
-          errorAudio.then(audio => audio.play());
-        } else {
-          state.incrementWins();
-          coinsAudio.then(audio => audio.play());
-        }
-      }
+    if (state.anomaly && state.foundAnomaly) {
+      state.incrementWins();
+      removeCurrentAnomaly();
+      state.setIsTutorial(false);
+      coinsAudio.then(audio => audio.play());
     } else {
-      if (isYes) {
-        errorAudio.then(audio => audio.play());
-      } else {
-        coinsAudio.then(audio => audio.play());
-      }
+      errorAudio.then(audio => audio.play());
     }
 
-    state.setIsTutorial(false);
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
 
     state.setPicking(false);
@@ -143,7 +122,7 @@ const handleDecision = async (isYes: boolean) => {
 
     await loadScene(scenes.crazeoh);
   } catch (error) {
-    console.error(`Error handling ${isYes ? "yes" : "no"} decision:`, error);
+    console.error(error);
   }
 };
 
@@ -182,11 +161,7 @@ playerInput.emitter.on(
     switch (action) {
       case "mainAction1":
         startGame();
-        handleDecision(false);
-        consume();
-        break;
-      case "interact":
-        handleDecision(true);
+        handleConfirm();
         consume();
         break;
       case "cancel":
@@ -204,6 +179,20 @@ initializeAudio();
 // ─── REACT COMPONENT ───────────────────────────────────────────────────────────
 
 export const CrazeOh = () => {
+  React.useEffect(() => {
+    const handler = () => {
+      document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 10 WINS`;
+      document.getElementById("caseoh-anomaly-id")!.innerText = `A${currentAnomalyId}`;
+      document.getElementById("caseoh-stats")!.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue && !state.outro) ? "false" : "true");
+
+      animationFrame = requestAnimationFrame(handler);
+    }
+
+    let animationFrame = requestAnimationFrame(handler)
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [])
+
   // useMemo to memoize the JSX since this layout is static.
   return React.useMemo(() => (
     <>
@@ -237,6 +226,11 @@ export const CrazeOh = () => {
         </div>
       </div>
 
+      <div id="caseoh-stats" is-hidden="true">
+        <h1 id="caseoh-anomaly-id"></h1>
+        <h2 id="caseoh-wins"></h2>
+      </div>
+
       {/* Ingame Polaroid Overlay */}
       <div className="caseoh-polaroid-overlay ingame" is-hidden="true">
         <img className="background" src="#" crossOrigin="anonymous" referrerPolicy="no-referrer" alt="Polaroid Background" />
@@ -260,18 +254,22 @@ export const CrazeOh = () => {
           <img className="polaroid" src={PolaroidPng} alt="Polaroid" />
         </div>
         <div className="main">
-          <h1>ANOMALY?</h1>
+          <h1>IS THIS AN ANOMALY?</h1>
           <div className="split">
             <div className="yes">
-              <button onClick={() => handleDecision(true)}>YES</button>
-              <SVG src={DpadSoloIconSvg} />
-            </div>
-            <div>
-              <button onClick={() => handleDecision(false)}>NO</button>
+              <button onClick={() => handleConfirm()}>
+                YES
+              </button>
               <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} />
             </div>
+            {/* <div>
+              <button onClick={() => handleConfirm(false)}>NO</button>
+              <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} />
+            </div> */}
             <div>
-              <button onClick={cancelDecision}>CANCEL</button>
+              <button onClick={cancelDecision}>
+                Cancel
+              </button>
               <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(180deg)' }} />
             </div>
           </div>
