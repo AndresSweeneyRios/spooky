@@ -87,7 +87,7 @@ const waitForAction = () => new Promise<void>(resolve => {
 })
 
 export const intro = async (simulation: Simulation) => {
-  const dialogueTexts = state.isTutorial ? [
+  const dialogueTexts = [
     // <>You had a childhood friend nicknamed Craze, an <b>obese</b> kid who dreamed of becoming a famous streamer.</>,
     // <>He finally made it big — millions of views, sponsors, fans spamming “W” in chat.</>,
     // <>But then he changed.</>,
@@ -95,12 +95,10 @@ export const intro = async (simulation: Simulation) => {
     // <>One day, his stream cut off mid-broadcast, and he disappeared.</>,
     // <>As his old friend, you go to check on him.</>,
     // <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
-    // <i>[Be alert: <b>rooms can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
-  ] : [
-    // <i>(Something feels off. Maybe I should look around.)</i>
+    <i>[Be alert: <b>rooms can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
   ]
 
-  // await playDialogueWithVoice(dialogueTexts)
+  await playDialogueWithVoice(dialogueTexts)
 }
 
 const outro = async (simulation: Simulation) => {
@@ -189,7 +187,7 @@ const outro = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  // 0: intro,
+  0: intro,
   10: outro,
 }
 

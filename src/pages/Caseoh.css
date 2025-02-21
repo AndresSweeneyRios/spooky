@@ -224,8 +224,8 @@
 
 .caseoh-interactable {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 1em;
+  right: 1em;
 }
 
 #caseoh-decision .split > div {
@@ -253,7 +253,7 @@
   align-items: flex-end;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 1s;
+  transition: opacity 0.2s;
   height: 15em;
   width: 35em;
   font-size: 1.2em;
@@ -308,8 +308,8 @@
 
 #caseoh-stats {
   position: absolute;
-  top: 4em;
-  left: 4em;
+  top: 5em;
+  left: 5em;
   display: flex;
   /* flex-direction: column; */
   justify-content: center;

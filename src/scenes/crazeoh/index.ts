@@ -413,13 +413,6 @@ export const init = async () => {
         pickRandomAnomaly(simulation);
         pickedAnomaly = true;
       }
-
-      const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement;
-      if (!cameraHint.hasAttribute("is-hinting")) {
-        cameraHint.setAttribute("is-hidden", "false");
-        cameraHint.setAttribute("is-hinting", "true");
-        setTimeout(() => cameraHint.setAttribute("is-hinting", "false"), 10000);
-      }
     }
   };
 
@@ -509,6 +502,24 @@ export const init = async () => {
         spotLight.target.position.copy(camPos).add(camDir);
         spotLight.target.updateMatrixWorld();
         playerInput.update();
+
+        if (state.isTutorial) {
+          const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
+          const distance = new THREE.Vector3(
+            playerPos[0] - state.anomalyPosition.x,
+            playerPos[1] - state.anomalyPosition.y,
+            playerPos[2] - state.anomalyPosition.z,
+          ).length();
+
+          const angle = getAngle(state.anomalyPosition, new THREE.Vector3(playerPos[0], playerPos[1], playerPos[2]), camera);
+
+          const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement;
+          cameraHint.setAttribute("is-hidden", "false");
+          cameraHint.setAttribute("is-hinting", (angle < 63 && distance < 3) ? "true" : "false");
+        } else {
+          const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement;
+          cameraHint.setAttribute("is-hidden", "true");
+        }
       }
       public Cleanup(): void {
         renderer.dispose();
