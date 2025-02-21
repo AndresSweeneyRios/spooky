@@ -85,6 +85,12 @@ const textureLoader = new THREE.TextureLoader()
 
 export const loadTexture = (path: string) => textureLoader.load(path)
 
+export const loadTextureAsync = async (path: string) => {
+  return await new Promise<THREE.Texture>((resolve) => {
+    textureLoader.load(path, resolve)
+  })
+}
+
 export const loadVideoTexture = (path: string) => {
   const video = document.createElement('video')
   video.src = path

@@ -23,6 +23,8 @@ import { CollidersDebugger } from "../views/collidersDebugger";
 // import "../graphics/injections/cel"
 // import "../graphics/injections/outline"
 
+export let currentCrtPass: ShaderPass | null = null
+
 export const init = async () => {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
@@ -33,8 +35,8 @@ export const init = async () => {
   const renderPass = new RenderPass(scene, camera)
   effectComposer.addPass(renderPass)
 
-  const fxaaPass = new ShaderPass(FXAAShader)
-  effectComposer.addPass(fxaaPass)
+  // const fxaaPass = new ShaderPass(FXAAShader)
+  // effectComposer.addPass(fxaaPass)
 
   ToneMappingShader.uniforms.contrast = { value: 1.07 }
   ToneMappingShader.uniforms.saturation = { value: 0.95 }
@@ -51,6 +53,7 @@ export const init = async () => {
   const crtPass = new ShaderPass(shaders.CRTShader);
   crtPass.uniforms.scanlineIntensity.value = 0.5
   effectComposer.addPass(crtPass);
+  currentCrtPass = crtPass
 
   const outputPass = new OutputPass()
   effectComposer.addPass(outputPass)
@@ -72,7 +75,7 @@ export const init = async () => {
       window.innerHeight * window.devicePixelRatio
     );
 
-    fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
+    // fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
   }
 
   window.addEventListener('resize', resize, false);
@@ -94,6 +97,8 @@ export const init = async () => {
   ])
 
   processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
+
+  sceneGltf.scene.visible = false
 
   shaders.applyInjectedMaterials(sceneGltf.scene)
 

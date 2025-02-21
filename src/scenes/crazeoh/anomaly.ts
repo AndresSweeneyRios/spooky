@@ -650,15 +650,15 @@ const FakeBuffet: Anomaly = {
 }
 
 
-export const DEFAULT_ANOMALIES = [
+const DEFAULT_ANOMALIES = [
   FrenchFries,
   SeveredHand,
-  FanFast,
+  // FanFast,
   ClockSix,
   Demon,
   ClockSpinFast,
-  Monitors,
-  RedDemon,
+  // Monitors,
+  // RedDemon,
   Head,
   KitchenKnife,
   Feet,
@@ -670,7 +670,7 @@ export const DEFAULT_ANOMALIES = [
   RealLabel,
   Glock,
   CanBepis,
-  Bloodshake,
+  // Bloodshake,
   LettuceBurger,
   FakeBuffet,
 ]

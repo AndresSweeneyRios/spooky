@@ -59,8 +59,8 @@ async function optimizeGLB(inputPath, outputPath, quality = 75) {
       // Resize image if larger than 2K in either dimension, then convert to WebP.
       const webpBuffer = await sharp(inputImage)
         .resize({
-          width: 4096,
-          height: 4096,
+          width: 1024,
+          height: 1024,
           fit: 'inside',
           withoutEnlargement: true,
         })
@@ -92,7 +92,7 @@ const ext = path.extname(inputFile);
 const baseName = path.basename(inputFile, ext);
 const outputFile = path.join(path.dirname(inputFile), `${baseName}_OPTIMIZED.glb`);
 
-optimizeGLB(inputFile, outputFile, 20)
+optimizeGLB(inputFile, outputFile, 3)
   .then(() => {
     console.log('Optimization complete.');
   })
