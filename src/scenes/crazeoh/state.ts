@@ -99,3 +99,13 @@ export let outro = false
 export const setOutro = (value: boolean) => {
   outro = value
 }
+
+// -----
+
+export const setVolume = (value: number) => {
+  localStorage.setItem('volume', value.toString())
+}
+
+export const getVolume = () => {
+  return parseFloat(localStorage.getItem('volume') || '0.5')
+}

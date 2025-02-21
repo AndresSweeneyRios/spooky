@@ -7,7 +7,7 @@ import { loadScene, scenes, unloadScene } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp";
 import PolaroidPng from "../assets/caseoh/polaroid.png";
 import * as state from "../scenes/crazeoh/state";
-import { currentAnomalyId, currentAnomalyIndex, getHighestAnomalyId, removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
+import { currentAnomalyId, removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 import _SVG from 'react-inlinesvg';
 const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
@@ -16,6 +16,7 @@ import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg";
 import { playerInput } from "../input/player";
 import { executeWinScript } from "../scenes/crazeoh/scripts";
 import { ArgumentsType } from "vitest";
+import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
 
 // Lazy–load loaders so we don’t block startup.
 const loaderPromise = import("../graphics/loaders");
@@ -179,6 +180,8 @@ initializeAudio();
 // ─── REACT COMPONENT ───────────────────────────────────────────────────────────
 
 export const CrazeOh = () => {
+  const [volume, setVolume] = React.useState(getMasterVolumePercentage());
+
   React.useEffect(() => {
     const handler = () => {
       document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 10 WINS`;
@@ -216,6 +219,12 @@ export const CrazeOh = () => {
               transform: 'rotate(-90deg)',
               position: 'absolute',
               left: '-6em'
+            }} />
+          </div>
+          <div id="caseoh-volume-slider">
+            <label>VOLUME</label>
+            <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
+              setMasterVolumeFromPercentage(parseFloat(e.target.value));
             }} />
           </div>
         </div>

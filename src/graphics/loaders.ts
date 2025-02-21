@@ -366,6 +366,12 @@ export const listener = new THREE.AudioListener();
 
 listener.setMasterVolume(2.0);
 
+if (!localStorage.getItem("volume")) {
+  localStorage.setItem("volume", "2.0");
+}
+
+listener.setMasterVolume(parseFloat(localStorage.getItem("volume")!));
+
 export const loadAudio = async (path: string, {
   loop = false,
   randomPitch = false,
