@@ -14,6 +14,7 @@ import {
 import * as THREE from "three"
 import { traverse, traverseParents } from "../../utils/traverse"
 import RAPIER from "@dimforge/rapier3d-compat"
+import { getMeshCenter } from "../../utils/math"
 
 export const rapierFinishedLoading = (async () => {
   await RAPIER.init()
@@ -27,6 +28,8 @@ class PhysicsComponent extends SimulationComponent {
   public colliderUuidMap = new Map<string, symbol>()
   public characters = new Map<symbol, InstanceType<typeof RAPIER.KinematicCharacterController>>()
   public bodies = new Map<symbol, InstanceType<typeof RAPIER.RigidBody>>()
+
+  public offset: vec3 = vec3.create()
 
   public GetFirstCollider(): InstanceType<typeof RAPIER.Collider> | undefined {
     for (const collider of this.colliders.values()) {
@@ -60,15 +63,20 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
   public GetPosition(entId: EntId): vec3 {
     const component = this.entities.get(entId)!
 
+    let position: vec3
+
     if (component.bodies.size > 0) {
-      const position = component.GetFirstBody()!.translation()
-      return vec3.fromValues(position.x, position.y, position.z)
+      const bodyPosition = component.GetFirstBody()!.translation()
+      position = vec3.fromValues(bodyPosition.x, bodyPosition.y, bodyPosition.z)
     } else if (component.colliders.size > 0) {
-      const position = component.GetFirstCollider()!.translation()
-      return vec3.fromValues(position.x, position.y, position.z)
+      const colliderPosition = component.GetFirstCollider()!.translation()
+      position = vec3.fromValues(colliderPosition.x, colliderPosition.y, colliderPosition.z)
     } else {
-      return vec3.create()
+      position = vec3.create()
     }
+
+    vec3.add(position, position, component.offset)
+    return position
   }
 
   public SetPosition(entId: EntId, position: vec3) {
@@ -265,6 +273,8 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
       component.characters.set(Symbol(), character)
     }
 
+    const offsets: THREE.Vector3[] = []
+
     for (const child of traverse(object)) {
       if (child.type !== "Mesh") {
         continue
@@ -277,7 +287,12 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
         ? geometry.getIndex()!.array as Uint32Array
         : new Uint32Array(Array.from({ length: vertices.length / 3 }, (_, i) => i)); // Generate sequential indices for non-indexed geometry
 
-      const worldPosition = child.position
+      const worldPosition = child.getWorldPosition(new THREE.Vector3())
+      const center = getMeshCenter(child as THREE.Mesh)
+
+      const offset = new THREE.Vector3()
+      offset.subVectors(center, worldPosition)
+      offsets.push(offset)
 
       const translation = new RAPIER.Vector3(worldPosition.x, worldPosition.y, worldPosition.z)
       const rotation = new RAPIER.Quaternion(child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w)
@@ -320,6 +335,13 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
 
       component.colliderUuidMap.set(child.uuid, symbol)
     }
+
+    const computedOffset = offsets.reduce((acc, offset) => {
+      acc.add(offset)
+      return acc
+    }, new THREE.Vector3())
+
+    component.offset = [computedOffset.x, computedOffset.y, computedOffset.z]
   }
 
   public GetAllColliders() {

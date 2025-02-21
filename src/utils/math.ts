@@ -41,3 +41,22 @@ export function getAngle(
 
   return angleDeg;
 }
+
+export function getMeshCenter(mesh: THREE.Mesh): THREE.Vector3 {
+  // Ensure the geometry's bounding box is up-to-date.
+  mesh.geometry.computeBoundingBox();
+  const boundingBox = mesh.geometry.boundingBox;
+
+  if (!boundingBox) {
+    return new THREE.Vector3();
+  }
+
+  // Compute the center of the bounding box.
+  const center = new THREE.Vector3();
+  boundingBox.getCenter(center);
+
+  // Convert the local center to world coordinates.
+  mesh.localToWorld(center);
+
+  return center;
+}
