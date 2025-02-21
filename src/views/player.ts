@@ -61,9 +61,9 @@ export class PlayerView extends EntityView {
     this.simulation.Camera.quaternion.copy(updatedQuat);
   }
 
-  protected getAvailableInteractionsWithinAngle(maxAngle: number): { command: SensorCommand, entId: EntId, symbol: symbol }[] {
+  protected getAvailableInteractionsWithinAngle(maxAngle: number): { command: SensorCommand, entId: EntId, symbol: symbol, angle: number }[] {
     const commands = this.simulation.SimulationState.SensorCommandRepository.GetAvailableInteractions(this.EntId);
-    return commands.filter(({ command, entId }) => {
+    return commands.map(({ command, entId, symbol }) => {
       const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
       const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
       const angle = math.getAngle(
@@ -71,31 +71,21 @@ export class PlayerView extends EntityView {
         new THREE.Vector3(playerPosition[0], 0, playerPosition[2]),
         this.simulation.Camera,
       );
-      return angle <= maxAngle;
-    });
+      return { command, entId, symbol, angle };
+    }).filter(interaction => interaction.angle <= maxAngle);
   }
 
   protected handleJustPressed(payload: JustPressedEvent): void {
     if (payload.action !== "interact") return;
 
-    const availableInteractions = this.getAvailableInteractionsWithinAngle(45);
+    const availableInteractions = this.getAvailableInteractionsWithinAngle(20);
     if (availableInteractions.length === 0) return;
 
-    let closestInteraction = { distance: Infinity } as { command: SensorCommand, entId: EntId, symbol: symbol, distance: number };
-    for (const interaction of availableInteractions) {
-      const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(interaction.entId);
-      const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
+    let closestInteraction = availableInteractions.reduce((closest, interaction) => {
+      return interaction.angle < closest.angle ? interaction : closest;
+    }, { angle: Infinity } as { command: SensorCommand, entId: EntId, symbol: symbol, angle: number });
 
-      const distance = new THREE.Vector3(position[0], 0, position[2]).distanceTo(
-        new THREE.Vector3(playerPosition[0], 0, playerPosition[2])
-      );
-
-      if (distance < closestInteraction.distance) {
-        closestInteraction = { ...interaction, distance };
-      }
-    }
-
-    if (closestInteraction.distance === Infinity) return;
+    if (closestInteraction.angle === Infinity) return;
 
     this.simulation.SimulationState.Commands.push(closestInteraction.command.Command);
     payload.consume();
@@ -173,7 +163,7 @@ export class PlayerView extends EntityView {
     localDirection.applyQuaternion(this.simulation.Camera.quaternion).setY(0);
     state.MovementRepository.SetDirection(this.EntId, [localDirection.x, localDirection.y, localDirection.z]);
 
-    const isInteractable = this.getAvailableInteractionsWithinAngle(45).length > 0;
+    const isInteractable = this.getAvailableInteractionsWithinAngle(20).length > 0;
     document.querySelector(".caseoh-interactable")?.setAttribute("is-hidden", isInteractable ? "false" : "true");
   }
 
