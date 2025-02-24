@@ -358,7 +358,7 @@ export const init = async () => {
   spotLight.shadow.camera.near = 0.1;
   spotLight.shadow.camera.far = 30;
   spotLight.shadow.camera.fov = 30;
-  spotLight.intensity = 6;
+  spotLight.intensity = 10;
   spotLight.decay = 0.999;
   spotLight.angle = Math.PI * 0.35;
   spotLight.penumbra = 1;
