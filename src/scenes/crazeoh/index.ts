@@ -32,8 +32,18 @@ import { executeWinScript } from "./scripts";
 
 const SHADOW_BIAS = -0.0009;
 
-// ─── AUDIO SETUP ─────────────────────────────────────────────────────────────
+// Cache frequently accessed DOM elements
+const loadingEl = document.getElementById("caseoh-loading");
+const splashEl = document.getElementById("splash");
+const polaroidEl = document.querySelector(".caseoh-polaroid-overlay.ingame .background") as HTMLImageElement;
+const polaroid2El = document.querySelector("#caseoh-decision .caseoh-polaroid-overlay .background") as HTMLImageElement;
+const cameraHintEl = document.querySelector(".caseoh-camera-hint") as HTMLElement;
 
+// Reuse vectors and other objects to avoid garbage collection
+const tempVec3 = new THREE.Vector3();
+const tempEuler = new THREE.Euler();
+
+// Pre-load audio files
 const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {
   volume: 0.1,
 });
@@ -76,42 +86,40 @@ export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
   volume: 0.4,
 });
 
-// export const sniffAudioPromise = loadAudio("/audio/sfx/sniff.ogg", {
-//   randomPitch: true,
-//   pitchRange: 400,
-//   volume: 0.15
-// });
-
 export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
   loop: true,
   volume: 0.05,
   autoplay: true,
 })
 
-// ─── AUDIO HELPER SETUP FUNCTIONS ─────────────────────────────────────────────
-
+// Audio helper setup functions with proper cleanup
 const setupHeartbeat = (simulation: Simulation, playerEntId: EntId) => {
   heartbeatAudioPromise.then(audio => {
     audio.setVolume(0);
     audio.play();
-    const readyTime = Date.now() + 120000; // 2 minutes
+    const readyTime = Date.now() + 120000;
 
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
+      private isCleanedUp = false;
+
       public Draw(): void {
+        if (this.isCleanedUp) return;
         if (!state.anomaly || Date.now() < readyTime) {
           audio.setVolume(0);
           return;
         }
         const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId);
-        const distance = new THREE.Vector3(
+        tempVec3.set(
           playerPos[0] - state.anomalyPosition.x,
           playerPos[1] - state.anomalyPosition.y,
-          playerPos[2] - state.anomalyPosition.z,
-        ).length();
-        const volume = Math.min(1, Math.max(0, 1 - distance / 6)) * 0.2;
+          playerPos[2] - state.anomalyPosition.z
+        );
+        const volume = Math.min(1, Math.max(0, 1 - tempVec3.length() / 6)) * 0.2;
         audio.setVolume(volume);
       }
+
       public Cleanup(): void {
+        this.isCleanedUp = true;
         audio.stop();
       }
     });
@@ -126,16 +134,19 @@ const setupGarageScream = (simulation: Simulation, playerEntId: EntId) => {
     const centerPoint = getMeshCenter(mesh);
     posAudio.position.copy(centerPoint);
     simulation.ThreeScene.add(posAudio);
+
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
+      private isCleanedUp = false;
+
       public Draw(): void {
-        if (!state.gameStarted || !state.playing || state.picking || state.inDialogue) {
-          audio.setVolume(0);
-          return;
-        }
-        audio.setVolume(0.05);
+        if (this.isCleanedUp) return;
+        audio.setVolume(!state.gameStarted || !state.playing || state.picking || state.inDialogue ? 0 : 0.05);
       }
+
       public Cleanup(): void {
+        this.isCleanedUp = true;
         audio.stop();
+        posAudio.removeFromParent();
       }
     });
   });
@@ -143,13 +154,24 @@ const setupGarageScream = (simulation: Simulation, playerEntId: EntId) => {
 
 const setupFan = (simulation: Simulation, scene: THREE.Scene) => {
   const fanBlades = scene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh;
+  if (!fanBlades) return;
+
   ceilingFanAudioPromise.then(audio => {
-    fanBlades?.add(audio.getPositionalAudio());
+    const posAudio = audio.getPositionalAudio();
+    fanBlades.add(posAudio);
     audio.play();
   });
+
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
+    private isCleanedUp = false;
+
     public Draw(): void {
-      fanBlades?.rotateZ(0.06);
+      if (this.isCleanedUp) return;
+      fanBlades.rotateZ(0.06);
+    }
+
+    public Cleanup(): void {
+      this.isCleanedUp = true;
     }
   });
 };
@@ -159,8 +181,8 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
   if (!foodObject) return;
   const endId = simulation.EntityRegistry.Create();
   simulation.SimulationState.PhysicsRepository.CreateComponent(endId);
-  const pos = foodObject.getWorldPosition(new THREE.Vector3());
-  simulation.SimulationState.PhysicsRepository.AddBoxCollider(endId, [2, 2, 2], [pos.x, pos.y, pos.z], undefined, true);
+  foodObject.getWorldPosition(tempVec3);
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(endId, [2, 2, 2], [tempVec3.x, tempVec3.y, tempVec3.z], undefined, true);
   simulation.SimulationState.SensorCommandRepository.CreateComponent(endId);
   simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
     entId: endId,
@@ -192,15 +214,14 @@ const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
     const posAudio = audio.getPositionalAudio();
     posAudio.position.copy(centerPoint);
     simulation.ThreeScene.add(posAudio);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
-    material.side = THREE.DoubleSide
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     audio.setVolume(0.5);
   });
-  const globalPos = mesh.getWorldPosition(new THREE.Vector3());
-  if (!globalPos) return;
+
+  mesh.getWorldPosition(tempVec3);
   const entId = simulation.EntityRegistry.Create();
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId);
-  simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [2, 2, 2], [globalPos.x, globalPos.y, globalPos.z], undefined, true);
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [2, 2, 2], [tempVec3.x, tempVec3.y, tempVec3.z], undefined, true);
   simulation.SimulationState.SensorCommandRepository.CreateComponent(entId);
   simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
     entId,
@@ -214,8 +235,8 @@ const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
 };
 
 const setupCarIdling = (simulation: Simulation, scene: THREE.Scene) => {
-  // WinP_steclo_0
   const car = scene.getObjectByName("WinP_steclo_0") as THREE.Mesh;
+  if (!car) return;
 
   carIdling.then(audio => {
     const posAudio = audio.getPositionalAudio();
@@ -223,18 +244,14 @@ const setupCarIdling = (simulation: Simulation, scene: THREE.Scene) => {
   });
 }
 
-// ─── LOADING UI ───────────────────────────────────────────────────────────────
-
 export const disableLoading = (): void => {
-  document.getElementById("caseoh-loading")?.setAttribute("is-hidden", "true");
-  document.getElementById("splash")?.setAttribute("is-hidden", "true");
+  loadingEl?.setAttribute("is-hidden", "true");
+  splashEl?.setAttribute("is-hidden", "true");
 };
 
 export const enableLoading = (): void => {
-  document.getElementById("caseoh-loading")?.setAttribute("is-hidden", "false");
+  loadingEl?.setAttribute("is-hidden", "false");
 };
-
-// ─── SCENE INITIALIZATION ───────────────────────────────────────────────────────
 
 const mapLoader = loadGltf("/3d/scenes/island/crazeoh_OPTIMIZED.glb").then(gltf => gltf.scene);
 
@@ -263,13 +280,18 @@ const initScene = () => {
   effectComposer.addPass(new OutputPass());
 
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
+    private isCleanedUp = false;
+
     public Draw(): void {
+      if (this.isCleanedUp) return;
       crtPass.uniforms.time.value = (Date.now() / 1000) % 1.0;
       crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
       if (!state.playing && !state.outro) camera.rotateY(-0.0005);
       effectComposer.render();
     }
+
     public Cleanup(): void {
+      this.isCleanedUp = true;
       renderer.dispose();
     }
   });
@@ -288,23 +310,44 @@ const initScene = () => {
 
   const cleanup = () => {
     window.removeEventListener('resize', resize);
+    scene.traverse(obj => {
+      if (obj instanceof THREE.Mesh) {
+        obj.geometry.dispose();
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(mat => {
+            if (mat.map) mat.map.dispose();
+            if (mat.lightMap) mat.lightMap.dispose();
+            if (mat.bumpMap) mat.bumpMap.dispose();
+            if (mat.normalMap) mat.normalMap.dispose();
+            if (mat.specularMap) mat.specularMap.dispose();
+            if (mat.envMap) mat.envMap.dispose();
+            mat.dispose();
+          });
+        } else {
+          if (obj.material.map) obj.material.map.dispose();
+          if (obj.material.lightMap) obj.material.lightMap.dispose();
+          if (obj.material.bumpMap) obj.material.bumpMap.dispose();
+          if (obj.material.normalMap) obj.material.normalMap.dispose();
+          if (obj.material.specularMap) obj.material.specularMap.dispose();
+          if (obj.material.envMap) obj.material.envMap.dispose();
+          obj.material.dispose();
+        }
+      }
+    });
     scene.clear();
     effectComposer.dispose();
     simulation.ViewSync.Cleanup(simulation);
-    simulation.Stop()
+    simulation.Stop();
   };
 
   return { scene, camera, simulation, effectComposer, crtPass, cleanup, sceneEntId };
 };
-
-// ─── MAIN INIT FUNCTION ─────────────────────────────────────────────────────────
 
 export let currentPlayerView: PlayerView | null = null;
 
 export const init = async () => {
   enableLoading();
 
-  // Initialize state.
   state.setAnomalyPosition(new THREE.Vector3(0, 0, 0));
   state.setAnomaly(false);
   state.setFoundAnomaly(false);
@@ -313,27 +356,25 @@ export const init = async () => {
   player.setThirdPerson(false);
   player.setCameraHeight(2);
 
-  // Set up scene, camera, simulation and post-processing.
   const { scene, camera, simulation, cleanup, sceneEntId } = initScene();
 
-  // Load GLTF scene and player concurrently.
   const [sceneGltfOriginal, playerView] = await Promise.all([
     mapLoader,
     player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
   ]);
   currentPlayerView = playerView;
 
-  // Clone and process GLTF scene.
   const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal);
   processAttributes(sceneGltf, simulation, sceneEntId, false);
   shaders.applyInjectedMaterials(sceneGltf);
-  for (const child of traverse(sceneGltf)) {
+
+  sceneGltf.traverse(child => {
     if (child instanceof THREE.Mesh) {
       child.castShadow = false;
       child.receiveShadow = false;
       (child.material as THREE.Material).side = THREE.DoubleSide;
     }
-  }
+  });
   scene.add(sceneGltf);
 
   disableAllAnomalies(simulation);
@@ -342,15 +383,12 @@ export const init = async () => {
   createMicrowave(simulation);
   createDoor(simulation);
 
-  // Set up additional audio and interactive elements.
   setupFan(simulation, scene);
   setupEat(simulation, scene);
   setupBurgerKing(simulation, scene);
   setupGarageScream(simulation, playerView.EntId);
-  // setupHeartbeat(simulation, playerView.EntId);
   setupCarIdling(simulation, scene);
 
-  // Set up spotlight.
   const spotLight = new THREE.SpotLight(0xffffff);
   spotLight.position.set(2, 3, -6);
   spotLight.castShadow = false;
@@ -358,7 +396,7 @@ export const init = async () => {
   spotLight.shadow.camera.near = 0.1;
   spotLight.shadow.camera.far = 30;
   spotLight.shadow.camera.fov = 30;
-  spotLight.intensity = 10;
+  spotLight.intensity = 8;
   spotLight.decay = 0.999;
   spotLight.angle = Math.PI * 0.35;
   spotLight.penumbra = 1;
@@ -368,22 +406,21 @@ export const init = async () => {
   scene.add(target);
   spotLight.target = target;
 
-  // Setup play state detection.
   let prevPlay = false, prevDialogue = false, prevPicking = false, prevGameStarted = false;
   let teleportedPlayer = false, pickedAnomaly = false, startedDialogue = false;
 
   const teleportPlayer = () => {
     teleportedPlayer = true;
     const playerSpawnObject = scene.getObjectByName("PLAYER") as THREE.Mesh;
-    const playerSpawnPosition = playerSpawnObject.getWorldPosition(new THREE.Vector3());
-    simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z]);
-    camera.position.set(playerSpawnPosition.x, 0.5, playerSpawnPosition.z);
+    playerSpawnObject.getWorldPosition(tempVec3);
+    simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [tempVec3.x, 0.5, tempVec3.z]);
+    camera.position.set(tempVec3.x, 0.5, tempVec3.z);
     const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh;
-    const lookPos = lookTarget.getWorldPosition(new THREE.Vector3());
-    const yaw = Math.atan2(playerSpawnPosition.x - lookPos.x, playerSpawnPosition.z - lookPos.z);
-    const pitch = Math.atan2(lookPos.y - playerSpawnPosition.y, Math.hypot(playerSpawnPosition.x - lookPos.x, playerSpawnPosition.z - lookPos.z));
+    lookTarget.getWorldPosition(tempVec3);
+    const yaw = Math.atan2(playerSpawnObject.position.x - tempVec3.x, playerSpawnObject.position.z - tempVec3.z);
+    const pitch = Math.atan2(tempVec3.y - playerSpawnObject.position.y, Math.hypot(playerSpawnObject.position.x - tempVec3.x, playerSpawnObject.position.z - tempVec3.z));
     playerSpawnObject.visible = false;
-    camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
+    camera.quaternion.setFromEuler(tempEuler.set(pitch, yaw, 0, "YXZ"));
     try {
       updateGameLogic(simulation, 0);
       simulation.ViewSync.Draw(simulation, 1.0);
@@ -406,7 +443,6 @@ export const init = async () => {
 
     if (state.gameStarted && !state.picking && !state.inDialogue && !startedDialogue) {
       executeWinScript(simulation).then(detectPlayStateChange).catch(console.error);
-
       startedDialogue = true;
     }
 
@@ -424,7 +460,6 @@ export const init = async () => {
     }
   };
 
-  // Pointer lock handling.
   const handlePointerLock = () => {
     if (document.pointerLockElement !== renderer.domElement) {
       playerView.disableControls();
@@ -434,17 +469,15 @@ export const init = async () => {
   };
   document.addEventListener("pointerlockchange", handlePointerLock);
 
-  // Shutter handling for taking a picture.
   let shutterOn = false;
   const justPressed = (payload: JustPressedEvent) => {
-    // Use requestAnimationFrame to batch pointer lock/fullscreen requests.
     if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
-      payload.consume()
+      payload.consume();
       try { renderer.domElement.requestPointerLock(); } catch { }
     }
     try {
       if (document.fullscreenElement !== document.body) {
-        payload.consume()
+        payload.consume();
         document.body.requestFullscreen();
       }
     } catch { }
@@ -455,27 +488,29 @@ export const init = async () => {
     payload.consume();
     shutterOn = true;
     cameraAudioPromise.then(audio => audio.play());
-    const polaroid = document.querySelector(".caseoh-polaroid-overlay.ingame .background") as HTMLImageElement;
-    const polaroid2 = document.querySelector("#caseoh-decision .caseoh-polaroid-overlay .background") as HTMLImageElement;
+
     const dataUrl = renderer.domElement.toDataURL();
-    polaroid.src = dataUrl;
-    polaroid2.src = dataUrl;
-    polaroid.parentElement!.setAttribute("is-hidden", "false");
-    polaroid.parentElement!.setAttribute("shutter", "true");
-    const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
-    if (state.anomaly && pPos) {
-      const angle = getAngle(state.anomalyPosition, new THREE.Vector3(pPos[0], pPos[1], pPos[2]), camera);
-      // get distance
-      const distance = new THREE.Vector3(
-        pPos[0] - state.anomalyPosition.x,
-        pPos[1] - state.anomalyPosition.y,
-        pPos[2] - state.anomalyPosition.z,
-      ).length();
-      state.setFoundAnomaly(angle < 63 && distance < 10);
+    polaroidEl.src = dataUrl;
+    polaroid2El.src = dataUrl;
+    polaroidEl.parentElement!.setAttribute("is-hidden", "false");
+    polaroidEl.parentElement!.setAttribute("shutter", "true");
+
+    if (state.anomaly) {
+      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
+      if (pPos) {
+        tempVec3.set(
+          pPos[0] - state.anomalyPosition.x,
+          pPos[1] - state.anomalyPosition.y,
+          pPos[2] - state.anomalyPosition.z
+        );
+        const distance = tempVec3.length();
+        const angle = getAngle(state.anomalyPosition, new THREE.Vector3(pPos[0], pPos[1], pPos[2]), camera);
+        state.setFoundAnomaly(angle < 63 && distance < 10);
+      }
     }
     state.setTookPicture(true);
     setTimeout(() => {
-      polaroid.parentElement!.setAttribute("shutter", "false");
+      polaroidEl.parentElement!.setAttribute("shutter", "false");
       shutterOn = false;
     }, 2000);
   };
@@ -483,63 +518,62 @@ export const init = async () => {
   playerInput.emitter.on("justpressed", justPressed);
 
   for (let i = 0; i < 10; i++) {
-    const name = `chip${i + 1}`
-
+    const name = `chip${i + 1}`;
     if (state.wins <= i) {
       const object = scene.getObjectByName(name) as THREE.Mesh;
-      object.material = new THREE.MeshBasicMaterial({ color: 0x773333, wireframe: true });
-      object.material.side = THREE.DoubleSide;
+      if (object) {
+        object.material = new THREE.MeshBasicMaterial({
+          color: 0x773333,
+          wireframe: true,
+          side: THREE.DoubleSide
+        });
+      }
     }
   }
 
   disableLoading();
-
   simulation.Start();
-
-  // simulation.ViewSync.AddAuxiliaryView(new CollidersDebugger());
 
   requestAnimationFrame(() => {
     detectPlayStateChange();
 
     simulation.ViewSync.AddAuxiliaryView(new class extends View {
+      private isCleanedUp = false;
+
       public Draw(): void {
+        if (this.isCleanedUp) return;
         detectPlayStateChange();
-        const camPos = camera.getWorldPosition(new THREE.Vector3());
-        spotLight.position.copy(camPos);
-        const camDir = camera.getWorldDirection(new THREE.Vector3());
-        spotLight.target.position.copy(camPos).add(camDir);
+        camera.getWorldPosition(tempVec3);
+        spotLight.position.copy(tempVec3);
+        camera.getWorldDirection(tempVec3);
+        spotLight.target.position.copy(tempVec3.add(camera.position));
         spotLight.target.updateMatrixWorld();
         playerInput.update();
 
         if (state.isTutorial) {
           const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
-          const distance = new THREE.Vector3(
+          tempVec3.set(
             playerPos[0] - state.anomalyPosition.x,
             playerPos[1] - state.anomalyPosition.y,
-            playerPos[2] - state.anomalyPosition.z,
-          ).length();
-
+            playerPos[2] - state.anomalyPosition.z
+          );
+          const distance = tempVec3.length();
           const angle = getAngle(state.anomalyPosition, new THREE.Vector3(playerPos[0], playerPos[1], playerPos[2]), camera);
-
-          const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement;
-          cameraHint.setAttribute("is-hidden", "false");
-          cameraHint.setAttribute("is-hinting", (angle < 63 && distance < 3) ? "true" : "false");
+          cameraHintEl.setAttribute("is-hidden", "false");
+          cameraHintEl.setAttribute("is-hinting", (angle < 63 && distance < 3) ? "true" : "false");
         } else {
-          const cameraHint = document.querySelector(".caseoh-camera-hint") as HTMLElement;
-          cameraHint.setAttribute("is-hidden", "true");
+          cameraHintEl.setAttribute("is-hidden", "true");
         }
       }
+
       public Cleanup(): void {
-        renderer.dispose();
+        this.isCleanedUp = true;
       }
     });
-  })
+  });
 
   detectPlayStateChange();
 
-  // sceneGltf.visible = false
-
-  // Return cleanup function.
   return () => {
     cleanup();
     playerInput.emitter.off("justpressed", justPressed);

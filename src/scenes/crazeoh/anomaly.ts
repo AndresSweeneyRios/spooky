@@ -161,20 +161,8 @@ const Monitors: Anomaly = {
     const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
     const big = simulation.ThreeScene.getObjectByName('bigmonitorscreen') as THREE.Mesh
 
-    const texture = new THREE.TextureLoader().load('/3d/textures/caseohblue.png')
-    texture.wrapS = THREE.RepeatWrapping
-    texture.wrapT = THREE.RepeatWrapping
-    texture.repeat.set(1, 1)
-    texture.rotation = -Math.PI / 2
-
-    small.material = new THREE.MeshBasicMaterial({ map: texture })
-    big.material = new THREE.MeshBasicMaterial({ map: texture })
-
-    monitorAudioPromise.then((audio) => {
-      big.add(audio.getPositionalAudio())
-      audio.play()
-      audio.setVolume(2.0)
-    })
+    small.material = NoiseMaterial
+    big.material = NoiseMaterial
 
     return simulation.ThreeScene.getObjectByName('Bigmonitorstand')!.getWorldPosition(new THREE.Vector3())
   },
@@ -183,12 +171,10 @@ const Monitors: Anomaly = {
     const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
     const big = simulation.ThreeScene.getObjectByName('bigmonitorscreen') as THREE.Mesh
 
-    monitorAudioPromise.then((audio) => {
-      audio.stop()
-    })
+    const material = new THREE.MeshBasicMaterial({ color: 0x000000 })
 
-    small.material = NoiseMaterial
-    big.material = NoiseMaterial
+    small.material = material
+    big.material = material
   },
 }
 
@@ -300,17 +286,21 @@ const CoatHanger: Anomaly = {
   Id: 12,
 
   Enable(simulation: Simulation) {
-    const coatHanger = simulation.ThreeScene.getObjectByName('mask') as THREE.Mesh
+    const coatHanger = simulation.ThreeScene.getObjectByName('coathanger') as THREE.Mesh
+    const realCoatHanger = simulation.ThreeScene.getObjectByName('realcoathanger') as THREE.Mesh
 
     coatHanger.visible = true
+    realCoatHanger.visible = false
 
     return coatHanger.getWorldPosition(new THREE.Vector3())
   },
 
   Disable(simulation: Simulation) {
-    const coatHanger = simulation.ThreeScene.getObjectByName('mask') as THREE.Mesh
+    const coatHanger = simulation.ThreeScene.getObjectByName('coathanger') as THREE.Mesh
+    const realCoatHanger = simulation.ThreeScene.getObjectByName('realcoathanger') as THREE.Mesh
 
     coatHanger.visible = false
+    realCoatHanger.visible = true
   }
 }
 const BurgerLevitate: Anomaly = {
@@ -649,17 +639,158 @@ const FakeBuffet: Anomaly = {
   }
 }
 
+// object called eyeball
+const Eyeball: Anomaly = {
+  Id: 23,
+
+  Enable(simulation: Simulation) {
+    const eyeball = simulation.ThreeScene.getObjectByName('eyeball') as THREE.Mesh
+
+    eyeball.visible = true
+
+    return eyeball.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const eyeball = simulation.ThreeScene.getObjectByName('eyeball') as THREE.Mesh
+
+    eyeball.visible = false
+  }
+}
+
+// now one called Body_Lores_GEO
+const CaseohCorner: Anomaly = {
+  Id: 24,
+
+  Enable(simulation: Simulation) {
+    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO') as THREE.Mesh
+    const eye = simulation.ThreeScene.getObjectByName('Circle001') as THREE.Mesh
+
+    body.visible = true
+    eye.visible = true
+
+    return body.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO') as THREE.Mesh
+    const eye = simulation.ThreeScene.getObjectByName('Circle001') as THREE.Mesh
+
+    body.visible = false
+    eye.visible = false
+  }
+}
+
+// now, Plane001_01_-_Default_0001 and up_glass_0001
+const CaseohExtraThicc: Anomaly = {
+  Id: 25,
+
+  Enable(simulation: Simulation) {
+    const curtain = simulation.ThreeScene.getObjectByName('Plane001_01_-_Default_0001') as THREE.Mesh
+    const glass = simulation.ThreeScene.getObjectByName('up_glass_0001') as THREE.Mesh
+    const glass2 = simulation.ThreeScene.getObjectByName('dow_glass_0001') as THREE.Mesh
+    const frame = simulation.ThreeScene.getObjectByName('up_f_0001') as THREE.Mesh
+    const frame2 = simulation.ThreeScene.getObjectByName('dow_f_0001') as THREE.Mesh
+
+    // spawn a point light at -40,17,0 XYZ
+    const light = new THREE.PointLight(0xffffff, 10, 30, 0.1)
+    light.position.set(-40, 17, 0)
+    simulation.ThreeScene.add(light)
+
+    curtain.visible = false
+    glass.visible = false
+    glass2.visible = false
+    frame.visible = false
+    frame2.visible = false
+
+    return glass.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const curtain = simulation.ThreeScene.getObjectByName('Plane001_01_-_Default_0001') as THREE.Mesh
+    const glass = simulation.ThreeScene.getObjectByName('up_glass_0001') as THREE.Mesh
+    const glass2 = simulation.ThreeScene.getObjectByName('dow_glass_0001') as THREE.Mesh
+    const frame = simulation.ThreeScene.getObjectByName('up_f_0001') as THREE.Mesh
+    const frame2 = simulation.ThreeScene.getObjectByName('dow_f_0001') as THREE.Mesh
+
+    curtain.visible = true
+    glass.visible = true
+    glass2.visible = true
+    frame.visible = true
+    frame2.visible = true
+  }
+}
+
+const CaseohSlide: Anomaly = {
+  Id: 26,
+
+  Enable(simulation: Simulation) {
+    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO001') as THREE.Mesh;
+    const eye = simulation.ThreeScene.getObjectByName('Circle002') as THREE.Mesh;
+
+    if (!body || !eye) {
+      console.error("Required objects not found in the scene.");
+      throw new Error("Required objects not found in the scene.");
+    }
+
+    // Make sure the objects are visible.
+    body.visible = true;
+    eye.visible = true;
+
+    const rootBone = body.parent!.parent!.getObjectByName('root_1') as THREE.Bone;
+
+    const initialRootBoneX = rootBone.position.x;
+
+    class CaseohSlideView extends View {
+      public Draw() {
+        // Get the camera's world position.
+        const playerPos = simulation.Camera.getWorldPosition(new THREE.Vector3());
+        // If your scene is set up such that the camera's z is negative, invert it to get a positive value.
+        const playerZ = -playerPos.z;
+
+        // Define the minimum and maximum z values for the effect.
+        const MIN = 1;
+        const MAX = 9;
+
+        // Normalize player's z between MIN and MAX.
+        let normalized = (playerZ - MIN) / (MAX - MIN);
+        normalized = Math.min(Math.max(normalized, 0), 1);
+        // Invert to get deltaX: when playerZ == MIN, deltaX is 1; when playerZ == MAX, deltaX is 0.
+        const deltaX = 1.0 - normalized;
+
+        // Update the x positions based on the delta.
+        rootBone.position.x = initialRootBoneX + deltaX * 100;
+      }
+    }
+
+    simulation.ViewSync.AddAuxiliaryView(new CaseohSlideView());
+
+    return body.getWorldPosition(new THREE.Vector3());
+  },
+
+  Disable(simulation: Simulation) {
+    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO001') as THREE.Mesh;
+    const eye = simulation.ThreeScene.getObjectByName('Circle002') as THREE.Mesh;
+
+    if (body) body.visible = false;
+    if (eye) eye.visible = false;
+  }
+}
 
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FrenchFries,
+  Monitors,
+  CaseohSlide,
   SeveredHand,
   ClockSix,
   Demon,
+  RedDemon,
   ClockSpinFast,
   Head,
   KitchenKnife,
   Feet,
   CoatHanger,
+  Eyeball,
   BurgerLevitate,
   Keyboard,
   Pitchfork,
@@ -669,6 +800,8 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   CanBepis,
   LettuceBurger,
   FakeBuffet,
+  CaseohCorner,
+  CaseohExtraThicc,
 ]
 
 export const getHighestAnomalyId = () => {
@@ -693,8 +826,6 @@ export const disableAllAnomalies = (simulation: Simulation) => {
     anomaly?.Disable(simulation)
   }
 
-  Monitors.Disable(simulation)
-  RedDemon.Disable(simulation)
   Bloodshake.Disable(simulation)
   FanFast.Disable(simulation)
 }

@@ -28,7 +28,7 @@ export class CollidersDebugger extends View {
           case RAPIER.ShapeType.Cuboid: {
             const halfExtents = (shape as Cuboid).halfExtents; // Example for a cuboid
             geometry = new THREE.BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
-            
+
             break;
           }
 
@@ -107,10 +107,15 @@ export class CollidersDebugger extends View {
   }
 
   public Cleanup(simulation: Simulation): void {
-    for (const mesh of this.meshMap.values()) {
-      simulation.ThreeScene.remove(mesh)
+    for (const [symbol, mesh] of this.meshMap) {
+      mesh.geometry.dispose();
+      if (Array.isArray(mesh.material)) {
+        mesh.material.forEach(mat => mat.dispose());
+      } else {
+        mesh.material.dispose();
+      }
     }
-
-    this.meshMap.clear()
+    this.meshMap.clear();
+    this.previousTranslation.clear();
   }
 }

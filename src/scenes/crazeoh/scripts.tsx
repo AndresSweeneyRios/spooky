@@ -187,7 +187,7 @@ const outro = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  0: intro,
+  // 0: intro,
   10: outro,
 }
 

@@ -2,6 +2,9 @@ import "./DialogueBox.css"
 import * as React from "react"
 
 let dialogue: React.ReactNode = undefined
+let keyCounter = 0
+
+const getUniqueKey = () => `text-${keyCounter++}`
 
 export const setDialogue = (text: React.ReactNode) => {
   dialogue = text
@@ -25,7 +28,7 @@ function getFullText(node: React.ReactNode): string {
 }
 
 /**
- * Recursively clones a React node tree, but only “reveals”
+ * Recursively clones a React node tree, but only "reveals"
  * up to revealCount characters from any text (or number) nodes.
  * Once revealCount runs out in a text node, a cursor element is inserted
  * and no further content (or siblings) is rendered.
@@ -43,12 +46,12 @@ function cloneWithReveal(
     const text = String(node)
     if (text.length <= revealCount) {
       // Fully revealed text node.
-      return [text, revealCount - text.length]
+      return [<span key={getUniqueKey()}>{text}</span>, revealCount - text.length]
     } else {
       // Partially reveal the text and insert the cursor immediately after.
       const revealedText = text.slice(0, revealCount)
-      const cursor = <span className="cursor">❚</span>
-      return [<>{revealedText}{cursor}</>, 0]
+      const cursor = <span key={getUniqueKey()} className="cursor">❚</span>
+      return [<span key={getUniqueKey()}>{revealedText}{cursor}</span>, 0]
     }
   }
 
@@ -73,7 +76,7 @@ function cloneWithReveal(
     }
 
     // Clone the element with the partially revealed children.
-    return [React.cloneElement(node, { ...node.props }, newChildren), revealCount]
+    return [React.cloneElement(node, { ...node.props, key: getUniqueKey() }, newChildren), revealCount]
   }
 
   // For other node types (e.g. booleans, null), return as-is.
@@ -81,7 +84,7 @@ function cloneWithReveal(
 }
 
 /**
- * A generator that “reveals” a React node gradually.
+ * A generator that "reveals" a React node gradually.
  * Each yield returns a new React node with additional characters shown.
  *
  * Usage Example:
@@ -119,7 +122,7 @@ export async function* timedDialogue({
 
     for (let value of generator) {
       parts[i] = value
-      yield parts
+      yield parts.map((part, idx) => <span key={`part-${idx}`}>{part}</span>)
 
       await new Promise(resolve => setTimeout(resolve, ms))
     }
