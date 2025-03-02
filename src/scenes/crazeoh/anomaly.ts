@@ -27,12 +27,15 @@ const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
 
 interface Anomaly {
   Id: number
+  Description?: string
   Enable(simulation: Simulation): THREE.Vector3
   Disable(simulation: Simulation): void
 }
 
 const FrenchFries: Anomaly = {
   Id: 1,
+
+  Description: "FUCKASS BITCH ",
 
   Enable(simulation: Simulation) {
     const fries = simulation.ThreeScene.getObjectByName('fries')!.getObjectByProperty('type', 'Mesh') as THREE.Mesh
