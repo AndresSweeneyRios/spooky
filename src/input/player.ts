@@ -1,5 +1,7 @@
 // InputManager.ts
 
+import { inSettings } from "../scenes/crazeoh/state";
+
 // A simple 2D vector type.
 interface Vector2 {
   x: number;
@@ -108,14 +110,18 @@ export class InputManager {
   private triggerThreshold: number = 0.5;
 
   // Smoothing factor (0 = no new input; 1 = no smoothing). Adjust as needed.
-  private smoothingFactor: number = 0.2;
+  private smoothingFactor: number = 0.99;
 
   constructor() {
     window.addEventListener("keydown", (e) => this.onKeyDown(e));
     window.addEventListener("keyup", (e) => this.onKeyUp(e));
 
-    window.addEventListener("mousedown", (e) => this.onMouseDown(e));
-    window.addEventListener("mouseup", (e) => this.onMouseUp(e));
+    window.addEventListener("mousedown", (e) => this.onMouseDown(e), {
+      capture: false,
+    });
+    window.addEventListener("mouseup", (e) => this.onMouseUp(e), {
+      capture: false,
+    });
     window.addEventListener("mousemove", (e) => this.onMouseMove(e));
 
     // Prevent context menu from interfering with right-click.
@@ -143,10 +149,18 @@ export class InputManager {
   }
 
   private onMouseDown(e: MouseEvent) {
+    if (e.target instanceof HTMLElement && e.target.id === "caseoh-settings-indicator" || inSettings) {
+      return
+    }
+
     this.mouseButtonsPressed.add(e.button);
   }
 
   private onMouseUp(e: MouseEvent) {
+    if (e.target instanceof HTMLElement && e.target.id === "caseoh-settings-indicator" || inSettings) {
+      return
+    }
+
     this.mouseButtonsPressed.delete(e.button);
   }
 

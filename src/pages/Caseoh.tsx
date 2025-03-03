@@ -18,6 +18,36 @@ import { executeWinScript } from "../scenes/crazeoh/scripts";
 import { ArgumentsType } from "vitest";
 import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
 
+if (!localStorage.sensitivity) {
+  localStorage.sensitivity = "0.5";
+}
+
+window.addEventListener("keyup", () => {
+  // if press ESC and in settings, close settings and request pointer lock/fullscreen
+
+  if (state.inSettings) {
+    state.setInSettings(false);
+
+    const target = document.querySelector(".caseoh-settings-indicator")!;
+    target.setAttribute("in-settings", state.inSettings ? "true" : "false");
+
+    requestAnimationFrame(() => {
+      if (!document.fullscreenElement) {
+        try {
+          document.body.requestFullscreen();
+        } catch { }
+      }
+      if (!document.pointerLockElement) {
+        try {
+          renderer.domElement.requestPointerLock();
+        } catch { }
+      }
+    })
+  }
+}, {
+  capture: false,
+})
+
 // Lazy–load loaders so we don’t block startup.
 const loaderPromise = import("../graphics/loaders");
 
@@ -181,11 +211,23 @@ initializeAudio();
 
 export const CrazeOh = () => {
   const [volume, setVolume] = React.useState(getMasterVolumePercentage());
+  const [pointerLocked, setPointerLocked] = React.useState(false);
+
+  React.useEffect(() => {
+    const handlePointerLockChange = () => {
+      setPointerLocked(!!document.pointerLockElement);
+    };
+
+    document.addEventListener('pointerlockchange', handlePointerLockChange);
+
+    return () => {
+      document.removeEventListener('pointerlockchange', handlePointerLockChange);
+    };
+  }, []);
 
   React.useEffect(() => {
     const handler = () => {
       document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 10 WINS`;
-      document.getElementById("caseoh-anomaly-id")!.innerText = `A${currentAnomalyId}`;
       document.getElementById("caseoh-stats")!.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue && !state.outro) ? "false" : "true");
 
       animationFrame = requestAnimationFrame(handler);
@@ -195,6 +237,11 @@ export const CrazeOh = () => {
 
     return () => cancelAnimationFrame(animationFrame);
   }, [])
+
+  React.useEffect(() => {
+    document.querySelector(".caseoh-settings-indicator")!.setAttribute("is-hidden", pointerLocked ? "true" : "false");
+    document.querySelector(".caseoh-interactable")!.setAttribute("is-hidden", pointerLocked ? "false" : "true");
+  }, [pointerLocked])
 
   // useMemo to memoize the JSX since this layout is static.
   return React.useMemo(() => (
@@ -219,12 +266,6 @@ export const CrazeOh = () => {
               transform: 'rotate(-90deg)',
               position: 'absolute',
               left: '-6em'
-            }} />
-          </div>
-          <div id="caseoh-volume-slider">
-            <label>VOLUME</label>
-            <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
-              setMasterVolumeFromPercentage(parseFloat(e.target.value));
             }} />
           </div>
         </div>
@@ -256,6 +297,20 @@ export const CrazeOh = () => {
         <SVG src={InteractableIconSvg} />
       </div>
 
+      <div in-settings={state.inSettings ? "true" : "false"} className="caseoh-settings-indicator" onMouseDownCapture={(e) => {
+        state.toggleSettings();
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        const target = document.querySelector(".caseoh-settings-indicator")!;
+        target.setAttribute("in-settings", state.inSettings ? "true" : "false");
+
+        return false;
+      }}>
+        <SVG src={InteractableIconSvg} />
+      </div>
+
       {/* Decision screen */}
       <div id="caseoh-decision" is-hidden="true">
         <div className="caseoh-polaroid-overlay">
@@ -282,6 +337,22 @@ export const CrazeOh = () => {
               <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(180deg)' }} />
             </div>
           </div>
+        </div>
+      </div>
+
+      <div id="caseoh-settings" is-hidden="true">
+        <h1>Settings</h1>
+        <div className="caseoh-setting">
+          <label>VOLUME</label>
+          <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
+            setMasterVolumeFromPercentage(parseFloat(e.target.value));
+          }} />
+        </div>
+        <div className="caseoh-setting">
+          <label>SENSITIVITY</label>
+          <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
+            localStorage.setItem('sensitivity', (parseInt(e.target.value) / 100).toString());
+          }} />
         </div>
       </div>
 

@@ -8,7 +8,12 @@ import * as math from "../utils/math";
 import { vec3 } from "gl-matrix";
 import * as THREE from "three";
 
-const MOUSE_SENSITIVITY = 1000;
+const MIN_SENSITIVITY = 200;
+const MAX_SENSITIVITY = 300000;
+
+if (!localStorage.sensitivity) {
+  localStorage.sensitivity = "0.5";
+}
 
 const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
   randomPitch: true,
@@ -41,7 +46,11 @@ export class PlayerView extends EntityView {
   }
 
   protected updateCamera(dx: number, dy: number): void {
-    const sensitivity = MOUSE_SENSITIVITY;
+    const mouseSensitivityPercentageFloat = 1.0 - parseFloat(localStorage.sensitivity)
+
+    const mouseSensitivity = MIN_SENSITIVITY + (MAX_SENSITIVITY - MIN_SENSITIVITY) * (mouseSensitivityPercentageFloat / 100);
+
+    const sensitivity = mouseSensitivity;
     const yawAngle = -dx / sensitivity;
     const pitchAngle = -dy / sensitivity;
 

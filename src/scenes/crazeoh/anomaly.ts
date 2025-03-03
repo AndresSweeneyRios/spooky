@@ -672,7 +672,7 @@ const CaseohCorner: Anomaly = {
     body.visible = true
     eye.visible = true
 
-    return body.getWorldPosition(new THREE.Vector3())
+    return new THREE.Vector3(9, 4.5, -15)
   },
 
   Disable(simulation: Simulation) {
@@ -768,7 +768,7 @@ const CaseohSlide: Anomaly = {
 
     simulation.ViewSync.AddAuxiliaryView(new CaseohSlideView());
 
-    return body.getWorldPosition(new THREE.Vector3());
+    return new THREE.Vector3(2, 2, -5);
   },
 
   Disable(simulation: Simulation) {

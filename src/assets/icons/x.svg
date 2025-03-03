@@ -1,6 +1,6 @@
 <svg viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M0 35.3181L35.318 4.64266e-05L41.9998 6.6819L6.68182 42L0 35.3181Z" fill="currentcolor"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M0 35.3181L35.318 4.64266e-05L41.9998 6.6819L6.68182 42L0 35.3181Z" fill="currentcolor"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M6.68205 0L42 35.3181L35.3182 42L0.000227307 6.68185L6.68205 0Z" fill="currentcolor"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M6.68205 0L42 35.3181L35.3182 42L0.000227307 6.68185L6.68205 0Z" fill="currentcolor"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M0 35.3181L35.318 4.64266e-05L41.9998 6.6819L6.68182 42L0 35.3181Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M0 35.3181L35.318 4.64266e-05L41.9998 6.6819L6.68182 42L0 35.3181Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M6.68205 0L42 35.3181L35.3182 42L0.000227307 6.68185L6.68205 0Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M6.68205 0L42 35.3181L35.3182 42L0.000227307 6.68185L6.68205 0Z" fill="white"/>
 </svg>

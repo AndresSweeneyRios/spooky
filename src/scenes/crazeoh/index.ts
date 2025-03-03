@@ -471,6 +471,7 @@ export const init = async () => {
 
   let shutterOn = false;
   const justPressed = (payload: JustPressedEvent) => {
+    if (state.inSettings) return;
     if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
       payload.consume();
       try { renderer.domElement.requestPointerLock(); } catch { }
@@ -522,11 +523,7 @@ export const init = async () => {
     if (state.wins <= i) {
       const object = scene.getObjectByName(name) as THREE.Mesh;
       if (object) {
-        object.material = new THREE.MeshBasicMaterial({
-          color: 0x773333,
-          wireframe: true,
-          side: THREE.DoubleSide
-        });
+        object.visible = false;
       }
     }
   }
@@ -573,6 +570,19 @@ export const init = async () => {
   });
 
   detectPlayStateChange();
+
+  const menuItems: string[] = [
+    "MENU_MOUSE_L",
+    "MENU_MOUSE_R",
+    "MENU_VOLUME_L",
+    "MENU_VOLUME_R",
+    "MENU"
+  ];
+
+  menuItems.forEach(item => {
+    const obj = scene.getObjectByName(item) as THREE.Mesh;
+    if (obj) obj.visible = false;
+  })
 
   return () => {
     cleanup();

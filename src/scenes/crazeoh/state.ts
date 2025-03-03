@@ -109,3 +109,17 @@ export const setVolume = (value: number) => {
 export const getVolume = () => {
   return parseFloat(localStorage.getItem('volume') || '0.5')
 }
+
+// -----
+
+export let inSettings = false
+
+export const setInSettings = (value: boolean) => {
+  inSettings = value
+
+  document.querySelector("#caseoh-settings")!.setAttribute("is-hidden", value ? "false" : "true")
+}
+
+export const toggleSettings = () => {
+  setInSettings(!inSettings)
+}
