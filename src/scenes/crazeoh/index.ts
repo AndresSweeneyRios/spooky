@@ -520,12 +520,19 @@ export const init = async () => {
 
   for (let i = 0; i < 10; i++) {
     const name = `chip${i + 1}`;
-    if (state.wins <= i) {
-      const object = scene.getObjectByName(name) as THREE.Mesh;
-      if (object) {
-        object.visible = false;
-      }
-    }
+    const object = scene.getObjectByName(name) as THREE.Mesh;
+    if (object) object.visible = false;
+    // if (state.wins <= i) {
+    //   const object = scene.getObjectByName(name) as THREE.Mesh;
+    //   if (object) {
+    //     object.visible = false;
+    //   }
+    // }
+  }
+
+  {
+    const object = scene.getObjectByName("Cube003__0001") as THREE.Mesh;
+    if (object) object.visible = false;
   }
 
   disableLoading();
