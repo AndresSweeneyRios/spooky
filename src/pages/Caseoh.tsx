@@ -350,8 +350,8 @@ export const CrazeOh = () => {
         </div>
         <div className="caseoh-setting">
           <label>SENSITIVITY</label>
-          <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
-            localStorage.setItem('sensitivity', (parseInt(e.target.value) / 100).toString());
+          <input type="range" min="0" max="100" step="1" defaultValue={parseFloat(localStorage.getItem('sensitivity')!) * 100} onChange={(e) => {
+            localStorage.setItem('sensitivity', (parseFloat(e.target.value) / 100).toString());
           }} />
         </div>
       </div>
