@@ -25,6 +25,14 @@ const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
+const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/clock.ogg', {
+    loop: true,
+    positional: true,
+    volume: 0.1,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
 interface Anomaly {
   Id: number
   Description?: string
@@ -154,6 +162,36 @@ const ClockSpinFast: Anomaly = {
   },
 
   Disable(simulation: Simulation) {
+    const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh;
+    const clock2 = simulation.ThreeScene.getObjectByName('minute_hand_0') as THREE.Mesh;
+    const clock3 = simulation.ThreeScene.getObjectByName('second_hand_0') as THREE.Mesh;
+
+    clockAudioPromise.then((audio) => {
+      const now = new Date();
+      const millisecondsUntilNextSecond = 1000 - now.getMilliseconds();
+
+      setTimeout(() => {
+        clock1.add(audio.getPositionalAudio());
+        audio.play();
+      }, millisecondsUntilNextSecond);
+    })
+
+    simulation.ViewSync.AddAuxiliaryView(new class ClockView extends View {
+      public Draw() {
+        const now = new Date();
+        const hours = now.getHours() % 12;
+        const minutes = (now.getMinutes() - 5 + 60) % 60;
+        const seconds = (now.getSeconds() - 3 + 60) % 60;
+
+        const targetHourRotation = -hours * (Math.PI / 6);
+        const targetMinuteRotation = -minutes * (Math.PI / 30) + 1;
+        const targetSecondRotation = -seconds * (Math.PI / 30) + 2;
+
+        clock1.rotation.z = targetHourRotation
+        clock2.rotation.z = targetMinuteRotation
+        clock3.rotation.z = targetSecondRotation
+      }
+    });
   },
 }
 

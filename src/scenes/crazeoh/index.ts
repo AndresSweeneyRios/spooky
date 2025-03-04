@@ -88,7 +88,7 @@ export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
 
 export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
   loop: true,
-  volume: 0.05,
+  volume: 0.02,
   autoplay: true,
 })
 
