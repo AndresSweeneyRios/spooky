@@ -125,7 +125,7 @@ export class InputManager {
     window.addEventListener("mousemove", (e) => this.onMouseMove(e));
 
     // Prevent context menu from interfering with right-click.
-    window.addEventListener("contextmenu", (e) => e.preventDefault());
+    // window.addEventListener("contextmenu", (e) => e.preventDefault());
 
     // Clear inputs when pointer lock/fullscreen is lost.
     document.addEventListener("pointerlockchange", () => {

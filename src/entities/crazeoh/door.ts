@@ -19,15 +19,15 @@ export const createDoor = (simulation: Simulation) => {
     once: false,
   })
 
-  simulation.ViewSync.AddEntityView(new class DoorView extends EntityView {
-    constructor() {
-      super(entId)
-    }
+  // simulation.ViewSync.AddEntityView(new class DoorView extends EntityView {
+  //   constructor() {
+  //     super(entId)
+  //   }
 
-    public Update() {
-      simulation.SimulationState.SensorCommandRepository.SetCommandEnabled(command, state.tookPicture)
-    }
-  })
+  //   public Update() {
+  //     simulation.SimulationState.SensorCommandRepository.SetCommandEnabled(command, state.tookPicture)
+  //   }
+  // })
 
   const worldPosition = doorObject.getWorldPosition(new Vector3())
 

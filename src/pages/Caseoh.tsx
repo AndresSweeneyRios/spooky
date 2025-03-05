@@ -121,16 +121,19 @@ const startGame = async () => {
 /**
  * Handles a decision from the user (YES/NO) regarding the anomaly.
  */
-const handleConfirm = async () => {
+const handleDecision = async (decision: boolean) => {
   try {
-    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking || !state.tookPicture) return;
+    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking) return;
 
     unloadScene();
 
-    if (state.anomaly && state.foundAnomaly) {
+    if (state.anomaly && state.foundAnomaly && decision) {
       state.incrementWins();
       removeCurrentAnomaly();
       state.setIsTutorial(false);
+      coinsAudio.then(audio => audio.play());
+    } else if (!state.anomaly && !decision) {
+      state.incrementWins();
       coinsAudio.then(audio => audio.play());
     } else {
       errorAudio.then(audio => audio.play());
@@ -192,7 +195,12 @@ playerInput.emitter.on(
     switch (action) {
       case "mainAction1":
         startGame();
-        handleConfirm();
+        handleDecision(true);
+        consume();
+        break;
+      case "interact":
+        startGame();
+        handleDecision(false);
         consume();
         break;
       case "cancel":
@@ -318,23 +326,25 @@ export const CrazeOh = () => {
           <img className="polaroid" src={PolaroidPng} alt="Polaroid" />
         </div>
         <div className="main">
-          <h1>IS THIS AN ANOMALY?</h1>
+          {/* <h1>IS THIS AN ANOMALY?</h1> */}
           <div className="split">
             <div className="yes">
-              <button onClick={() => handleConfirm()}>
-                YES
+              <button onClick={() => handleDecision(true)}>
+              <span>✓</span> This is the anomaly
               </button>
-              <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} />
+              {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} /> */}
             </div>
-            {/* <div>
-              <button onClick={() => handleConfirm(false)}>NO</button>
-              <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} />
-            </div> */}
+            <div>
+              <button onClick={() => handleDecision(false)}>
+              <span>✖</span> There is no anomaly
+              </button>
+              {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} /> */}
+            </div>
             <div>
               <button onClick={cancelDecision}>
-                Cancel
+                <span className="cancel-arrow">&lt;</span> Cancel
               </button>
-              <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(180deg)' }} />
+              {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(180deg)' }} /> */}
             </div>
           </div>
         </div>

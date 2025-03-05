@@ -986,6 +986,14 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
     anomalies.push(...DEFAULT_ANOMALIES)
   }
 
+  if (!state.isTutorial && Math.random() < 0.3) {
+    state.setAnomaly(false)
+
+    // console.log('No anomaly this time')
+
+    return
+  }
+
   const randomIndex = state.isTutorial ? 0 : Math.floor(Math.random() * anomalies.length)
 
   currentAnomalyIndex = randomIndex
@@ -1000,6 +1008,8 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
   const position = anomaly.Enable(simulation)
 
   state.setAnomalyPosition(position)
+
+  // console.log('Anomaly:', anomaly.Id)
 }
 
 export const removeCurrentAnomaly = () => {
