@@ -535,7 +535,9 @@ export const init = async () => {
     if (object) object.visible = false;
   }
 
-  disableLoading();
+  setTimeout(() => {
+    disableLoading();
+  }, 500);
   simulation.Start();
 
   requestAnimationFrame(() => {
@@ -592,6 +594,7 @@ export const init = async () => {
   })
 
   return () => {
+    enableLoading();
     cleanup();
     playerInput.emitter.off("justpressed", justPressed);
     document.removeEventListener("pointerlockchange", handlePointerLock);

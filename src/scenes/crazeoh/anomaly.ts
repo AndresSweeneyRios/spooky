@@ -271,7 +271,7 @@ const Head: Anomaly = {
   Id: 9,
 
   Enable(simulation: Simulation) {
-    const head = simulation.ThreeScene.getObjectByName('head') as THREE.Mesh
+    const head = simulation.ThreeScene.getObjectByName('Object_2009') as THREE.Mesh
 
     head.visible = true
 
@@ -281,7 +281,7 @@ const Head: Anomaly = {
   },
 
   Disable(simulation: Simulation) {
-    const head = simulation.ThreeScene.getObjectByName('head') as THREE.Mesh
+    const head = simulation.ThreeScene.getObjectByName('Object_2009') as THREE.Mesh
 
     head.visible = false
   }
@@ -818,6 +818,96 @@ const CaseohSlide: Anomaly = {
   }
 }
 
+const ShadowMan1: Anomaly = {
+  Id: 27,
+
+  Enable(simulation: Simulation) {
+    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman') as THREE.Object3D
+    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    mesh.visible = true
+
+    const position = mesh.getWorldPosition(new THREE.Vector3())
+    position.y += 1
+
+    return position
+  },
+
+  Disable(simulation: Simulation) {
+    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman') as THREE.Object3D
+    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    mesh.visible = false
+  }
+}
+
+const ShadowMan2: Anomaly = {
+  Id: 28,
+
+  Enable(simulation: Simulation) {
+    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman2') as THREE.Object3D
+    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    mesh.visible = true
+
+    const position = mesh.getWorldPosition(new THREE.Vector3())
+    position.y += 1
+
+    return position
+  },
+
+  Disable(simulation: Simulation) {
+    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman2') as THREE.Object3D
+    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    mesh.visible = false
+  }
+}
+
+const WaterBottleEggplant: Anomaly = {
+  Id: 29,
+
+  Enable(simulation: Simulation) {
+    const waterBottle = simulation.ThreeScene.getObjectByName('waterbottle') as THREE.Mesh
+    const eggplant = simulation.ThreeScene.getObjectByName('eggplant') as THREE.Mesh
+
+    waterBottle.visible = false
+    eggplant.visible = true
+
+    return eggplant.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const waterBottle = simulation.ThreeScene.getObjectByName('waterbottle') as THREE.Mesh
+    const eggplant = simulation.ThreeScene.getObjectByName('eggplant') as THREE.Mesh
+
+    waterBottle.visible = true
+    eggplant.visible = false
+  }
+}
+
+const AnomalyPainting: Anomaly = {
+  Id: 30,
+
+  Enable(simulation: Simulation) {
+    const painting = simulation.ThreeScene.getObjectByName('painting') as THREE.Mesh
+    const anomalypainting = simulation.ThreeScene.getObjectByName('anomalypainting') as THREE.Mesh
+
+    painting.visible = false
+    anomalypainting.visible = true
+
+    return anomalypainting.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const painting = simulation.ThreeScene.getObjectByName('painting') as THREE.Mesh
+    const anomalypainting = simulation.ThreeScene.getObjectByName('anomalypainting') as THREE.Mesh
+
+    painting.visible = true
+    anomalypainting.visible = false
+  }
+}
+
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FrenchFries,
   Monitors,
@@ -843,6 +933,10 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FakeBuffet,
   CaseohCorner,
   CaseohExtraThicc,
+  ShadowMan1,
+  ShadowMan2,
+  WaterBottleEggplant,
+  AnomalyPainting,
 ]
 
 export const getHighestAnomalyId = () => {

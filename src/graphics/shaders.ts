@@ -366,11 +366,11 @@ export const CRTShader = {
     time: { value: 0.0 },
     scanlineIntensity: { value: 0.7 },
     vignetteIntensity: { value: 0.0 },
-    curvature: { value: 1.0 },
+    curvature: { value: 0.4 },
     noiseIntensity: { value: 0.3 },
     rgbOffset: { value: new THREE.Vector2(0.0012, 0.0012) },
     // New uniform to optionally scale the UV coordinates after distortion.
-    edgeScale: { value: 0.65 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
+    edgeScale: { value: 0.8 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
