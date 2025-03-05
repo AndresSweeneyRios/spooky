@@ -40,6 +40,22 @@ const oofPromise = loaderPromise.then(async ({ loadAudio }) => {
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
+const loudPromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/loud.ogg', {
+    loop: false,
+    positional: false,
+    volume: 0.3,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
+const screamPromise = loaderPromise.then(async ({ loadAudio }) => {
+  return await loadAudio('/audio/sfx/scream.ogg', {
+    loop: false,
+    positional: false,
+    volume: 0.7,
+  })
+}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+
 let voiceTimeout: NodeJS.Timeout | null = null
 
 const startLoopingVoice = async () => {
@@ -87,6 +103,10 @@ const waitForAction = () => new Promise<void>(resolve => {
 })
 
 export const intro = async (simulation: Simulation) => {
+  // id caseoh-explainer
+  const explainer = document.getElementById("caseoh-explainer")!
+  explainer.setAttribute("is-hidden", "false")
+
   const dialogueTexts = [
     // <>You had a childhood friend nicknamed Craze, an <b>obese</b> kid who dreamed of becoming a famous streamer.</>,
     // <>He finally made it big — millions of views, sponsors, fans spamming “W” in chat.</>,
@@ -99,6 +119,8 @@ export const intro = async (simulation: Simulation) => {
   ]
 
   await playDialogueWithVoice(dialogueTexts)
+
+  explainer.setAttribute("is-hidden", "true")
 }
 
 const outro = async (simulation: Simulation) => {
@@ -122,73 +144,86 @@ const outro = async (simulation: Simulation) => {
   
   disableLoading()
 
-  await playDialogueWithVoice([
-    <>Why did it have to end like this?</>,
-    <>My neon haven... my last refuge, McDonald's.</>,
-    <i>Now swallowed by the void.</i>,
-  ])
+  ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,windAudioPromise].forEach(promise => promise.then(audio => audio.stop()))
+
+  // await playDialogueWithVoice([
+  //   // <>Why did it have to end like this?</>,
+  //   // <>My neon haven... my last refuge, McDonald's.</>,
+  //   // <i>Now swallowed by the void.</i>,
+  // ])
 
   setDialogue("")
+
+  await new Promise(resolve => setTimeout(resolve, 12000))
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 1.0
 
   mesh.translateZ(6)
 
-  noisePromise.then(noise => noise.play())
+  // noisePromise.then(noise => noise.play())
+  // loudPromise.then(loud => loud.play())
 
-  await new Promise(resolve => setTimeout(resolve, 500))
+  // await new Promise(resolve => setTimeout(resolve, 500))
 
-  noisePromise.then(noise => noise.stop())
+  // noisePromise.then(noise => noise.stop())
+  // loudPromise.then(loud => loud.stop())
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 0.6
 
-  await playDialogueWithVoice([
-    <>I wandered through the ruins, chasing echoes of a lost past.</>,
-    <>In that silence, a presence stirred—a whisper of something both ancient and profound.</>,
-  ])
+  // await playDialogueWithVoice([
+  //   <>I wandered through the ruins, chasing echoes of a lost past.</>,
+  //   <>In that silence, a presence stirred—a whisper of something both ancient and profound.</>,
+  // ])
+
+  // await new Promise(resolve => setTimeout(resolve, 12000))
 
   mesh.translateZ(5)
   mesh.translateY(-0.3)
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 1.0
-
+  
   noisePromise.then(noise => noise.play())
+  loudPromise.then(loud => loud.play())
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise(resolve => setTimeout(resolve, 500))
 
   noisePromise.then(noise => noise.stop())
+  loudPromise.then(loud => loud.stop())
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 1.1
   currentCrtPass!.uniforms["scanlineIntensity"].value = 1.0
   currentCrtPass!.uniforms["rgbOffset"].value.set(0.003, 0.003)
 
-  await playDialogueWithVoice([
-    <span style={{ fontSize: "1em"}}><b>Not salvation, nor damnation... but a call from beyond the mortal veil.</b></span>,
-    <>It beckoned me toward shadows where faith and fear entwine.</>,
-    <>A new chapter begins, unfolding into realms where every secret is drenched in divine mystery.</>,
-  ])
+  // await playDialogueWithVoice([
+  //   <span style={{ fontSize: "1em"}}><b>Not salvation, nor damnation... but a call from beyond the mortal veil.</b></span>,
+  //   <>It beckoned me toward shadows where faith and fear entwine.</>,
+  //   <>A new chapter begins, unfolding into realms where every secret is drenched in divine mystery.</>,
+  // ])
 
   setDialogue("")
 
-  ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,ceilingFanAudioPromise,windAudioPromise].forEach(promise => promise.then(audio => audio.stop()))
+  // await new Promise(resolve => setTimeout(resolve, 1000))
 
-  DEFAULT_ANOMALIES.forEach(anomaly => anomaly.Enable(simulation))
+  // DEFAULT_ANOMALIES.forEach(anomaly => anomaly.Enable(simulation))
 
-  await new Promise(resolve => setTimeout(resolve, 5000))
+  // await new Promise(resolve => setTimeout(resolve, 5000))
 
-  oofPromise.then(oof => oof.play())
+  // oofPromise.then(oof => oof.play())
 
   mesh.translateZ(0.5)
-  currentCrtPass!.uniforms["rgbOffset"].value.set(0.01, 0.01)
+  // currentCrtPass!.uniforms["rgbOffset"].value.set(0.01, 0.01)
 
-  await new Promise(resolve => setTimeout(resolve, 300))
+  // loudPromise.then(loud => loud.play())
+  screamPromise.then(scream => scream.play())
+
+  await new Promise(resolve => setTimeout(resolve, 1000))
   
   location.assign("/spooky")
 }
 
 const winScript: Record<number, typeof intro> = {
   // 0: intro,
-  10: outro,
+  0: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {

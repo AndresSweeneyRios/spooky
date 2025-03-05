@@ -986,7 +986,7 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
     anomalies.push(...DEFAULT_ANOMALIES)
   }
 
-  if (!state.isTutorial && Math.random() < 0.3) {
+  if (!state.isTutorial && Math.random() < 0.2) {
     state.setAnomaly(false)
 
     // console.log('No anomaly this time')
