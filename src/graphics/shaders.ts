@@ -368,7 +368,7 @@ export const CRTShader = {
     vignetteIntensity: { value: 0.0 },
     curvature: { value: 0.4 },
     noiseIntensity: { value: 0.3 },
-    rgbOffset: { value: new THREE.Vector2(0.0012, 0.0012) },
+    rgbOffset: { value: new THREE.Vector2(0.0014, 0.0014) },
     // New uniform to optionally scale the UV coordinates after distortion.
     edgeScale: { value: 0.8 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
   },

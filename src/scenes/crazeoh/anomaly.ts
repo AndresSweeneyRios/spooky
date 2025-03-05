@@ -142,6 +142,8 @@ const Demon: Anomaly = {
 // minute hand_0
 // second hand_0
 
+let clockView: View | null = null
+
 const ClockSpinFast: Anomaly = {
   Id: 6,
 
@@ -150,13 +152,19 @@ const ClockSpinFast: Anomaly = {
     const clock2 = simulation.ThreeScene.getObjectByName('minute_hand_0') as THREE.Mesh
     const clock3 = simulation.ThreeScene.getObjectByName('second_hand_0') as THREE.Mesh
 
-    simulation.ViewSync.AddAuxiliaryView(new class Clock extends View {
+    if (clockView) {
+      simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol)
+    }
+
+    clockView = new class Clock extends View {
       public Draw() {
         clock1.rotateZ(0.035)
         clock2.rotateZ(0.035 * 2)
         clock3.rotateZ(0.035 * 3)
       }
-    })
+    }
+
+    simulation.ViewSync.AddAuxiliaryView(clockView)
 
     return clock1.getWorldPosition(new THREE.Vector3())
   },
@@ -176,7 +184,11 @@ const ClockSpinFast: Anomaly = {
       }, millisecondsUntilNextSecond);
     })
 
-    simulation.ViewSync.AddAuxiliaryView(new class ClockView extends View {
+    if (clockView) {
+      simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol)
+    }
+
+    clockView = new class ClockView extends View {
       public Draw() {
         const now = new Date();
         const hours = now.getHours() % 12;
@@ -191,7 +203,9 @@ const ClockSpinFast: Anomaly = {
         clock2.rotation.z = targetMinuteRotation
         clock3.rotation.z = targetSecondRotation
       }
-    });
+    }
+
+    simulation.ViewSync.AddAuxiliaryView(clockView);
   },
 }
 
@@ -910,20 +924,20 @@ const AnomalyPainting: Anomaly = {
 
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FrenchFries,
+  Keyboard,
+  ClockSpinFast,
   Monitors,
   CaseohSlide,
   SeveredHand,
   ClockSix,
   Demon,
   RedDemon,
-  ClockSpinFast,
   Head,
   KitchenKnife,
   Feet,
   CoatHanger,
   Eyeball,
   BurgerLevitate,
-  Keyboard,
   Pitchfork,
   Poster,
   RealLabel,

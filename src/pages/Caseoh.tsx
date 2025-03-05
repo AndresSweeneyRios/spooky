@@ -225,18 +225,18 @@ export const CrazeOh = () => {
     };
   }, []);
 
-  React.useEffect(() => {
-    const handler = () => {
-      document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 10 WINS`;
-      document.getElementById("caseoh-stats")!.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue && !state.outro) ? "false" : "true");
+  // React.useEffect(() => {
+  //   const handler = () => {
+  //     document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 10 WINS`;
+  //     document.getElementById("caseoh-stats")!.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue && !state.outro) ? "false" : "true");
 
-      animationFrame = requestAnimationFrame(handler);
-    }
+  //     animationFrame = requestAnimationFrame(handler);
+  //   }
 
-    let animationFrame = requestAnimationFrame(handler)
+  //   let animationFrame = requestAnimationFrame(handler)
 
-    return () => cancelAnimationFrame(animationFrame);
-  }, [])
+  //   return () => cancelAnimationFrame(animationFrame);
+  // }, [])
 
   React.useEffect(() => {
     document.querySelector(".caseoh-settings-indicator")!.setAttribute("is-hidden", pointerLocked ? "true" : "false");

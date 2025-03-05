@@ -266,8 +266,9 @@ const initScene = () => {
   const effectComposer = new EffectComposer(renderer);
   effectComposer.addPass(new RenderPass(scene, camera));
 
-  ToneMappingShader.uniforms.contrast = { value: 1.07 };
-  ToneMappingShader.uniforms.saturation = { value: 0.95 };
+  ToneMappingShader.uniforms.contrast = { value: 1.3 };
+  ToneMappingShader.uniforms.contrastMidpoint = { value: 0.1 };
+  ToneMappingShader.uniforms.saturation = { value: 0.6 };
   ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 };
   const toneMappingPass = new ShaderPass(ToneMappingShader);
   effectComposer.addPass(toneMappingPass);
