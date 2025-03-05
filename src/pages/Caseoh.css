@@ -298,6 +298,15 @@
   letter-spacing: 0.5em;
   font-size: 1em;
   animation: fadeTextInOut 3s ease-out infinite;
+  display: flex;
+  flex-direction: column;
+  gap: 10em;
+}
+
+#caseoh-anybutton img {
+  width: 90%;
+  max-width: 60em;
+  pointer-events: none;
 }
 
 @keyframes fadeTextInOut {
@@ -431,4 +440,13 @@
   font-family: monospace;
   transform: scale(1.4) translateX(0.08em);
   display: inline-block;
+}
+
+#caseoh-explainer {
+  position: absolute;
+  width: 80%;
+  max-width: 60em;
+  top: calc(50% - 7em);
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

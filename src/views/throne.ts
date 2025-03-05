@@ -12,115 +12,117 @@ import { currentCrtPass } from "../scenes/gatesOfHeaven";
 
 const gltfPromise = loadGltf("./3d/throne.glb")
 
-const battlesphereMaterial = new THREE.ShaderMaterial({
-  uniforms: {
-    time: { value: 0 },
-    resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-    acid1: { value: new THREE.Texture() },
-    acid2: { value: new THREE.Texture() },
-    acid3: { value: new THREE.Texture() }
-  },
-  vertexShader: /*glsl*/`
-    varying vec2 vUv;
-    varying vec3 vNormal;
-    varying vec3 vPosition;
+// const battlesphereMaterial = new THREE.ShaderMaterial({
+//   uniforms: {
+//     time: { value: 0 },
+//     resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+//     acid1: { value: new THREE.Texture() },
+//     acid2: { value: new THREE.Texture() },
+//     acid3: { value: new THREE.Texture() }
+//   },
+//   vertexShader: /*glsl*/`
+//     varying vec2 vUv;
+//     varying vec3 vNormal;
+//     varying vec3 vPosition;
 
-    void main() {
-      vUv = uv;
-      vNormal = normal;
-      vPosition = position;
+//     void main() {
+//       vUv = uv;
+//       vNormal = normal;
+//       vPosition = position;
 
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: /*glsl*/`
-uniform float time;
-uniform vec2 resolution;
-uniform sampler2D acid1;
-uniform sampler2D acid2;
-uniform sampler2D acid3;
+//       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+//     }
+//   `,
+//   fragmentShader: /*glsl*/`
+// uniform float time;
+// uniform vec2 resolution;
+// uniform sampler2D acid1;
+// uniform sampler2D acid2;
+// uniform sampler2D acid3;
 
-varying vec2 vUv;
+// varying vec2 vUv;
 
-const float PI = 3.14159265359;
-const float LOWER_THRESHOLD = 0.4;
-const float UPPER_THRESHOLD = 0.9;
-const float OFFSET_SCALE = 0.03;
+// const float PI = 3.14159265359;
+// const float LOWER_THRESHOLD = 0.4;
+// const float UPPER_THRESHOLD = 0.9;
+// const float OFFSET_SCALE = 0.03;
 
-// Crude hue shift approximation for low-res dirty graphics.
-// Cycles through the channels using a smooth sine-based offset.
-vec3 hueShiftApprox(vec3 color, float angle) {
-  float offset = 0.5 + 0.5 * sin(angle);
-  return vec3(
-    mix(color.r, color.g, offset),
-    mix(color.g, color.b, offset),
-    mix(color.b, color.r, offset)
-  );
-}
+// // Crude hue shift approximation for low-res dirty graphics.
+// // Cycles through the channels using a smooth sine-based offset.
+// vec3 hueShiftApprox(vec3 color, float angle) {
+//   float offset = 0.5 + 0.5 * sin(angle);
+//   return vec3(
+//     mix(color.r, color.g, offset),
+//     mix(color.g, color.b, offset),
+//     mix(color.b, color.r, offset)
+//   );
+// }
 
-void main() {
-  // Flip vUv for acid1 sampling.
-  vec2 uv = vec2(vUv.x, 1.0 - vUv.y);
-  
-  // Precompute aspect and screen-space UVs.
-  float aspect = resolution.x / resolution.y;
-  vec2 uvScreen = gl_FragCoord.xy / resolution.xy;
-  vec2 uvScreen2 = uvScreen;
-  
-  // Precompute time multipliers.
-  float t005 = time * 0.005;
-  float t02  = time * 0.02;
-  float sin018 = sin(time * 0.018);
-  float cos02  = cos(time * 0.02);
-  
-  // Modify uvScreen for acid2 sampling.
-  uvScreen.x = (uvScreen.x - t005) * aspect;
-  uvScreen.y += sin018;
-  uvScreen.x -= t02;
-  
-  // Modify uvScreen2 for acid3 sampling.
-  uvScreen2.x = (uvScreen2.x + t005) * aspect;
-  uvScreen2.y -= cos02;
-  uvScreen2.x += t02;
-  
-  // Sample acid1 and invert its color.
-  vec4 acid1Color = texture2D(acid1, uvScreen);
-  // acid1Color.rgb = 1.0 - acid1Color.rgb;
-  
-  // Sample acid2 for the UV offset and apply a slower hue shift.
-  float hueAngle2 = time * (PI / 18.0);
-  vec4 acid2Sample = texture2D(acid2, uvScreen);
-  // acid2Sample.rgb = hueShiftApprox(acid2Sample.rgb, hueAngle2);
-  
-  // Use acid2's red/green channels as an offset.
-  vec2 uvOffset = (acid2Sample.rg - 0.5) * OFFSET_SCALE;
-  
-  // Offset acid3's UV with the computed offset.
-  vec2 acid3UV = uvScreen2 + uvOffset;
-  
-  // Sample acid3 and apply a faster hue shift.
-  float hueAngle3 = time * (PI / 9.0);
-  vec4 acid3Color = texture2D(acid3, acid3UV);
-  // acid3Color.rgb = hueShiftApprox(acid3Color.rgb, hueAngle3);
-  
-  // Composite: difference blend between acid1 and acid3.
-  vec4 compColor = acid3Color;
-  
-  // Compute luminance.
-  float lum = dot(compColor.rgb, vec3(0.299, 0.587, 0.114));
-  if (lum < LOWER_THRESHOLD || lum > UPPER_THRESHOLD) {
-    discard;
-  }
-  
-  // Add a subtle pulsating effect.
-  float pulse = 0.8 + 0.2 * sin(time * 2.0);
-  
-  // Final color composition.
-  gl_FragColor = vec4(lum / compColor.r * pulse, lum * pulse * 0.1, lum * pulse * 0.1, 1.0);
-}
+// void main() {
+//   // Flip vUv for acid1 sampling.
+//   vec2 uv = vec2(vUv.x, 1.0 - vUv.y);
 
-  `
-})
+//   // Precompute aspect and screen-space UVs.
+//   float aspect = resolution.x / resolution.y;
+//   vec2 uvScreen = gl_FragCoord.xy / resolution.xy;
+//   vec2 uvScreen2 = uvScreen;
+
+//   // Precompute time multipliers.
+//   float t005 = time * 0.005;
+//   float t02  = time * 0.02;
+//   float sin018 = sin(time * 0.018);
+//   float cos02  = cos(time * 0.02);
+
+//   // Modify uvScreen for acid2 sampling.
+//   uvScreen.x = (uvScreen.x - t005) * aspect;
+//   uvScreen.y += sin018;
+//   uvScreen.x -= t02;
+
+//   // Modify uvScreen2 for acid3 sampling.
+//   uvScreen2.x = (uvScreen2.x + t005) * aspect;
+//   uvScreen2.y -= cos02;
+//   uvScreen2.x += t02;
+
+//   // Sample acid1 and invert its color.
+//   vec4 acid1Color = texture2D(acid1, uvScreen);
+//   // acid1Color.rgb = 1.0 - acid1Color.rgb;
+
+//   // Sample acid2 for the UV offset and apply a slower hue shift.
+//   float hueAngle2 = time * (PI / 18.0);
+//   vec4 acid2Sample = texture2D(acid2, uvScreen);
+//   // acid2Sample.rgb = hueShiftApprox(acid2Sample.rgb, hueAngle2);
+
+//   // Use acid2's red/green channels as an offset.
+//   vec2 uvOffset = (acid2Sample.rg - 0.5) * OFFSET_SCALE;
+
+//   // Offset acid3's UV with the computed offset.
+//   vec2 acid3UV = uvScreen2 + uvOffset;
+
+//   // Sample acid3 and apply a faster hue shift.
+//   float hueAngle3 = time * (PI / 9.0);
+//   vec4 acid3Color = texture2D(acid3, acid3UV);
+//   // acid3Color.rgb = hueShiftApprox(acid3Color.rgb, hueAngle3);
+
+//   // Composite: difference blend between acid1 and acid3.
+//   vec4 compColor = acid3Color;
+
+//   // Compute luminance.
+//   float lum = dot(compColor.rgb, vec3(0.299, 0.587, 0.114));
+//   if (lum < LOWER_THRESHOLD || lum > UPPER_THRESHOLD) {
+//     discard;
+//   }
+
+//   // Add a subtle pulsating effect.
+//   float pulse = 0.8 + 0.2 * sin(time * 2.0);
+
+//   // Final color composition.
+//   gl_FragColor = vec4(lum / compColor.r * pulse, lum * pulse * 0.1, lum * pulse * 0.1, 1.0);
+// }
+
+//   `
+// })
+
+const battlesphereMaterial = new THREE.MeshBasicMaterial()
 
 battlesphereMaterial.side = THREE.DoubleSide
 
@@ -133,7 +135,7 @@ const loadAcidTexture = async (uniformName: string, path: string) => {
   texture.minFilter = THREE.LinearFilter
   texture.needsUpdate = true
 
-  battlesphereMaterial.uniforms[uniformName].value = texture
+  // battlesphereMaterial.uniforms[uniformName].value = texture
   battlesphereMaterial.needsUpdate = true
 }
 
@@ -164,6 +166,7 @@ export class ThroneView extends EntityView {
       if (child.name === "BATTLESPHERE" && child instanceof THREE.Mesh) {
         child.material = battlesphereMaterial
         this.battleSphere = child
+        child.visible = false
       }
 
       if (child.name === "eye") {
@@ -234,14 +237,14 @@ export class ThroneView extends EntityView {
     this.eye.rotation.y += 0.01
     this.eye.position.y = Math.sin(this.throneYPosition) * 2
 
-    battlesphereMaterial.uniforms.time.value = simulation.ViewSync.TimeMS / 1000
+    // battlesphereMaterial.uniforms.time.value = simulation.ViewSync.TimeMS / 1000
 
     this.battleSphere.rotateY(+0.0003)
     this.battleSphere.rotateZ(+0.0003)
   }
 
   public Resize() {
-    battlesphereMaterial.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
+    // battlesphereMaterial.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
   }
 
   public Cleanup(simulation: Simulation): void {

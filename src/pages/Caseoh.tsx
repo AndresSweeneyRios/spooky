@@ -12,6 +12,7 @@ import _SVG from 'react-inlinesvg';
 const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
 import CameraHintSvg from "../assets/icons/camera_hint.svg";
+import SplashWebp from "../assets/caseoh/splash.webp";
 import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg";
 import { playerInput } from "../input/player";
 import { executeWinScript } from "../scenes/crazeoh/scripts";
@@ -376,6 +377,8 @@ export const CrazeOh = () => {
         <img src={TvWebp} alt="TV Loading" />
         <h1>Loading</h1>
       </div>
+
+      <img src={SplashWebp} alt="Explainer" id="caseoh-explainer" is-hidden="true" />
     </>
   ), []);
 };

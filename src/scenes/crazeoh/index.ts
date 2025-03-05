@@ -412,15 +412,17 @@ export const init = async () => {
 
   const teleportPlayer = () => {
     teleportedPlayer = true;
-    const playerSpawnObject = scene.getObjectByName("PLAYER") as THREE.Mesh;
-    playerSpawnObject.getWorldPosition(tempVec3);
-    simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [tempVec3.x, 0.5, tempVec3.z]);
-    camera.position.set(tempVec3.x, 0.5, tempVec3.z);
-    const lookTarget = scene.getObjectByName("base_BaseColorCuzov_0") as THREE.Mesh;
+    const playerSpawnPosition = new THREE.Vector3(2, 0, -1.2);
+    const playerObject = scene.getObjectByName("PLAYER") as THREE.Mesh;
+    if (playerObject) {
+      playerObject.visible = false;
+    }
+    simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z]);
+    camera.position.set(playerSpawnPosition.x, 0.5, playerSpawnPosition.z);
+    const lookTarget = scene.getObjectByName("Cube__0") as THREE.Mesh;
     lookTarget.getWorldPosition(tempVec3);
-    const yaw = Math.atan2(playerSpawnObject.position.x - tempVec3.x, playerSpawnObject.position.z - tempVec3.z);
-    const pitch = Math.atan2(tempVec3.y - playerSpawnObject.position.y, Math.hypot(playerSpawnObject.position.x - tempVec3.x, playerSpawnObject.position.z - tempVec3.z));
-    playerSpawnObject.visible = false;
+    const yaw = Math.atan2(playerSpawnPosition.x - tempVec3.x, playerSpawnPosition.z - tempVec3.z);
+    const pitch = Math.atan2(tempVec3.y - playerSpawnPosition.y, Math.hypot(playerSpawnPosition.x - tempVec3.x, playerSpawnPosition.z - tempVec3.z));
     camera.quaternion.setFromEuler(tempEuler.set(pitch, yaw, 0, "YXZ"));
     try {
       updateGameLogic(simulation, 0);
