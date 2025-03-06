@@ -17,6 +17,7 @@ new A(Symbol() as EntId);
 import "./graphics/shaders";
 import "./graphics/injections";
 import { EntityView } from "./simulation/EntityView";
+import Home from "./pages/Home";
 
 const NotFound = lazy(() => import('./pages/_notfound'));
 const Landing = lazy(() => import('./pages/Landing'));
@@ -59,6 +60,10 @@ console.log(`%c
 
 const router = createBrowserRouter([
   // Home
+  {
+    path: "/",
+    element: <Suspense fallback={<div></div>}><Home /></Suspense>,
+  },
   {
     path: "/crazeoh",
     element: <Suspense fallback={<div></div>}><CrazeOh /></Suspense>,
