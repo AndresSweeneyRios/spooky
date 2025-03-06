@@ -115,7 +115,7 @@ export const intro = async (simulation: Simulation) => {
     // <>One day, his stream cut off mid-broadcast, and he disappeared.</>,
     // <>As his old friend, you go to check on him.</>,
     // <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
-    <i>[Be alert: <b>rooms can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
+    <i>[Be alert: <b>objects can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
   ]
 
   await playDialogueWithVoice(dialogueTexts)
@@ -222,8 +222,8 @@ const outro = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  // 0: intro,
-  0: outro,
+  0: intro,
+  20: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
