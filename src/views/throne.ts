@@ -139,9 +139,9 @@ const loadAcidTexture = async (uniformName: string, path: string) => {
   battlesphereMaterial.needsUpdate = true
 }
 
-loadAcidTexture("acid1", "./3d/throne/ACID1.webp")
-loadAcidTexture("acid2", "./3d/throne/ACID2.webp")
-loadAcidTexture("acid3", "./3d/throne/ACID3.webp")
+// loadAcidTexture("acid1", "./3d/throne/ACID1.webp")
+// loadAcidTexture("acid2", "./3d/throne/ACID2.webp")
+// loadAcidTexture("acid3", "./3d/throne/ACID3.webp")
 
 export class ThroneView extends EntityView {
   throne: THREE.Object3D | null = null
