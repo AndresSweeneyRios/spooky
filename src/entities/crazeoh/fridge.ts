@@ -4,6 +4,7 @@ import { ToggleFridge } from "../../simulation/commands/crazeoh/ToggleFridge";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { FridgeView } from "../../views/crazeoh/fridge";
 import { loadAudio } from "../../graphics/loaders";
+import * as THREE from "three";
 
 export const fridgeAudioPromise = loadAudio("/audio/sfx/old_fridge.ogg", {
   loop: true,
@@ -31,6 +32,7 @@ export const createFridge = (simulation: Simulation) => {
     executionMode: ExecutionMode.Interaction,
     command: new ToggleFridge(fridgeView),
     once: false,
+    owner: fridgeObject,
   })
 
   const worldPosition = fridgeObject.getWorldPosition(new Vector3())

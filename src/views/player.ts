@@ -7,6 +7,8 @@ import { SensorCommand } from "../simulation/repository/SensorCommandRepository"
 import * as math from "../utils/math";
 import { vec3 } from "gl-matrix";
 import * as THREE from "three";
+import { EventEmitter } from "events";
+import { TypedEmitter } from "../utils/emitter";
 
 const MIN_SENSITIVITY = 200;
 const MAX_SENSITIVITY = 300000;
@@ -22,6 +24,14 @@ const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
 });
 footstepAudio.then(audio => audio.setVolume(0.5));
 
+// Define a strongly typed emitter.
+type InteractionChangedPayload = {
+  command: SensorCommand;
+  entId: EntId;
+  symbol: symbol;
+  angle: number;
+}[];
+
 export class PlayerView extends EntityView {
   public canvas: HTMLCanvasElement;
   private controlsEnabled = false;
@@ -34,6 +44,10 @@ export class PlayerView extends EntityView {
   protected runSpeedModifier = 2;
   public runEnabled = false;
   public debugElement = document.createElement("div");
+
+  public interactionEmitter = new TypedEmitter<{
+    interactionsChanged: (interactions: InteractionChangedPayload) => void;
+  }>();
 
   constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3) {
     super(entId);
@@ -72,7 +86,7 @@ export class PlayerView extends EntityView {
 
   protected getAvailableInteractionsWithinAngle(maxAngle: number): { command: SensorCommand, entId: EntId, symbol: symbol, angle: number }[] {
     const commands = this.simulation.SimulationState.SensorCommandRepository.GetAvailableInteractions(this.EntId);
-    return commands.map(({ command, entId, symbol }) => {
+    const interactions = commands.map(({ command, entId, symbol }) => {
       const position = this.simulation.SimulationState.PhysicsRepository.GetPosition(entId);
       const playerPosition = this.simulation.SimulationState.PhysicsRepository.GetPosition(this.EntId);
       const angle = math.getAngle(
@@ -82,6 +96,9 @@ export class PlayerView extends EntityView {
       );
       return { command, entId, symbol, angle };
     }).filter(interaction => interaction.angle <= maxAngle);
+
+    this.interactionEmitter.emit('interactionsChanged', interactions);
+    return interactions;
   }
 
   protected handleJustPressed(payload: JustPressedEvent): void {

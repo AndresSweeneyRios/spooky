@@ -19,6 +19,7 @@ export const createMicrowave = (simulation: Simulation) => {
     executionMode: ExecutionMode.Interaction,
     command: new ToggleMicrowave(microwaveView),
     once: false,
+    owner: microwaveObject,
   })
 
   const worldPosition = microwaveObject.getWorldPosition(new Vector3())

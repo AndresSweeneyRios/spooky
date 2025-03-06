@@ -8,7 +8,7 @@ import * as player from '../../entities/player';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { PositionalAudioHelper, ShaderPass } from 'three/examples/jsm/Addons.js';
+import { OutlinePass, PositionalAudioHelper, ShaderPass } from 'three/examples/jsm/Addons.js';
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { traverse } from "../../utils/traverse";
 import * as state from "./state";
@@ -193,7 +193,8 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
         foodObject.visible = false;
         eatChipAudioPromise.then(audio => audio.play());
       }
-    }
+    },
+    owner: foodObject,
   });
 };
 
@@ -230,7 +231,8 @@ const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
       public Execute(sim: Simulation): void {
         burgerkingAudioPromise.then(audio => audio.play());
       }
-    }
+    },
+    owner: mesh,
   });
 };
 
@@ -256,6 +258,7 @@ export const enableLoading = (): void => {
 const mapLoader = loadGltf("/3d/scenes/island/crazeoh_OPTIMIZED.glb").then(gltf => gltf.scene);
 
 export let currentCrtPass: ShaderPass | null = null;
+export let currentOutlinePass: OutlinePass | null = null;
 
 const initScene = () => {
   const scene = new THREE.Scene();
@@ -272,6 +275,19 @@ const initScene = () => {
   ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 };
   const toneMappingPass = new ShaderPass(ToneMappingShader);
   effectComposer.addPass(toneMappingPass);
+
+  currentOutlinePass = new OutlinePass(
+    new THREE.Vector2(renderer.domElement.width, renderer.domElement.height),
+    scene,
+    camera,
+  )
+  // tweak outline pass
+  currentOutlinePass.edgeStrength = 10;
+  currentOutlinePass.edgeGlow = 0.0;
+  currentOutlinePass.edgeThickness = 0.1;
+  currentOutlinePass.visibleEdgeColor.set(0xffffff);
+  currentOutlinePass.hiddenEdgeColor.set(0x00000000);
+  effectComposer.addPass(currentOutlinePass);
 
   const crtPass = new ShaderPass(shaders.CRTShader);
   crtPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
@@ -364,6 +380,21 @@ export const init = async () => {
     player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
   ]);
   currentPlayerView = playerView;
+
+  playerView.interactionEmitter.on("interactionsChanged", interactions => {
+    let closestInteraction = null;
+
+    for (const interaction of interactions) {
+      if (!closestInteraction || interaction.angle < closestInteraction.angle) {
+        closestInteraction = interaction;
+      }
+    }
+
+    const selectedObjects = closestInteraction?.command.Owner ? [closestInteraction.command.Owner] : [];
+
+    currentOutlinePass?.selectedObjects.splice(0, currentOutlinePass.selectedObjects.length);
+    currentOutlinePass?.selectedObjects.push(...selectedObjects);
+  });
 
   const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal);
   processAttributes(sceneGltf, simulation, sceneEntId, false);
