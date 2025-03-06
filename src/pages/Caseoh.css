@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;1,400&family=Libre+Barcode+39+Text&family=Manrope:wght@200&display=swap');
 
+:root {
+  font-size: 1.5vh;
+}
+
 #caseoh, #caseoh-decision {
   position: absolute;
   top: 0;
@@ -9,7 +13,6 @@
   background-color: #0a0a0ccb;
   backdrop-filter: blur(3px) brightness(0.5);
   font-family: 'Atkinson Hyperlegible', sans-serif;
-  font-size: 1.7vh;
 }
 
 *[is-hidden="true"] {

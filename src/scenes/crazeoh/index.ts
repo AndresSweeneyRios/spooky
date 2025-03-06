@@ -433,6 +433,12 @@ export const init = async () => {
   };
 
   const detectPlayStateChange = async () => {
+    requestAnimationFrame(() => {
+      if (state.inDialogue || !state.gameStarted) {
+        disableLoading()
+      }
+    })
+
     if (state.playing === prevPlay && state.picking === prevPicking &&
       state.inDialogue === prevDialogue && state.gameStarted === prevGameStarted) return;
     prevPlay = state.playing;
@@ -454,6 +460,10 @@ export const init = async () => {
     if (state.playing) {
       if (!teleportedPlayer) {
         teleportPlayer();
+
+        setTimeout(() => {
+          disableLoading();
+        }, 2000);
       }
 
       if (!pickedAnomaly) {
@@ -538,9 +548,6 @@ export const init = async () => {
     if (object) object.visible = false;
   }
 
-  setTimeout(() => {
-    disableLoading();
-  }, 500);
   simulation.Start();
 
   requestAnimationFrame(() => {

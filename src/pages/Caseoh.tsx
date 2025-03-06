@@ -376,7 +376,7 @@ export const CrazeOh = () => {
       {/* Loading overlay */}
       <div id="caseoh-loading" is-hidden="false">
         <img src={TvWebp} alt="TV Loading" />
-        <h1>Loading</h1>
+        <h1>Randomizing anomaly...</h1>
       </div>
 
       <img src={SplashWebp} alt="Explainer" id="caseoh-explainer" is-hidden="true" />
