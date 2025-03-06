@@ -1003,6 +1003,8 @@ export const disableAllAnomalies = (simulation: Simulation) => {
   RedDemon.Disable(simulation)
 }
 
+let previouslyNoAnomaly = false
+
 export const pickRandomAnomaly = (simulation: Simulation): void => {
   disableAllAnomalies(simulation)
 
@@ -1010,13 +1012,17 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
     anomalies.push(...DEFAULT_ANOMALIES)
   }
 
-  if (!state.isTutorial && Math.random() < 0.2) {
+  if (!previouslyNoAnomaly && !state.isTutorial && Math.random() < 0.2) {
     state.setAnomaly(false)
 
     // console.log('No anomaly this time')
 
+    previouslyNoAnomaly = true
+
     return
   }
+
+  previouslyNoAnomaly = false
 
   const randomIndex = state.isTutorial ? 0 : Math.floor(Math.random() * anomalies.length)
 

@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="618" height="375" fill="none" version="1.1" viewBox="0 0 618 375" xmlns="http://www.w3.org/2000/svg">
- <ellipse cx="308.96" cy="187.23" rx="308.5" ry="187" fill="url(#paint0_radial_92_87)"/>
- <path d="m174.4 149c-4.056 0-7.345 3.288-7.345 7.345 0 0.276 0.015 0.548 0.045 0.816h-20.641c-6.884 0-12.464 5.581-12.464 12.464v43.625c0 6.884 5.58 12.465 12.464 12.465h67.307c6.884 0 12.465-5.581 12.465-12.465v-43.625c0-6.883-5.581-12.464-12.465-12.464h-20.64c0.03-0.268 0.045-0.54 0.045-0.816 0-4.057-3.289-7.345-7.345-7.345h-11.426zm43.106 20.625v43.625c0 2.066-1.674 3.74-3.74 3.74h-67.307c-2.065 0-3.739-1.674-3.739-3.74v-43.625c0-2.065 1.674-3.739 3.739-3.739h67.307c2.066 0 3.74 1.674 3.74 3.739z" clip-rule="evenodd" fill="#fff" fill-rule="evenodd"/>
- <circle cx="180.93" cy="190.62" r="11.426" stroke="#fff" stroke-width="4.8967"/>
- <rect x="264" y="171" width="51" height="10.5" fill="#707070"/>
- <rect x="264" y="192.75" width="51" height="10.5" fill="#707070"/>
- <line x1="428.86" x2="428.86" y1="237.86" y2="127.23" stroke="#707070" stroke-width="4.461"/>
- <g stroke="#fff">
-  <g stroke-width="2.6766">
-   <circle transform="rotate(-90 464.92 182.47)" cx="464.92" cy="182.47" r="6.4684"/>
-   <circle transform="rotate(-90 499.72 182.47)" cx="499.72" cy="182.47" r="6.4684"/>
-   <circle cx="482.77" cy="165.07" r="6.4684"/>
-   <circle cx="482.77" cy="199.87" r="6.4684" fill="#fff"/>
-  </g>
+<svg fill="none" version="1.1" viewBox="0 0 618 375" xmlns="http://www.w3.org/2000/svg">
+ <ellipse cx="229.71" cy="176.12" rx="224.63" ry="187" fill="url(#paint0_radial_92_87)" stroke-width=".85331"/>
+ <path d="m157.11 142.56c-4.056 0-7.345 3.288-7.345 7.345 0 0.276 0.015 0.548 0.045 0.816h-20.641c-6.884 0-12.464 5.581-12.464 12.464v43.625c0 6.884 5.58 12.465 12.464 12.465h67.307c6.884 0 12.465-5.581 12.465-12.465v-43.625c0-6.883-5.581-12.464-12.465-12.464h-20.64c0.03-0.268 0.045-0.54 0.045-0.816 0-4.057-3.289-7.345-7.345-7.345zm43.106 20.625v43.625c0 2.066-1.674 3.74-3.74 3.74h-67.307c-2.065 0-3.739-1.674-3.739-3.74v-43.625c0-2.065 1.674-3.739 3.739-3.739h67.307c2.066 0 3.74 1.674 3.74 3.739z" clip-rule="evenodd" fill="#fff" fill-rule="evenodd"/>
+ <circle cx="163.64" cy="184.18" r="11.426" stroke="#fff" stroke-width="4.8967"/>
+ <rect x="246.71" y="164.56" width="51" height="10.5" fill="#707070"/>
+ <rect x="246.71" y="186.31" width="51" height="10.5" fill="#707070"/>
+ <g transform="matrix(1.4003 0 0 1.4003 -158.66 -74.988)" stroke="#fff">
   <rect x="354.67" y="159.42" width="36.654" height="51.164" rx="4.9636" stroke-width="5.3454"/>
  </g>
- <rect x="356.58" y="178.13" width="32.836" height="6.8727" fill="#fff"/>
- <rect x="356.1" y="161.18" width="17.286" height="17.854" fill="#fff" stroke-width="1.0955"/>
- <path d="m373 157c0-1.5 5.5-8 1.5-10.5s-1.5-6-1.5-10.5" stroke="#fff" stroke-width="4"/>
+ <rect x="340.67" y="174.46" width="45.982" height="9.6241" fill="#fff" stroke-width="1.4003"/>
+ <rect x="340" y="150.72" width="24.206" height="25.002" fill="#fff" stroke-width="1.5341"/>
+ <path d="m363.67 144.87c0-2.1005 7.7019-11.203 2.1005-14.704-5.6014-3.5009-2.1005-8.4021-2.1005-14.704" stroke="#fff" stroke-width="5.6014"/>
  <defs>
-  <radialGradient id="paint0_radial_92_87" cx="0" cy="0" r="1" gradientTransform="translate(308.96 187.23) rotate(90) scale(187 308.5)" gradientUnits="userSpaceOnUse">
+  <radialGradient id="paint0_radial_92_87" cx="0" cy="0" r="1" gradientTransform="matrix(0 187 -224.63 0 229.71 176.12)" gradientUnits="userSpaceOnUse">
    <stop stop-opacity=".24" offset="0"/>
    <stop stop-opacity="0" offset="1"/>
   </radialGradient>

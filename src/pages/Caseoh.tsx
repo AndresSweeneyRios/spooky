@@ -13,7 +13,6 @@ const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
 import CameraHintSvg from "../assets/icons/camera_hint.svg";
 import SplashWebp from "../assets/caseoh/splash.webp";
-import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg";
 import { playerInput } from "../input/player";
 import { executeWinScript } from "../scenes/crazeoh/scripts";
 import { ArgumentsType } from "vitest";
@@ -138,6 +137,7 @@ const handleDecision = async (decision: boolean) => {
       coinsAudio.then(audio => audio.play());
     } else {
       errorAudio.then(audio => audio.play());
+      state.decrementWins();
     }
 
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
@@ -270,12 +270,12 @@ export const CrazeOh = () => {
             alignItems: 'center',
           }}>
             <button onClick={startGame}>Play</button>
-            <SVG src={DpadSoloIconSvg} style={{
+            {/* <SVG src={DpadSoloIconSvg} style={{
               width: '4em',
               transform: 'rotate(-90deg)',
               position: 'absolute',
               left: '-6em'
-            }} />
+            }} /> */}
           </div>
         </div>
         <div className="credits">
@@ -317,7 +317,6 @@ export const CrazeOh = () => {
 
         return false;
       }}>
-        <SVG src={InteractableIconSvg} />
       </div>
 
       {/* Decision screen */}

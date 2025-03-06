@@ -243,6 +243,10 @@
   right: 1em;
 }
 
+.caseoh-interactable svg {
+  width: 7em
+}
+
 #caseoh-decision .split > div {
   display: flex;
   align-items: center;
