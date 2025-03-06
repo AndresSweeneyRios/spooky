@@ -16,6 +16,12 @@
   display: none !important;
 } 
 
+#caseoh-decision h2 {
+  font-size: 1.5em;
+  color: rgb(128, 128, 128);
+  font-family: HellsCemetery-Regular;
+}
+
 #caseoh .main, #caseoh-decision .main {
   display: flex;
   flex-direction: column;

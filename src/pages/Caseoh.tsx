@@ -348,6 +348,7 @@ export const CrazeOh = () => {
               {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(180deg)' }} /> */}
             </div>
           </div>
+          <h2>(Sometimes, there is no anomaly.)</h2>
         </div>
       </div>
 
