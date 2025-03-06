@@ -236,7 +236,9 @@ export const CrazeOh = () => {
 
   React.useEffect(() => {
     const handler = () => {
-      document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 20 WINS`;
+      const wins = document.getElementById("caseoh-wins")!
+      wins.innerText = `${state.wins} / 20 WINS`;
+      wins.setAttribute("is-hidden", state.playing ? "false" : "true");
 
       animationFrame = requestAnimationFrame(handler);
     }
