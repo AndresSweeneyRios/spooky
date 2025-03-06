@@ -877,6 +877,28 @@ const ShadowMan2: Anomaly = {
     mesh.visible = false
   }
 }
+const ShadowMan3: Anomaly = {
+  Id: 29,
+
+  Enable(simulation: Simulation) {
+    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman3') as THREE.Object3D
+    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    mesh.visible = true
+
+    const position = mesh.getWorldPosition(new THREE.Vector3())
+    position.y += 1
+
+    return position
+  },
+
+  Disable(simulation: Simulation) {
+    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman3') as THREE.Object3D
+    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    mesh.visible = false
+  }
+}
 
 const WaterBottleEggplant: Anomaly = {
   Id: 29,
@@ -931,7 +953,7 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   SeveredHand,
   ClockSix,
   Demon,
-  RedDemon,
+  // RedDemon,
   Head,
   KitchenKnife,
   Feet,
@@ -949,6 +971,7 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   CaseohExtraThicc,
   ShadowMan1,
   ShadowMan2,
+  ShadowMan3,
   WaterBottleEggplant,
   AnomalyPainting,
 ]
@@ -977,6 +1000,7 @@ export const disableAllAnomalies = (simulation: Simulation) => {
 
   Bloodshake.Disable(simulation)
   FanFast.Disable(simulation)
+  RedDemon.Disable(simulation)
 }
 
 export const pickRandomAnomaly = (simulation: Simulation): void => {
