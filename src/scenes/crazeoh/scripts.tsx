@@ -103,6 +103,12 @@ const waitForAction = () => new Promise<void>(resolve => {
 })
 
 export const intro = async (simulation: Simulation) => {
+  if (!state.isTutorial) {
+    state.setInDialogue(false)
+
+    return
+  }
+
   // id caseoh-explainer
   const explainer = document.getElementById("caseoh-explainer")!
   explainer.setAttribute("is-hidden", "false")

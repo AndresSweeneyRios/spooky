@@ -46,6 +46,10 @@ export const resetWins = () => {
 
 export const decrementWins = () => {
   wins--
+
+  if (wins < 0) {
+    wins = 0
+  }
 }
 
 // -----

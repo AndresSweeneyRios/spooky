@@ -342,7 +342,6 @@
   /* flex-direction: column; */
   justify-content: center;
   align-items: center;
-  display: none;
   /* gap: 2em; */
 }
 
@@ -351,7 +350,7 @@
 }
 
 #caseoh-stats h2 {
-  font-size: 1.3em;
+  font-size: 1.4em;
   opacity: 0.7;
 }
 
@@ -404,8 +403,8 @@
 
 .caseoh-settings-indicator {
   position: absolute;
-  top: 2em;
-  right: 2em;
+  top: 3em;
+  right: 3em;
   width: 3em;
   height: 3em;
   border-radius: 2em;

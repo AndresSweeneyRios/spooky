@@ -491,10 +491,6 @@ export const init = async () => {
     if (state.playing) {
       if (!teleportedPlayer) {
         teleportPlayer();
-
-        setTimeout(() => {
-          disableLoading();
-        }, 2000);
       }
 
       if (!pickedAnomaly) {
@@ -559,6 +555,10 @@ export const init = async () => {
       shutterOn = false;
     }, 2000);
   };
+
+  setTimeout(() => {
+    disableLoading();
+  }, 2000);
 
   playerInput.emitter.on("justpressed", justPressed);
 
