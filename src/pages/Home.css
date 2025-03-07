@@ -56,6 +56,11 @@ p {
   background-size: 4px;
   background-attachment: fixed;
   image-rendering: pixelated;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10rem;
 }
 
 #home .main::before {
@@ -67,12 +72,13 @@ p {
   height: 100%;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.658), rgba(0, 0, 0, 0));
   z-index: 0;
+  pointer-events: none;
 }
 
 #home .main > *:not(:first-child) {
   /* background-color: rgba(255, 255, 255, 0.075); */
-  padding: 5em;
   font-size: 0.8em;
+  padding: 0 2rem;
 }
 
 #home .main div {
@@ -88,7 +94,7 @@ p {
 #home .landing {
   width: 100%;
   height: 100vh;
-  margin-bottom: -10rem;
+  margin-bottom: -18rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -97,6 +103,7 @@ p {
 
 #home .landing svg {
   width: 40em;
+  max-width: 80vw;
   position: relative;
   /* animation: scaleUp 0.3s ease-out 1, upDown 3s ease-in-out 0.3s infinite; */
   transform: rotate(-5deg);
@@ -153,6 +160,7 @@ p {
 
 #home .screenshot {
   width: 30em;
+  max-width: 100%;
   height: 19em;
   position: relative;
   overflow: hidden;
@@ -184,4 +192,77 @@ p {
   height: 20em;
   background-color: rgb(255, 0, 98);
   margin: 0 1rem;
+}
+
+#home footer {
+  display: flex;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  background-color: black;
+  padding: 2rem !important;
+}
+
+#home footer ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+#home footer ul a {
+  color: rgb(190, 190, 190);
+}
+
+#home footer ul > li:first-child {
+  margin-right: auto;
+  font-weight: 600;
+}
+
+#home a {
+  color: white;
+  text-decoration: none;
+}
+
+#home a:hover {
+  text-decoration: underline;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  #home .separator {
+    display: none !important;
+  }
+
+  #home .main > *:not(:first-child) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  #home .mobile-align-start {
+    align-items: flex-start !important;
+  }
+
+  #home .screenshot {
+    width: 100%;
+  }
+
+  #home footer ul {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  #home footer ul > li:first-child {
+    margin-top: 2rem;
+  }
+
+  #home .landing  {
+    /* height: 0rem;
+    margin-bottom: 0; */
+  }
+}
+
+@media (max-aspect-ratio: 1/1.77) {
+  :root {
+    font-size: 4vw;
+  }
 }

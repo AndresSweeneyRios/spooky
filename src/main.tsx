@@ -6,18 +6,6 @@ import {
 } from "react-router-dom";
 import './index.css';
 
-// Preload
-import { processAttributes } from "./utils/processAttributes";
-processAttributes;
-
-import type { EntId } from './simulation/EntityRegistry';
-class A extends EntityView {}
-new A(Symbol() as EntId);
-
-import "./graphics/shaders";
-import "./graphics/injections";
-import { EntityView } from "./simulation/EntityView";
-
 const NotFound = lazy(() => import('./pages/_notfound'));
 const Landing = lazy(() => import('./pages/Landing'));
 const CrazeOh = lazy(() => import('./pages/Caseoh'));

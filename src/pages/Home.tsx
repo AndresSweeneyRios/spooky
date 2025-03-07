@@ -43,8 +43,6 @@ function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
   acid1.src = "/3d/throne/ACID1.webp"
   const acid2 = new Image();
   acid2.src = "/3d/throne/smpte.png"
-  const acid3 = new Image();
-  acid3.src = "/3d/throne/ACID3.webp"
 
   const texturePromiseAll = Promise.all<HTMLImageElement>([
     new Promise((resolve) => {
@@ -52,9 +50,6 @@ function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
     }),
     new Promise((resolve) => {
       acid2.onload = () => resolve(acid2)
-    }),
-    new Promise((resolve) => {
-      acid3.onload = () => resolve(acid3)
     }),
   ])
 
@@ -76,7 +71,6 @@ uniform float uTime;
 uniform vec2 uResolution;
 uniform sampler2D acid1Texture;
 uniform sampler2D acid2Texture;
-uniform sampler2D acid3Texture;
 
 // main
 void main() {
@@ -179,7 +173,6 @@ void main() {
   const uResolutionLocation: WebGLUniformLocation | null = gl.getUniformLocation(program, "uResolution");
   const acid1TextureLocation = gl.getUniformLocation(program, "acid1Texture")
   const acid2TextureLocation = gl.getUniformLocation(program, "acid2Texture")
-  const acid3TextureLocation = gl.getUniformLocation(program, "acid3Texture")
 
   // Set uniform values.
   if (uTimeLocation) {
@@ -212,17 +205,6 @@ void main() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.uniform1i(acid2TextureLocation, 1);
-
-    const acid3Texture = gl.createTexture();
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, acid3Texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, acid3);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.uniform1i(acid3TextureLocation, 2);
   })
 
   // Animation loop.
@@ -267,20 +249,52 @@ export default function Home() {
               <p>Home is where the heart is.</p>
             </div>
           </div>
-          <div style={{ flexDirection: 'row' }}>
-            <div style={{ alignItems: 'flex-end' }}>
-              <h1>CrazeOh</h1>
-              <p>Home is where the heart is.</p>
-            </div>
-            <div className="separator"></div>
+          <div style={{ flexDirection: 'row-reverse' }}>
             <div className="screenshot" >
               <img src="/screenshots/crazeoh.webp" alt="A CrazeOh screenshot" />
             </div>
+            <div className="separator"></div>
+            <div style={{ alignItems: 'flex-end' }} className="mobile-align-start">
+              <h1>CrazeOh</h1>
+              <p>Home is where the heart is.</p>
+            </div>
           </div>
           <footer>
-            <ul style={{ flexDirection: 'row' }}>
+            <ul>
               <li>
-                Copyright &copy; TripShred {new Date().getFullYear()}
+                <a href="https://tripshred.com">
+                  Copyright &copy; TripShred {new Date().getFullYear()}
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  Patreon
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  Steam
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  Instagram
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  Discord
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  Bluesky
+                </a>
+              </li>
+              <li>
+                <a style={{ fontWeight: 600, color: "white" }} href="mailto:contact@tripshred.com">
+                  contact@tripshred.com
+                </a>
               </li>
             </ul>
           </footer>
