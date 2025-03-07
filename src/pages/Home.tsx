@@ -257,12 +257,33 @@ export default function Home() {
           <div className="landing">
             <SVG src={TripshredSvg} />
           </div>
-          <div>
+          <div style={{ flexDirection: 'row' }}>
+            <div className="screenshot" >
+              <img src="/screenshots/crazeoh.webp" alt="A CrazeOh screenshot" />
+            </div>
+            <div className="separator"></div>
             <div style={{ alignItems: 'flex-start' }}>
-              <h1>Home</h1>
+              <h1>CrazeOh</h1>
               <p>Home is where the heart is.</p>
             </div>
           </div>
+          <div style={{ flexDirection: 'row' }}>
+            <div style={{ alignItems: 'flex-end' }}>
+              <h1>CrazeOh</h1>
+              <p>Home is where the heart is.</p>
+            </div>
+            <div className="separator"></div>
+            <div className="screenshot" >
+              <img src="/screenshots/crazeoh.webp" alt="A CrazeOh screenshot" />
+            </div>
+          </div>
+          <footer>
+            <ul style={{ flexDirection: 'row' }}>
+              <li>
+                Copyright &copy; TripShred {new Date().getFullYear()}
+              </li>
+            </ul>
+          </footer>
         </div>
         {React.useMemo(() => {
           return <div id="home-background"></div>

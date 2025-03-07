@@ -19,16 +19,22 @@ h1, h2 {
   font-family: 'Sedgwick Ave Display', cursive;
   letter-spacing: 0.1em;
   background-color: black;
-  padding: 1rem 1.5rem;
-  padding-top: calc(1rem + 0.3em);
+  padding: 0.8rem 1rem;
+  padding-top: calc(0.7rem + 0.3em);
+}
+
+h1 {
+  font-size: 1.8em;
 }
 
 p {
   max-width: 40em;
   background-color: black;
-  padding: 2.3rem;
+  padding: 1.2rem;
   line-height: 1.5em;
   letter-spacing: 0.02em;
+  font-size: 0.9rem;
+  color: rgb(141, 141, 141);
 }
 
 #home-background {
@@ -52,9 +58,21 @@ p {
   image-rendering: pixelated;
 }
 
+#home .main::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.658), rgba(0, 0, 0, 0));
+  z-index: 0;
+}
+
 #home .main > *:not(:first-child) {
   /* background-color: rgba(255, 255, 255, 0.075); */
   padding: 5em;
+  font-size: 0.8em;
 }
 
 #home .main div {
@@ -63,11 +81,14 @@ p {
   justify-content: center;
   align-items: center;
   gap: 1rem;
+  position: relative;
+  z-index: 10;
 }
 
 #home .landing {
   width: 100%;
-  height: 30em;
+  height: 100vh;
+  margin-bottom: -10rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -128,4 +149,39 @@ p {
   /* border-bottom: 2px solid #FF4D4D; */
   box-sizing: border-box;
   /* box-shadow: inset 0vw -8vw 10vw -10vw #ff0000; */
+}
+
+#home .screenshot {
+  width: 30em;
+  height: 19em;
+  position: relative;
+  overflow: hidden;
+  /* 0.3rem top left/top right corners border radius*/
+  /* border-radius: 0.3rem 0.3rem 0 0; */
+  font-size: 0.9em;
+}
+
+/* #home .screenshot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(255, 0, 98, 0.1), transparent 30%);
+  border-right: 0.5em solid rgb(255, 0, 98);
+} */
+
+#home .screenshot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: relative;
+}
+
+#home .separator {
+  width: 0.3em;
+  height: 20em;
+  background-color: rgb(255, 0, 98);
+  margin: 0 1rem;
 }
