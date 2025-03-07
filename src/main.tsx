@@ -17,13 +17,13 @@ new A(Symbol() as EntId);
 import "./graphics/shaders";
 import "./graphics/injections";
 import { EntityView } from "./simulation/EntityView";
-import Home from "./pages/Home";
 
 const NotFound = lazy(() => import('./pages/_notfound'));
 const Landing = lazy(() => import('./pages/Landing'));
 const CrazeOh = lazy(() => import('./pages/Caseoh'));
 const Spooky = lazy(() => import('./pages/Spooky'));
 const OptimizeGlb = lazy(() => import('./pages/OptimizeGlb'));
+const Home = lazy(() => import('./pages/Home'));
 
 console.log(`%cJOIN US — https://tripshred.com`, "font-weight: bold; font-size: 16px; padding: 20px; color: #FF4D4D;");
 

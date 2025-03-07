@@ -1,5 +1,14 @@
 import "./Home.css";
 import React, { Fragment } from 'react';
+import _SVG from 'react-inlinesvg';
+import TripshredSvg from '../assets/icons/tripshred.svg';
+
+const SVG = _SVG as any;
+
+const splash = document.getElementById('splash');
+if (splash) {
+  splash.setAttribute('is-hidden', 'true');
+}
 
 function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
   if (!parentElement) {
@@ -15,7 +24,7 @@ function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
   parentElement.appendChild(canvas);
 
   // Initialize WebGL.
-  const gl = canvas.getContext('webgl')!;
+  const gl = canvas.getContext('webgl2')!;
   if (!gl) {
     console.error('WebGL not supported');
     return;
@@ -30,8 +39,27 @@ function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
   window.addEventListener('resize', resize);
   resize();
 
+  const acid1 = new Image();
+  acid1.src = "/3d/throne/ACID1.webp"
+  const acid2 = new Image();
+  acid2.src = "/3d/throne/smpte.png"
+  const acid3 = new Image();
+  acid3.src = "/3d/throne/ACID3.webp"
+
+  const texturePromiseAll = Promise.all<HTMLImageElement>([
+    new Promise((resolve) => {
+      acid1.onload = () => resolve(acid1)
+    }),
+    new Promise((resolve) => {
+      acid2.onload = () => resolve(acid2)
+    }),
+    new Promise((resolve) => {
+      acid3.onload = () => resolve(acid3)
+    }),
+  ])
+
   // Vertex shader: renders a full-screen quad.
-  const vertexShaderSource: string = `
+  const vertexShaderSource: string = /* glsl */ `
     attribute vec2 aPosition;
     void main() {
       gl_Position = vec4(aPosition, 0.0, 1.0);
@@ -46,107 +74,44 @@ precision highp float;
 
 uniform float uTime;
 uniform vec2 uResolution;
+uniform sampler2D acid1Texture;
+uniform sampler2D acid2Texture;
+uniform sampler2D acid3Texture;
 
-// --- Constants ---
-const float CELL_SIZE = 5.0;
-const float OFFSET_SCALE = 2.0;
-const float BOX_SIZE = 0.5;
-const int MAX_STEPS = 70;
-const float MIN_DIST = 0.1;
-const float MAX_DIST = 100.0;
-const float SPEED_FACTOR = 0.15;
-const float ROTATION_FACTOR = 0.01;
-const float FOCAL_ANGLE = 90.0;
-const float NEAR_CLIP = 3.0; // Added near clip plane
-
-// --- Utility Functions ---
-
-// Hash function to generate a random vector for each cell
-vec3 hash3(vec3 p) {
-    p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
-             dot(p, vec3(269.5, 183.3, 246.1)),
-             dot(p, vec3(113.5, 271.9, 124.6)));
-    return fract(sin(p) * 43758.5453);
-}
-
-// Signed Distance Function for a Box
-float boxSDF(vec3 p, vec3 b) {
-    vec3 d = abs(p) - b;
-    return length(max(d, vec3(0.0))) + min(max(d.y, max(d.x, d.z)), 0.0);
-}
-
-// --- Scene Description ---
-
-// Scene's Signed Distance Function (SDF)
-float sceneSDF(vec3 p) {
-    // Determine the cell and local position within the cell
-    vec3 cell = floor(p / CELL_SIZE);
-    vec3 local = mod(p, CELL_SIZE) - 0.5 * CELL_SIZE;
-
-    // Apply a random offset to each cell
-    vec3 offset = (hash3(cell) - 0.5) * OFFSET_SCALE;
-    local += offset;
-
-    // Return the SDF of the box within the cell
-    return boxSDF(local, vec3(BOX_SIZE));
-}
-
-// --- Ray Marching ---
-
-// Ray marching algorithm
-float rayMarch(vec3 ro, vec3 rd) {
-    float t = NEAR_CLIP; // Start at the near clip plane
-    for (int i = 0; i < MAX_STEPS; i++) {
-        // Calculate the distance to the scene at the current point
-        float d = sceneSDF(ro + rd * t);
-
-        // If we're close enough to the surface, return the distance
-        if (d < MIN_DIST) return t;
-
-        // Advance along the ray
-        t += d * 0.5;
-
-        // If we've gone too far, stop
-        if (t > MAX_DIST) break;
-    }
-    return t; // Return the total distance traveled
-}
-
-// --- Main Shader Program ---
-
+// main
 void main() {
-    // Normalize pixel coordinates
-    vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
+  vec2 uv = gl_FragCoord.xy / uResolution.xy;
+  float aspectRatio = uResolution.x / uResolution.y;
 
-    // --- Camera Setup ---
-    // Animate camera rotation
-    float angle = uTime * ROTATION_FACTOR;
-    vec3 ro = vec3(cos(angle) * 30.0, 0.0, sin(angle) * 30.0);
+  // Adjust UVs for different aspect ratios
+  vec2 centeredUv = vec2(
+    (uv.x - 0.5) * aspectRatio + 0.5,
+    uv.y + 0.5
+  );
 
-    // Animate camera position
-    ro += vec3(sin(uTime * 0.1 * SPEED_FACTOR) * 18.0);
+  vec2 acid3Uv = vec2(
+    (centeredUv.x + uTime * 0.002) / 2.0,
+    (centeredUv.y + uTime * 0.0005) / 2.0
+  );
 
-    // Calculate camera direction vectors
-    vec3 forward = normalize(vec3(0.0) - ro);
-    vec3 right = normalize(cross(forward, vec3(0.0, 1.0, 0.0)));
-    vec3 up = cross(right, forward);
+  vec4 acid3 = texture2D(acid1Texture, acid3Uv);
 
-    // --- Ray Direction ---
-    // Calculate ray direction based on field of view
-    float focalLength = 1.0 / tan(radians(FOCAL_ANGLE) * 0.5);
-    vec3 rd = normalize(uv.x * right + uv.y * up + focalLength * forward);
+  // Sample textures
+  vec2 acid1bUv = vec2(1.0 - (centeredUv.x + uTime * -0.002) / 4.0, (centeredUv.y + (acid3.r * 0.1) + uTime * -0.002) / 4.0);
+  vec4 acid1b = texture2D(acid1Texture, acid1bUv);
 
-    // --- Ray March and Shade ---
-    // Perform ray marching
-    float t = rayMarch(ro, rd);
-    vec3 pos = ro + rd * t;
+  vec2 acid2Uv = vec2(
+    (uv.x - 0.5) + 0.5 + (acid1b.r * 0.3),
+    1.0 - centeredUv.y / 1.77
+  );
 
-    // --- Coloring based on cell ---
-    float cellVal = sin(dot(floor(pos / CELL_SIZE), vec3(1.0)) * 1.57);
-    vec3 baseColor = mix(vec3(0.0), vec3(1.0,1.0,0.0), cellVal);
+  vec4 acid2 = texture2D(acid2Texture, acid2Uv);
 
-    // Output final color
-    gl_FragColor = vec4(baseColor, 1.0);
+  // vec3 color1 = acid2.rgb * (1.0 - smoothedValue);
+  // vec3 color2 = vec3(1.0, 0.8, 0.4) * smoothedValue;
+
+  // gl_FragColor = vec4(color1 + color2, 1.0);
+  gl_FragColor = acid2 * (float(acid1b.r > 0.3) * 0.5 + 0.5);
 }
   `;
 
@@ -212,6 +177,53 @@ void main() {
   // Get uniform locations.
   const uTimeLocation: WebGLUniformLocation | null = gl.getUniformLocation(program, "uTime");
   const uResolutionLocation: WebGLUniformLocation | null = gl.getUniformLocation(program, "uResolution");
+  const acid1TextureLocation = gl.getUniformLocation(program, "acid1Texture")
+  const acid2TextureLocation = gl.getUniformLocation(program, "acid2Texture")
+  const acid3TextureLocation = gl.getUniformLocation(program, "acid3Texture")
+
+  // Set uniform values.
+  if (uTimeLocation) {
+    gl.uniform1f(uTimeLocation, 0.0);
+  }
+
+  if (uResolutionLocation) {
+    gl.uniform2f(uResolutionLocation, canvas.width, canvas.height);
+  }
+
+  texturePromiseAll.then(([acid1, acid2, acid3]) => {
+    const acid1Texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, acid1Texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, acid1);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.uniform1i(acid1TextureLocation, 0);
+
+    const acid2Texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, acid2Texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, acid2);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.uniform1i(acid2TextureLocation, 1);
+
+    const acid3Texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, acid3Texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, acid3);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.uniform1i(acid3TextureLocation, 2);
+  })
 
   // Animation loop.
   let startTime: number = Date.now();
@@ -231,11 +243,6 @@ void main() {
 
 export default function Home() {
   React.useEffect(() => {
-    const splash = document.getElementById('splash');
-    if (splash) {
-      splash.remove();
-    }
-
     const homeBackground = document.getElementById('home-background');
 
     if (homeBackground) {
@@ -246,6 +253,17 @@ export default function Home() {
   return (
     <Fragment>
       <div id="home">
+        <div className="main">
+          <div className="landing">
+            <SVG src={TripshredSvg} />
+          </div>
+          <div>
+            <div style={{ alignItems: 'flex-start' }}>
+              <h1>Home</h1>
+              <p>Home is where the heart is.</p>
+            </div>
+          </div>
+        </div>
         {React.useMemo(() => {
           return <div id="home-background"></div>
         }, [])}
