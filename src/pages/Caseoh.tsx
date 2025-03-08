@@ -17,6 +17,7 @@ import { playerInput } from "../input/player";
 import { executeWinScript } from "../scenes/crazeoh/scripts";
 import { ArgumentsType } from "vitest";
 import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
+import TripshredSvg from "../assets/icons/tripshred.svg";
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
@@ -281,8 +282,17 @@ export const CrazeOh = () => {
         </div>
         <div className="credits">
           <p>made by</p>
-          <h2>Kemal Albayrak</h2>
-          <h2>Andres Sweeney-Rios</h2>
+          <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer">
+            <h2>Kemal Albayrak</h2>
+          </a>
+          <a href="https://poisonapple.dev" target="_blank" rel="noreferrer">
+            <h2>Andres Sweeney-Rios</h2>
+          </a>
+        </div>
+        <div className="tripshred">
+          <a href="https://tripshred.com" target="_blank" rel="noreferrer">
+            <SVG src={TripshredSvg} />
+          </a>
         </div>
       </div>
 

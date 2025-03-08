@@ -84,11 +84,23 @@
   display: flex;
   flex-direction: column;
   font-size: 0.9em;
+  z-index: 5;
+  user-select: text;
+  pointer-events: all;
 }
 
 #caseoh .credits p {
   font-weight: 600;
   color: grey;
+}
+
+#caseoh .credits a {
+  color: white;
+  text-decoration: none;
+}
+
+#caseoh .credits a:hover {
+  text-decoration: underline;
 }
 
 .caseoh-polaroid-overlay {
@@ -276,6 +288,7 @@
   height: 15em;
   width: 35em;
   font-size: 0.8em;
+  pointer-events: none;
 }
 
 .caseoh-camera-hint[is-hinting="false"] {
@@ -461,4 +474,12 @@
   top: calc(50% - 7em);
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+#caseoh .tripshred {
+  position: absolute;
+  z-index: 10;
+  bottom: 2rem;
+  right: 4rem;
+  width: 15rem;
 }
