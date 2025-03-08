@@ -13,7 +13,6 @@ const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
 import CameraHintSvg from "../assets/icons/camera_hint.svg";
 import SplashWebp from "../assets/caseoh/splash.webp";
-import DpadSoloIconSvg from "../assets/icons/dpad_solo.svg";
 import { playerInput } from "../input/player";
 import { executeWinScript } from "../scenes/crazeoh/scripts";
 import { ArgumentsType } from "vitest";
@@ -138,6 +137,7 @@ const handleDecision = async (decision: boolean) => {
       coinsAudio.then(audio => audio.play());
     } else {
       errorAudio.then(audio => audio.play());
+      state.decrementWins();
     }
 
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
@@ -234,18 +234,19 @@ export const CrazeOh = () => {
     };
   }, []);
 
-  // React.useEffect(() => {
-  //   const handler = () => {
-  //     document.getElementById("caseoh-wins")!.innerText = `${state.wins} / 10 WINS`;
-  //     document.getElementById("caseoh-stats")!.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue && !state.outro) ? "false" : "true");
+  React.useEffect(() => {
+    const handler = () => {
+      const wins = document.getElementById("caseoh-wins")!
+      wins.innerText = `${state.wins} / 20 WINS`;
+      wins.setAttribute("is-hidden", state.playing ? "false" : "true");
 
-  //     animationFrame = requestAnimationFrame(handler);
-  //   }
+      animationFrame = requestAnimationFrame(handler);
+    }
 
-  //   let animationFrame = requestAnimationFrame(handler)
+    let animationFrame = requestAnimationFrame(handler)
 
-  //   return () => cancelAnimationFrame(animationFrame);
-  // }, [])
+    return () => cancelAnimationFrame(animationFrame);
+  }, [])
 
   React.useEffect(() => {
     document.querySelector(".caseoh-settings-indicator")!.setAttribute("is-hidden", pointerLocked ? "true" : "false");
@@ -270,12 +271,12 @@ export const CrazeOh = () => {
             alignItems: 'center',
           }}>
             <button onClick={startGame}>Play</button>
-            <SVG src={DpadSoloIconSvg} style={{
+            {/* <SVG src={DpadSoloIconSvg} style={{
               width: '4em',
               transform: 'rotate(-90deg)',
               position: 'absolute',
               left: '-6em'
-            }} />
+            }} /> */}
           </div>
         </div>
         <div className="credits">
@@ -285,8 +286,7 @@ export const CrazeOh = () => {
         </div>
       </div>
 
-      <div id="caseoh-stats" is-hidden="true">
-        <h1 id="caseoh-anomaly-id"></h1>
+      <div id="caseoh-stats" is-hidden="false">
         <h2 id="caseoh-wins"></h2>
       </div>
 
@@ -317,7 +317,6 @@ export const CrazeOh = () => {
 
         return false;
       }}>
-        <SVG src={InteractableIconSvg} />
       </div>
 
       {/* Decision screen */}
@@ -348,6 +347,7 @@ export const CrazeOh = () => {
               {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(180deg)' }} /> */}
             </div>
           </div>
+          <h2>(Sometimes, there is no anomaly.)</h2>
         </div>
       </div>
 
@@ -375,7 +375,7 @@ export const CrazeOh = () => {
       {/* Loading overlay */}
       <div id="caseoh-loading" is-hidden="false">
         <img src={TvWebp} alt="TV Loading" />
-        <h1>Loading</h1>
+        <h1>Randomizing anomaly...</h1>
       </div>
 
       <img src={SplashWebp} alt="Explainer" id="caseoh-explainer" is-hidden="true" />

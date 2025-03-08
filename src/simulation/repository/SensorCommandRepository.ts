@@ -4,6 +4,7 @@ import {
   SimulationRepository,
   SimulationComponent,
 } from "./_repository"
+import * as THREE from "three"
 
 export enum ExecutionMode {
   Immediate = 0,
@@ -16,6 +17,7 @@ export interface SensorCommand {
   Sensors: symbol[] | undefined
   Once: boolean
   Enabled: boolean
+  Owner?: THREE.Object3D
 }
 
 class SensorCommandComponent extends SimulationComponent {
@@ -33,12 +35,14 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
     executionMode,
     sensors = undefined,
     once = false,
+    owner = undefined,
   }: {
     entId: EntId
     command: SimulationCommand
     executionMode: ExecutionMode
     sensors?: symbol[]
     once?: boolean
+    owner?: THREE.Object3D
   }) {
     const component = this.entities.get(entId)!
 
@@ -50,6 +54,7 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
       Sensors: sensors,
       Once: once,
       Enabled: true,
+      Owner: owner,
     })
 
     this.SymbolEntIdMap.set(symbol, entId)

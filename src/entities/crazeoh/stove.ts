@@ -19,6 +19,7 @@ export const createStove = (simulation: Simulation) => {
     executionMode: ExecutionMode.Interaction,
     command: new ToggleStove(stoveView),
     once: false,
+    owner: stoveObject,
   })
 
   const worldPosition = stoveObject.getWorldPosition(new Vector3())

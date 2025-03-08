@@ -44,6 +44,14 @@ export const resetWins = () => {
   // wins = 0
 }
 
+export const decrementWins = () => {
+  wins--
+
+  if (wins < 0) {
+    wins = 0
+  }
+}
+
 // -----
 
 export let tookPicture = false

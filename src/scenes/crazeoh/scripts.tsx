@@ -103,6 +103,12 @@ const waitForAction = () => new Promise<void>(resolve => {
 })
 
 export const intro = async (simulation: Simulation) => {
+  if (!state.isTutorial) {
+    state.setInDialogue(false)
+
+    return
+  }
+
   // id caseoh-explainer
   const explainer = document.getElementById("caseoh-explainer")!
   explainer.setAttribute("is-hidden", "false")
@@ -115,7 +121,10 @@ export const intro = async (simulation: Simulation) => {
     // <>One day, his stream cut off mid-broadcast, and he disappeared.</>,
     // <>As his old friend, you go to check on him.</>,
     // <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
-    <i>[Be alert: <b>objects can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
+    // <i>[Be alert: <b>objects can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
+    <i>[<b>Examine your surroundings</b>, they change each round.]</i>,
+    <i>[Then, <b>take a photo</b> of the giant french fries. This is called an <b>anomaly</b>, you will find more later.]</i>,
+    <i>[When you're done, <b>return to your car</b> to end the round.]</i>,
   ]
 
   await playDialogueWithVoice(dialogueTexts)

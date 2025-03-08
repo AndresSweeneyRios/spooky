@@ -17,6 +17,7 @@ export const createDoor = (simulation: Simulation) => {
     executionMode: ExecutionMode.Interaction,
     command: new Exit(),
     once: false,
+    owner: simulation.ThreeScene.getObjectByName("car")!,
   })
 
   // simulation.ViewSync.AddEntityView(new class DoorView extends EntityView {
