@@ -72,40 +72,35 @@ uniform vec2 uResolution;
 uniform sampler2D acid1Texture;
 uniform sampler2D acid2Texture;
 
-// main
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution.xy;
-  float aspectRatio = uResolution.x / uResolution.y;
+  float aspect = uResolution.x / uResolution.y;
+  vec2 centeredUv = vec2((uv.x - 0.5) * aspect + 0.5, uv.y + 0.5);
 
-  // Adjust UVs for different aspect ratios
-  vec2 centeredUv = vec2(
-    (uv.x - 0.5) * aspectRatio + 0.5,
-    uv.y + 0.5
-  );
+  // Precompute time factors.
+  float t0 = uTime * 0.002;
+  float t1 = uTime * 0.0005;
+  float negT0 = -t0;
 
-  vec2 acid3Uv = vec2(
-    (centeredUv.x + uTime * 0.002) / 2.0,
-    (centeredUv.y + uTime * 0.0005) / 2.0
-  );
-
+  // Compute acid3 UV and sample.
+  vec2 acid3Uv = (centeredUv + vec2(t0, t1)) / 2.0;
   vec4 acid3 = texture2D(acid1Texture, acid3Uv);
 
-  // Sample textures
-  vec2 acid1bUv = vec2(1.0 - (centeredUv.x + uTime * -0.002) / 4.0, (centeredUv.y + (acid3.r * 0.1) + uTime * -0.002) / 4.0);
+  // Compute acid1b UV and sample.
+  vec2 acid1bUv = vec2(
+    1.0 - (centeredUv.x + negT0) / 4.0,
+    (centeredUv.y + acid3.r * 0.1 + negT0) / 4.0
+  );
   vec4 acid1b = texture2D(acid1Texture, acid1bUv);
 
+  // Compute acid2 UV and sample.
   vec2 acid2Uv = vec2(
-    (uv.x - 0.5) + 0.5 + (acid1b.r * 0.3),
+    uv.x + acid1b.r * 0.3,
     1.0 - centeredUv.y / 1.77
   );
-
   vec4 acid2 = texture2D(acid2Texture, acid2Uv);
 
-  // vec3 color1 = acid2.rgb * (1.0 - smoothedValue);
-  // vec3 color2 = vec3(1.0, 0.8, 0.4) * smoothedValue;
-
-  // gl_FragColor = vec4(color1 + color2, 1.0);
-  gl_FragColor = acid2 * (float(acid1b.r > 0.3) * 0.5 + 0.5);
+  gl_FragColor = acid2;
 }
   `;
 
@@ -199,8 +194,8 @@ void main() {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, acid2Texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, acid2);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     gl.generateMipmap(gl.TEXTURE_2D);
