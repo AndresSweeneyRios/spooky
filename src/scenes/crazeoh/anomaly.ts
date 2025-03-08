@@ -944,11 +944,52 @@ const AnomalyPainting: Anomaly = {
   }
 }
 
+const Amogus: Anomaly = {
+  Id: 31,
+
+  Enable(simulation: Simulation) {
+    const amogus = simulation.ThreeScene.getObjectByName('amogus') as THREE.Mesh
+
+    amogus.visible = true
+
+    const mesh0 = amogus.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+
+    return mesh0.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const amogus = simulation.ThreeScene.getObjectByName('amogus') as THREE.Mesh
+
+    amogus.visible = false
+  }
+}
+
+const FakeMirror: Anomaly = {
+  Id: 32,
+
+  Enable(simulation: Simulation) {
+    const mirror = simulation.ThreeScene.getObjectByName('fakemirror') as THREE.Mesh
+
+    mirror.visible = true
+
+    return mirror.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const mirror = simulation.ThreeScene.getObjectByName('fakemirror') as THREE.Mesh
+
+    mirror.visible = false
+  }
+}
+
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FrenchFries,
+  LettuceBurger,
   Keyboard,
+  Amogus,
   ClockSpinFast,
   Monitors,
+  FakeMirror,
   CaseohSlide,
   SeveredHand,
   ClockSix,
@@ -965,7 +1006,6 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   RealLabel,
   Glock,
   CanBepis,
-  LettuceBurger,
   FakeBuffet,
   CaseohCorner,
   CaseohExtraThicc,
