@@ -443,7 +443,7 @@ export const init = async () => {
 
   const teleportPlayer = () => {
     teleportedPlayer = true;
-    const playerSpawnPosition = new THREE.Vector3(2, 0, -1.2);
+    const playerSpawnPosition = new THREE.Vector3(2, 0, 0);
     const playerObject = scene.getObjectByName("PLAYER") as THREE.Mesh;
     if (playerObject) {
       playerObject.visible = false;
