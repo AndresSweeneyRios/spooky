@@ -163,7 +163,7 @@ const outro = async (simulation: Simulation) => {
 
   setDialogue("")
 
-  await new Promise(resolve => setTimeout(resolve, 12000))
+  await new Promise(resolve => setTimeout(resolve, 2000))
 
   currentCrtPass!.uniforms["noiseIntensity"].value = 1.0
 
