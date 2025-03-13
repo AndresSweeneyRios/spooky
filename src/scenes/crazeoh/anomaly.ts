@@ -46,8 +46,8 @@ const FrenchFries: Anomaly = {
   Description: "FUCKASS BITCH ",
 
   Enable(simulation: Simulation) {
-    const fries = simulation.ThreeScene.getObjectByName('fries')!.getObjectByProperty('type', 'Mesh') as THREE.Mesh
-    fries.scale.set(0.5, 0.5, 0.5)
+    const fries = simulation.ThreeScene.getObjectByName('RootNode045')!
+    fries.scale.set(3.5, 3.5, 3.5)
 
     return fries.getWorldPosition(new THREE.Vector3())
   },
@@ -805,9 +805,9 @@ const CaseohSlide: Anomaly = {
 
         // Define the minimum and maximum z values for the effect.
         const MIN = 1;
-        const MAX = 9;
+        const MAX = 4;
 
-        // Normalize player's z between MIN and MAX.
+        // Normalize player's z betweenz MIN and MAX.
         let normalized = (playerZ - MIN) / (MAX - MIN);
         normalized = Math.min(Math.max(normalized, 0), 1);
         // Invert to get deltaX: when playerZ == MIN, deltaX is 1; when playerZ == MAX, deltaX is 0.
@@ -984,9 +984,9 @@ const FakeMirror: Anomaly = {
 
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   FrenchFries,
+  Amogus,
   LettuceBurger,
   Keyboard,
-  Amogus,
   ClockSpinFast,
   Monitors,
   FakeMirror,
@@ -994,7 +994,7 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   SeveredHand,
   ClockSix,
   Demon,
-  // RedDemon,
+  RedDemon,
   Head,
   KitchenKnife,
   Feet,
