@@ -18,6 +18,7 @@ import { executeWinScript } from "../scenes/crazeoh/scripts";
 import { ArgumentsType } from "vitest";
 import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
 import TripshredSvg from "../assets/icons/tripshred.svg";
+import TrophySvg from "../assets/icons/trophy.svg";
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
@@ -238,8 +239,9 @@ export const CrazeOh = () => {
   React.useEffect(() => {
     const handler = () => {
       const wins = document.getElementById("caseoh-wins")!
+      const stats = document.getElementById("caseoh-stats")!
       wins.innerText = `${state.wins} / 20 WINS`;
-      wins.setAttribute("is-hidden", state.playing ? "false" : "true");
+      stats.setAttribute("is-hidden", state.playing ? "false" : "true");
 
       animationFrame = requestAnimationFrame(handler);
     }
@@ -296,7 +298,8 @@ export const CrazeOh = () => {
         </div>
       </div>
 
-      <div id="caseoh-stats" is-hidden="false">
+      <div id="caseoh-stats" is-hidden="true">
+        <SVG src={TrophySvg} />
         <h2 id="caseoh-wins"></h2>
       </div>
 

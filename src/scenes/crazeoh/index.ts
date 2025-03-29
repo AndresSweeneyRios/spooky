@@ -92,6 +92,36 @@ export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
   autoplay: true,
 })
 
+export const ventAudioPromise = loadAudio("/audio/sfx/vent.ogg", {
+  loop: true,
+  volume: 0.05,
+  detune: -400,
+  autoplay: true,
+})
+
+export const setupVent = (simulation: Simulation, scene: THREE.Scene) => {
+  const vent = scene.getObjectByName("vent") as THREE.Mesh;
+  if (!vent) return;
+
+  ventAudioPromise.then(audio => {
+    const posAudio = audio.getPositionalAudio();
+    vent.add(posAudio);
+  });
+
+  simulation.ViewSync.AddAuxiliaryView(new class extends View {
+    private isCleanedUp = false;
+
+    public Draw(): void {
+      if (this.isCleanedUp) return;
+      vent.rotateY(0.01);
+    }
+
+    public Cleanup(): void {
+      this.isCleanedUp = true;
+    }
+  });
+}
+
 // Audio helper setup functions with proper cleanup
 const setupHeartbeat = (simulation: Simulation, playerEntId: EntId) => {
   heartbeatAudioPromise.then(audio => {
@@ -202,6 +232,7 @@ const setupEat = (simulation: Simulation, scene: THREE.Scene) => {
   const foods = [
     "pizza", "muffin", "strawberyshake",
     "cereal", "23b099929e614d9a927b4ec8f3d72063fbx",
+    "donuts",
   ];
 
   foods.forEach(food => eat(food, simulation, scene));

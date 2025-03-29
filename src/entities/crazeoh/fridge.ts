@@ -22,7 +22,7 @@ export const createFridge = (simulation: Simulation) => {
   simulation.ViewSync.AddAuxiliaryView(fridgeView)
 
   fridgeAudioPromise.then(audio => {
-    audio.setVolume(1.5)
+    audio.setVolume(0.5)
     audio.play()
     fridgeObject.add(audio.getPositionalAudio())
   })
