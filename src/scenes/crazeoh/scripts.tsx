@@ -9,6 +9,7 @@ import type { loadAudio } from "../../graphics/loaders"
 import * as THREE from "three"
 import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
 import { DEFAULT_ANOMALIES } from "./anomaly"
+import { loadScene, scenes } from ".."
 
 const loaderPromise = import("../../graphics/loaders")
 
@@ -230,9 +231,14 @@ const outro = async (simulation: Simulation) => {
   location.assign("/spooky")
 }
 
+const basement = async (simulation: Simulation) => {
+  await loadScene(scenes.interloper)
+}
+
 const winScript: Record<number, typeof intro> = {
-  0: intro,
-  20: outro,
+  // 0: intro,
+  // 20: outro,
+  0: basement,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
