@@ -17,7 +17,13 @@ interface BinarySizeNode {
   children: BinarySizeNode[];
 }
 
-// Calculate binary size of THREE objects
+
+// Add this at the top of your file after the interface
+let seenGeometries = new WeakSet<THREE.BufferGeometry>();
+let seenMaterials = new WeakSet<THREE.Material>();
+let seenTextures = new WeakSet<THREE.Texture>();
+
+// Modify the calculateBinarySize function
 function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
   let totalSize = 0;
   const children: BinarySizeNode[] = [];
@@ -28,16 +34,19 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
   // Calculate geometry size if exists
   if ((object as THREE.Mesh).geometry) {
     const geometry = (object as THREE.Mesh).geometry;
-    for (const name in geometry.attributes) {
-      const attribute = geometry.attributes[name];
-      if (attribute.array) {
-        objectSize += attribute.array.byteLength;
+    if (!seenGeometries.has(geometry)) {
+      seenGeometries.add(geometry);
+      for (const name in geometry.attributes) {
+        const attribute = geometry.attributes[name];
+        if (attribute.array) {
+          objectSize += attribute.array.byteLength;
+        }
       }
-    }
-    
-    // Add index buffer size if exists
-    if (geometry.index && geometry.index.array) {
-      objectSize += geometry.index.array.byteLength;
+      
+      // Add index buffer size if exists
+      if (geometry.index && geometry.index.array) {
+        objectSize += geometry.index.array.byteLength;
+      }
     }
   }
   
@@ -47,9 +56,13 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
     // Add estimated size for material (textures are the heaviest part)
     if (Array.isArray(material)) {
       material.forEach(mat => {
-        objectSize += estimateMaterialSize(mat);
+        if (!seenMaterials.has(mat)) {
+          seenMaterials.add(mat);
+          objectSize += estimateMaterialSize(mat);
+        }
       });
-    } else {
+    } else if (!seenMaterials.has(material)) {
+      seenMaterials.add(material);
       objectSize += estimateMaterialSize(material);
     }
   }
@@ -73,7 +86,7 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
   };
 }
 
-// Calculate texture sizes
+// Update estimateMaterialSize function to track textures
 function estimateMaterialSize(material: THREE.Material): number {
   let size = 1024; // Base size for material properties
   
@@ -90,7 +103,8 @@ function estimateMaterialSize(material: THREE.Material): number {
   ];
   
   textures.forEach(texture => {
-    if (texture && texture.image) {
+    if (texture && texture.image && !seenTextures.has(texture)) {
+      seenTextures.add(texture);
       // Estimate texture size based on dimensions and format
       const width = texture.image.width || 0;
       const height = texture.image.height || 0;
@@ -115,8 +129,13 @@ export const SizeChecker: React.FC = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
+  
     setLoading(true);
+    
+    // Reset the WeakSets to track shared resources
+    seenGeometries = new WeakSet<THREE.BufferGeometry>();
+    seenMaterials = new WeakSet<THREE.Material>();
+    seenTextures = new WeakSet<THREE.Texture>();
 
     const objectUrl = URL.createObjectURL(file);
     
