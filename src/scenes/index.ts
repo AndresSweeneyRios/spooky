@@ -7,6 +7,7 @@ export const scenes = Object.freeze({
   animationDebugger: () => import('./gardening/animationDebugger'),
   crazeoh: () => import('./crazeoh'),
   interloper: () => import('./crazeoh/interloper'),
+  dropper: () => import('./crazeoh/dropper'),
 })
 
 const DEFAULT_SCENE = scenes.city

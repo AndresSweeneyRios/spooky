@@ -235,10 +235,14 @@ const basement = async (simulation: Simulation) => {
   await loadScene(scenes.interloper)
 }
 
+const dropper = async (simulation: Simulation) => {
+  await loadScene(scenes.dropper)
+}
+
 const winScript: Record<number, typeof intro> = {
   // 0: intro,
   // 20: outro,
-  0: basement,
+  // 0: basement,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
