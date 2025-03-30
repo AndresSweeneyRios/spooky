@@ -410,7 +410,25 @@ export const loadAudio = async (path: string, {
   };
 
   const stop = async () => {
-    audio.stop(0.05);
+    // Create a fade out effect over 0.05 seconds to eliminate clicking
+    const originalVolume = audio.getVolume();
+    const fadeSteps = 5;
+    const fadeInterval = 0.05 / fadeSteps;
+
+    return await new Promise<void>(resolve => {
+      let step = 0;
+      const fadeTimer = setInterval(() => {
+        step++;
+        audio.setVolume(originalVolume * (1 - step / fadeSteps));
+
+        if (step >= fadeSteps) {
+          clearInterval(fadeTimer);
+          audio.stop();
+          audio.setVolume(originalVolume); // Reset volume for next play
+          resolve();
+        }
+      }, fadeInterval * 1000);
+    });
   };
 
   const getPositionalAudio = () => {

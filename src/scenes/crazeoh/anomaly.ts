@@ -25,7 +25,7 @@ const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
-const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
+export const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
   return await loadAudio('/audio/sfx/clock.ogg', {
     loop: true,
     positional: true,

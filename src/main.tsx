@@ -12,6 +12,7 @@ const CrazeOh = lazy(() => import('./pages/Caseoh'));
 const Spooky = lazy(() => import('./pages/Spooky'));
 const OptimizeGlb = lazy(() => import('./pages/OptimizeGlb'));
 const Home = lazy(() => import('./pages/Home'));
+const SizeChecker = lazy(() => import('./pages/SizeChecker'));
 
 console.log(`%cJOIN US — https://tripshred.com`, "font-weight: bold; font-size: 16px; padding: 20px; color: #FF4D4D;");
 
@@ -67,6 +68,11 @@ const router = createBrowserRouter([
   {
     path: "/optimize-glb",
     element: <Suspense fallback={<div></div>}><OptimizeGlb /></Suspense>,
+  },
+
+  {
+    path: "/size-checker",
+    element: <Suspense fallback={<div></div>}><SizeChecker /></Suspense>,
   },
   // 404
   {

@@ -12,8 +12,8 @@ import { OutlinePass, PositionalAudioHelper, ShaderPass } from 'three/examples/j
 import { ToneMappingShader } from '../../graphics/toneMappingShader';
 import { traverse } from "../../utils/traverse";
 import * as state from "./state";
-import { disableAllAnomalies, pickRandomAnomaly } from "./anomaly";
-import { createFridge } from "../../entities/crazeoh/fridge";
+import { clockAudioPromise, disableAllAnomalies, pickRandomAnomaly } from "./anomaly";
+import { createFridge, fridgeAudioPromise } from "../../entities/crazeoh/fridge";
 import { createStove } from "../../entities/crazeoh/stove";
 import { createMicrowave } from "../../entities/crazeoh/microwave";
 import * as shaders from '../../graphics/shaders';
@@ -670,5 +670,18 @@ export const init = async () => {
     cleanup();
     playerInput.emitter.off("justpressed", justPressed);
     document.removeEventListener("pointerlockchange", handlePointerLock);
+
+    // stop all audio
+    cameraAudioPromise.then(audio => audio.stop());
+    ceilingFanAudioPromise.then(audio => audio.stop());
+    eatChipAudioPromise.then(audio => audio.stop());
+    burgerkingAudioPromise.then(audio => audio.stop());
+    heartbeatAudioPromise.then(audio => audio.stop());
+    garageScreamAudioPromise.then(audio => audio.stop());
+    carIdling.then(audio => audio.stop());
+    windAudioPromise.then(audio => audio.stop());
+    ventAudioPromise.then(audio => audio.stop());
+    fridgeAudioPromise.then(audio => audio.stop());
+    clockAudioPromise.then(audio => audio.stop());
   };
 };

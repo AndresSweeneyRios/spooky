@@ -19,10 +19,10 @@ if (!localStorage.sensitivity) {
 
 const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
   randomPitch: true,
-  detune: -2500,
-  pitchRange: 400,
+  // detune: -4000,
+  pitchRange: 800,
 });
-footstepAudio.then(audio => audio.setVolume(0.5));
+footstepAudio.then(audio => audio.setVolume(0.25));
 
 // Define a strongly typed emitter.
 type InteractionChangedPayload = {

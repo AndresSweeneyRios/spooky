@@ -1,0 +1,11 @@
+#size-checker {
+  width: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  font-size: 14px;
+}
+
+#size-checker, #size-checker * {
+  font-family: monospace;
+  user-select: text;
+}
