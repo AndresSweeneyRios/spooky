@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
-import { loadGltf } from '../../graphics/loaders';
+import { loadAudio, loadGltf } from '../../graphics/loaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -35,6 +35,13 @@ export const enableLoading = (): void => {
 };
 
 const mapLoader = loadGltf("/3d/scenes/island/interloper_OPTIMIZED.glb").then(gltf => gltf.scene);
+
+// AveMarisStella.mp3
+const music = loadAudio("/audio/music/AveMarisStella.mp3", {
+  loop: true,
+  positional: false,
+  volume: 0.0,
+});
 
 const initScene = () => {
   const scene = new THREE.Scene();
@@ -138,6 +145,25 @@ export const init = async () => {
     player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
   ]);
   currentPlayerView = playerView;
+
+  // Delay music start by 2 seconds
+  setTimeout(() => {
+    music.then(audio => audio.play());
+
+    // ease volume up to 0.2 over 2 seconds
+    const fadeInDuration = 30000;
+    const fadeInInterval = 50;
+    const fadeInStep = 0.05 / (fadeInDuration / fadeInInterval);
+    let currentVolume = 0.0;
+    const fadeInIntervalId = setInterval(() => {
+      currentVolume += fadeInStep;
+      if (currentVolume >= 0.05) {
+        currentVolume = 0.05;
+        clearInterval(fadeInIntervalId);
+      }
+      music.then(audio => audio.setVolume(currentVolume));
+    }, fadeInInterval);
+  }, 2000);
 
   playerView.interactionEmitter.on("interactionsChanged", interactions => {
     let closestInteraction = null;

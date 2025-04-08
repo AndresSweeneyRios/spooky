@@ -16,6 +16,7 @@ import { PlayerView } from "../../views/player";
 import { updateGameLogic } from "../../simulation/loop";
 import { JustPressedEvent, playerInput } from "../../input/player";
 import * as state from "./state";
+import { setGravity } from "../../simulation/repository/PhysicsRepository";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -128,6 +129,8 @@ const initScene = () => {
 export const init = async () => {
   enableLoading();
 
+  setGravity(-0.2)
+
   player.setThirdPerson(false);
   player.setCameraHeight(2);
 
@@ -167,11 +170,125 @@ export const init = async () => {
   });
   scene.add(sceneGltf);
 
-  const spotLight = new THREE.SpotLight(0xffffff);
+  const cylinder = scene.getObjectByName("Cylinder");
+
+  if (cylinder instanceof THREE.Mesh) {
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      '/3d/textures/meatwireeyes.webp',
+      (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+
+        // Maintain aspect ratio while repeating
+        const repeatFactor = 10.0;
+        texture.repeat.set(repeatFactor, repeatFactor);
+
+        // Create a custom shader material to map in screen space
+        const customMaterial = new THREE.ShaderMaterial({
+          uniforms: {
+            tDiffuse: { value: texture },
+            aspectRatio: { value: texture.image.width / texture.image.height },
+            scale: { value: 2.0 }, // Adjust scale as needed
+            time: { value: 0 },
+            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+          },
+          vertexShader: /*glsl*/ `
+            varying vec2 vUv;
+            varying vec3 vPosition;
+            varying vec4 vScreenPosition;
+            
+            void main() {
+              vUv = uv;
+              vPosition = position;
+              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+              vec4 viewPosition = viewMatrix * worldPosition;
+              vScreenPosition = projectionMatrix * viewPosition;
+              gl_Position = vScreenPosition;
+            }
+          `,
+          fragmentShader: /*glsl*/ `
+            uniform sampler2D tDiffuse;
+            uniform float aspectRatio;
+            uniform float scale;
+            uniform float time;
+            uniform vec2 resolution;
+            
+            varying vec2 vUv;
+            varying vec3 vPosition;
+            varying vec4 vScreenPosition;
+            
+            void main() {
+              // Convert to normalized device coordinates
+              vec2 screenUV = (vScreenPosition.xy / vScreenPosition.w) * 0.5 + 0.5;
+              
+              // Factor in screen resolution aspect ratio
+              float screenAspect = resolution.x / resolution.y;
+              screenUV.x *= screenAspect;
+              
+              // Apply scale while maintaining aspect ratio
+              screenUV *= scale;
+              
+              // Adjust for texture aspect ratio
+              if (aspectRatio > 1.0) {
+                screenUV.y *= aspectRatio;
+              } else {
+                screenUV.x /= aspectRatio;
+              }
+              
+              // Add subtle animation if desired
+              screenUV.x += time * 0.1;
+              screenUV.y += time * 0.3;
+              
+              gl_FragColor = texture2D(tDiffuse, screenUV);
+              
+              // Optional: add slight edge darkening for horror effect
+              float vignetteStrength = 0.8;
+              float distFromCenter = length(vec2(0.5, 0.5) - vec2(vUv.x, vUv.y));
+              float vignette = 1.0 - distFromCenter * vignetteStrength;
+              gl_FragColor.rgb *= vignette;
+            }
+          `,
+          side: THREE.DoubleSide
+        });
+
+        // Update time and resolution uniforms in the render loop
+        const updateUniforms = function () {
+          if (customMaterial.uniforms) {
+            customMaterial.uniforms.time.value = performance.now() * 0.001;
+            customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+          }
+          requestAnimationFrame(updateUniforms);
+        };
+        requestAnimationFrame(updateUniforms);
+
+        // Add a resize listener to update resolution when window size changes
+        const handleResize = () => {
+          if (customMaterial.uniforms) {
+            customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+          }
+        };
+        window.addEventListener('resize', handleResize);
+
+        // Assign the material to the cylinder
+        if (cylinder.material instanceof THREE.Material) {
+          cylinder.material = customMaterial;
+        } else if (Array.isArray(cylinder.material)) {
+          cylinder.material = Array(cylinder.material.length).fill(customMaterial);
+        }
+      },
+      undefined,
+      (error) => {
+        console.error('Error loading meatwireeyes texture:', error);
+      }
+    );
+  }
+
+  const spotLight = new THREE.SpotLight(0xff0000);
   spotLight.position.set(2, 3, -6);
   spotLight.castShadow = false;
   spotLight.intensity = 8;
-  spotLight.decay = 0.9;
+  spotLight.decay = 0.5;
   spotLight.angle = Math.PI * 0.35;
   spotLight.penumbra = 1;
   scene.add(spotLight);

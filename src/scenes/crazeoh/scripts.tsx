@@ -242,7 +242,8 @@ const dropper = async (simulation: Simulation) => {
 const winScript: Record<number, typeof intro> = {
   // 0: intro,
   // 20: outro,
-  // 0: basement,
+  0: basement,
+  // 0: dropper,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
