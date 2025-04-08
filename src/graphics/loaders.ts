@@ -349,7 +349,14 @@ export const loadTiledJSON = async (path: string) => {
   };
 }
 
+let firstClickResolved = false;
+
 export const firstClick = new Promise<void>((resolve) => {
+  if (firstClickResolved) {
+    resolve();
+    return;
+  }
+
   const handler = () => {
     resolve();
     window.removeEventListener("click", handler);
@@ -391,25 +398,55 @@ export const loadAudio = async (path: string, {
   audio.setVolume(volume);
   audio.detune = detune;
 
+  // Keep track of active fade timer
+  let activeFadeTimer: number | null = null;
+
+  // Flag to prevent concurrent play operations
+  let isPlayPending = false;
+
   const setVolume = (volume: number) => {
     audio.setVolume(volume);
   };
 
   const play = async () => {
+    // Wait for first click (needed for browser audio policies)
     await firstClick;
 
-    if (audio.isPlaying) {
-      await stop();
-    }
+    // Prevent multiple concurrent play operations
+    if (isPlayPending) return;
+    isPlayPending = true;
 
-    if (randomPitch) {
-      audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
-    }
+    try {
+      // If we're currently fading out, clear that timer immediately
+      if (activeFadeTimer !== null) {
+        clearInterval(activeFadeTimer);
+        activeFadeTimer = null;
+      }
 
-    audio.play();
+      // Force stop without fade if already playing
+      if (audio.isPlaying) {
+        audio.stop();
+      }
+
+      // Set random pitch if enabled
+      if (randomPitch) {
+        audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
+      }
+
+      // Ensure volume is correct before playing
+      audio.setVolume(volume);
+
+      // Play the audio
+      audio.play();
+    } finally {
+      isPlayPending = false;
+    }
   };
 
   const stop = async () => {
+    // If we already have an active fade timer, do nothing
+    if (activeFadeTimer !== null) return;
+
     // Create a fade out effect over 0.05 seconds to eliminate clicking
     const originalVolume = audio.getVolume();
     const fadeSteps = 5;
@@ -417,17 +454,18 @@ export const loadAudio = async (path: string, {
 
     return await new Promise<void>(resolve => {
       let step = 0;
-      const fadeTimer = setInterval(() => {
+      activeFadeTimer = window.setInterval(() => {
         step++;
         audio.setVolume(originalVolume * (1 - step / fadeSteps));
 
         if (step >= fadeSteps) {
-          clearInterval(fadeTimer);
+          clearInterval(activeFadeTimer!);
+          activeFadeTimer = null;
           audio.stop();
           audio.setVolume(originalVolume); // Reset volume for next play
           resolve();
         }
-      }, fadeInterval * 1000);
+      }, fadeInterval * 1000) as unknown as number;
     });
   };
 

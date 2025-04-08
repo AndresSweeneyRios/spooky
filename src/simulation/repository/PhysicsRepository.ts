@@ -21,7 +21,11 @@ export const rapierFinishedLoading = (async () => {
 })()
 
 const TERMINAL_VELOCITY = 50
-const GRAVITY = -1
+let GRAVITY = -1
+
+export const setGravity = (gravity: number) => {
+  GRAVITY = gravity
+}
 
 class PhysicsComponent extends SimulationComponent {
   public colliders = new Map<symbol, InstanceType<typeof RAPIER.Collider>>()

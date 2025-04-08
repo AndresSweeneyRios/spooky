@@ -24,6 +24,13 @@ const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
 });
 footstepAudio.then(audio => audio.setVolume(0.25));
 
+// Store the audio instance once loaded
+let footstepAudioInstance: Awaited<typeof footstepAudio> | null = null;
+footstepAudio.then(audio => {
+  audio.setVolume(0.25);
+  footstepAudioInstance = audio;
+});
+
 // Define a strongly typed emitter.
 type InteractionChangedPayload = {
   command: SensorCommand;
@@ -35,7 +42,6 @@ type InteractionChangedPayload = {
 export class PlayerView extends EntityView {
   public canvas: HTMLCanvasElement;
   private controlsEnabled = false;
-  protected footstepAudioInterval: ReturnType<typeof setInterval> | null = null;
   protected cleanupEvents: () => void = () => { };
   protected minPitch = -1.5;
   protected maxPitch = 1.5;
@@ -44,6 +50,7 @@ export class PlayerView extends EntityView {
   protected runSpeedModifier = 2;
   public runEnabled = false;
   public debugElement = document.createElement("div");
+  protected lastFootstepTime: number | undefined = undefined;
 
   public interactionEmitter = new TypedEmitter<{
     interactionsChanged: (interactions: InteractionChangedPayload) => void;
@@ -138,10 +145,6 @@ export class PlayerView extends EntityView {
     this.cleanupEvents = () => { };
     this.simulation.SimulationState.MovementRepository.SetDirection(this.EntId, [0, 0, 0]);
     this.controlsEnabled = false;
-    if (this.footstepAudioInterval !== null) {
-      clearInterval(this.footstepAudioInterval);
-      this.footstepAudioInterval = null;
-    }
   }
 
   public getControlsEnabled(): boolean {
@@ -176,14 +179,19 @@ export class PlayerView extends EntityView {
     const input = playerInput.getState();
     const localDirection = new THREE.Vector3(input.walk.x, 0, input.walk.y);
 
+    // Footstep audio based on timestamps
+    const now = Date.now();
+    const footstepInterval = 600; // Time between footsteps in ms
+
     if (localDirection.length() > 0) {
-      if (this.footstepAudioInterval === null) {
-        footstepAudio.then(audio => audio.play());
-        this.footstepAudioInterval = setInterval(() => footstepAudio.then(audio => audio.play()), 600);
+      // If we're moving and it's time for a new footstep sound
+      if (!this.lastFootstepTime || now - this.lastFootstepTime >= footstepInterval) {
+        footstepAudioInstance?.play();
+        this.lastFootstepTime = now;
       }
-    } else if (this.footstepAudioInterval !== null) {
-      clearInterval(this.footstepAudioInterval);
-      this.footstepAudioInterval = null;
+    } else {
+      // Reset when not moving
+      this.lastFootstepTime = undefined;
     }
 
     localDirection.applyQuaternion(this.simulation.Camera.quaternion).setY(0);

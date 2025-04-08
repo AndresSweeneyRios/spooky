@@ -411,8 +411,14 @@ export const CRTShader = {
       // Optionally scale the UVs to push the distorted edges inward.
       uv = (uv - 0.5) * edgeScale + 0.5;
       
-      // Create a scanline pattern based on the screen's vertical resolution.
-      float scanline = sin((vUv.y) * (resolution.y / 1.0) * 3.14159) * 0.5 + 0.5;
+      // Create a scanline pattern that works with any resolution
+      // By using floor(y * scanlines), we ensure consistent line thickness
+      float scanlines = resolution.y * 0.5; // Number of scanlines (half the resolution for consistency)
+      float scanPos = floor(vUv.y * scanlines);
+      float scanPattern = mod(scanPos, 2.0); // Alternating 0, 1 pattern
+      
+      // Create smooth scanline effect from the pattern
+      float scanline = mix(0.5, 1.0, scanPattern);
       scanline = mix(1.0, scanline, scanlineIntensity);
       
       // Apply vignette by darkening toward the edges.
@@ -420,15 +426,11 @@ export const CRTShader = {
       // float vignette = smoothstep(0.8, 0.5, dist);
       // vignette = mix(1.0, vignette, vignetteIntensity);
       
-      // Assume resolution holds the actual render resolution in pixels (width, height)
-      // We want the noise grid to be 640 pixels wide, and the height accordingly.
-      // vec2 noiseGridRes = vec2(640.0, 640.0 * (resolution.y / resolution.x));
-
       // Convert normalized uv (0-1) into pixel coordinates for the noise grid,
       // then use floor() to quantize to discrete noise cells.
       vec2 noiseUV = floor(vUv * resolution);
 
-      // Now, to animate the noise, add time as an offset (you can tweak which axis to add time)
+      // Now, to animate the noise, add time as an offset
       float noise = random(noiseUV);
 
       // Mix with zero based on noiseIntensity.
