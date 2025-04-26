@@ -189,7 +189,7 @@ export const init = async () => {
           uniforms: {
             tDiffuse: { value: texture },
             aspectRatio: { value: texture.image.width / texture.image.height },
-            scale: { value: 2.0 }, // Adjust scale as needed
+            scale: { value: 1.5 }, // Adjust scale as needed
             time: { value: 0 },
             resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
           },
@@ -205,6 +205,9 @@ export const init = async () => {
               vec4 viewPosition = viewMatrix * worldPosition;
               vScreenPosition = projectionMatrix * viewPosition;
               gl_Position = vScreenPosition;
+              
+              // Pass normals to fragment shader for triplanar mapping
+              vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
             }
           `,
           fragmentShader: /*glsl*/ `
@@ -219,33 +222,34 @@ export const init = async () => {
             varying vec4 vScreenPosition;
             
             void main() {
-              // Convert to normalized device coordinates
-              vec2 screenUV = (vScreenPosition.xy / vScreenPosition.w) * 0.5 + 0.5;
+              // Calculate normals from position derivatives for better triplanar blending
+              vec3 normal = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
+              vec3 normalAbs = abs(normal);
               
-              // Factor in screen resolution aspect ratio
-              float screenAspect = resolution.x / resolution.y;
-              screenUV.x *= screenAspect;
+              // Get texture scale
+              float texScale = scale * 0.1;
               
-              // Apply scale while maintaining aspect ratio
-              screenUV *= scale;
+              // Compute UVs for all three planar projections with animation
+              vec2 uvX = vPosition.zy * texScale + vec2(time * 0.1, time * 0.3);
+              vec2 uvY = vPosition.xz * texScale + vec2(time * 0.12, time * 0.28);
+              vec2 uvZ = vPosition.xy * texScale + vec2(time * 0.08, time * 0.32);
               
-              // Adjust for texture aspect ratio
-              if (aspectRatio > 1.0) {
-                screenUV.y *= aspectRatio;
-              } else {
-                screenUV.x /= aspectRatio;
-              }
+              // Sample texture from three directions
+              vec4 colorX = texture2D(tDiffuse, uvX);
+              vec4 colorY = texture2D(tDiffuse, uvY);
+              vec4 colorZ = texture2D(tDiffuse, uvZ);
               
-              // Add subtle animation if desired
-              screenUV.x += time * 0.1;
-              screenUV.y += time * 0.3;
+              // Blend based on normal
+              float blendWeight = 0.2; // Adjust for sharper or smoother transitions
+              vec3 weights = normalAbs / (normalAbs.x + normalAbs.y + normalAbs.z + blendWeight);
+              vec4 color = colorX * weights.x + colorY * weights.y + colorZ * weights.z;
               
-              gl_FragColor = texture2D(tDiffuse, screenUV);
-              
-              // Optional: add slight edge darkening for horror effect
+              // Apply vignette effect for horror aesthetic
               float vignetteStrength = 0.8;
-              float distFromCenter = length(vec2(0.5, 0.5) - vec2(vUv.x, vUv.y));
+              float distFromCenter = length(vec2(0.5, 0.5) - vUv);
               float vignette = 1.0 - distFromCenter * vignetteStrength;
+              
+              gl_FragColor = color;
               gl_FragColor.rgb *= vignette;
             }
           `,

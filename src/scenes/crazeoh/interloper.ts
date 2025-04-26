@@ -16,6 +16,8 @@ import { PlayerView } from "../../views/player";
 import { updateGameLogic } from "../../simulation/loop";
 import { JustPressedEvent, playerInput } from "../../input/player";
 import * as state from "./state";
+import { SimulationCommand } from "../../simulation/commands/_command";
+import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -42,6 +44,53 @@ const music = loadAudio("/audio/music/AveMarisStella.mp3", {
   positional: false,
   volume: 0.0,
 });
+
+const tempVec3 = new THREE.Vector3();
+
+const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
+  const foodObject = scene.getObjectByName(food) as THREE.Mesh;
+  if (!foodObject) {
+    console.warn(`Food object "${food}" not found in scene`);
+    return;
+  }
+
+  const entId = simulation.EntityRegistry.Create();
+  simulation.SimulationState.PhysicsRepository.CreateComponent(entId);
+  foodObject.getWorldPosition(tempVec3);
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [2, 2, 2], [tempVec3.x, tempVec3.y, tempVec3.z], undefined, true);
+  simulation.SimulationState.SensorCommandRepository.CreateComponent(entId);
+
+  // Create the command with explicit Owner property
+  const command = new class extends SimulationCommand {
+    // Explicitly add the Owner property
+    public Owner: THREE.Object3D = foodObject;
+
+    public Execute(sim: Simulation): void {
+      foodObject.visible = false;
+      loadAudio("/audio/sfx/eat_chip.ogg", {
+        detune: -600,
+        randomPitch: true,
+        pitchRange: 400,
+        volume: 0.1,
+      }).then(audio => audio.play());
+
+      music.then(audio => audio.stop())
+    }
+  };
+
+  simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
+    entId: entId,
+    executionMode: ExecutionMode.Interaction,
+    once: true,
+    command: command,
+    owner: foodObject,  // Make sure this is set
+  });
+};
+
+const setupPizzaEating = (simulation: Simulation, scene: THREE.Scene) => {
+  eat("pizza", simulation, scene);
+};
+
 
 const initScene = () => {
   const scene = new THREE.Scene();
@@ -192,6 +241,10 @@ export const init = async () => {
     }
   });
   scene.add(sceneGltf);
+
+  // IMPORTANT: Only call setupPizzaEating AFTER adding the scene
+  // This ensures the pizza object exists in the scene when we try to find it
+  setupPizzaEating(simulation, scene);
 
   const spotLight = new THREE.SpotLight(0xffffff);
   spotLight.position.set(2, 3, -6);
