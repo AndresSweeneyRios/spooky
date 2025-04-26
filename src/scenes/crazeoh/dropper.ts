@@ -189,7 +189,7 @@ export const init = async () => {
           uniforms: {
             tDiffuse: { value: texture },
             aspectRatio: { value: texture.image.width / texture.image.height },
-            scale: { value: 1.5 }, // Adjust scale as needed
+            scale: { value: 1.2 }, // Adjust scale as needed
             time: { value: 0 },
             resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
           },
@@ -240,17 +240,14 @@ export const init = async () => {
               vec4 colorZ = texture2D(tDiffuse, uvZ);
               
               // Blend based on normal
-              float blendWeight = 0.2; // Adjust for sharper or smoother transitions
+              float blendWeight = 0.8; // Adjust for sharper or smoother transitions
               vec3 weights = normalAbs / (normalAbs.x + normalAbs.y + normalAbs.z + blendWeight);
               vec4 color = colorX * weights.x + colorY * weights.y + colorZ * weights.z;
               
-              // Apply vignette effect for horror aesthetic
-              float vignetteStrength = 0.8;
-              float distFromCenter = length(vec2(0.5, 0.5) - vUv);
-              float vignette = 1.0 - distFromCenter * vignetteStrength;
+              // Apply gamma correction
+              color.rgb = pow(color.rgb, vec3(1.0 * 2.2));
               
               gl_FragColor = color;
-              gl_FragColor.rgb *= vignette;
             }
           `,
           side: THREE.DoubleSide
