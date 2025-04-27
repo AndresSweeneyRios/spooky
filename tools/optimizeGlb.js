@@ -1,5 +1,5 @@
 import { NodeIO } from '@gltf-transform/core';
-import { ALL_EXTENSIONS, KHRDracoMeshCompression } from '@gltf-transform/extensions';
+import { ALL_EXTENSIONS, KHRDracoMeshCompression, KHRMaterialsSpecular } from '@gltf-transform/extensions';
 import draco3d from 'draco3dgltf';
 import sharp from 'sharp';
 import fs from 'fs';
@@ -27,7 +27,28 @@ async function optimizeGLB(inputPath, outputPath, quality = 75) {
   // Read and decode the GLB file.
   const doc = await io.readBinary(new Uint8Array(inputBuffer));
 
+  // Track textures that are used for metalness or specular to remove them later
   const materials = doc.getRoot().listMaterials();
+  console.log(`Processing ${materials.length} materials to remove metalness and specular properties...`);
+  
+  // Process materials to remove metalness and specular properties
+  for (const material of materials) {
+    const materialName = material.getName() || 'unnamed';
+    console.log(`Processing material: ${materialName}`);
+    
+    // Remove metalness by setting metallic factor to 0
+    material.setMetallicFactor(0);
+    
+    // Remove metallic-roughness texture if it exists
+    const metallicRoughnessTexture = material.getMetallicRoughnessTexture();
+    if (metallicRoughnessTexture) {
+      console.log(`- Removing metallic-roughness texture from ${materialName}`);
+      // Store the texture for removal
+      material.setMetallicRoughnessTexture(null);
+    }
+    
+    console.log(`Removed metalness and specular from material: ${materialName}`);
+  }
 
   // Create and configure the Draco extension.
   doc.createExtension(KHRDracoMeshCompression)

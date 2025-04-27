@@ -91,7 +91,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 };
 
 const setupPizzaEating = (simulation: Simulation, scene: THREE.Scene) => {
-  eat("pizza001", simulation, scene);
+  eat("piza_low_01_Group259", simulation, scene);
 };
 
 
@@ -347,132 +347,138 @@ export const init = async () => {
 
   // Apply triplanar shader to acid object
   const acid = scene.getObjectByName("acid");
-  if (acid instanceof THREE.Mesh) {
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(
-      '/3d/textures/acid3.webp',
-      (texture) => {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
+  const cokeInside = scene.getObjectByName("cokeinside");
+  const bepisInside = scene.getObjectByName("bepisinside");
 
-        // Maintain aspect ratio while repeating
-        const repeatFactor = 5.0;
-        texture.repeat.set(repeatFactor, repeatFactor);
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(
+    '/3d/textures/acid3.webp',
+    (texture) => {
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
 
-        // Create a custom shader material for triplanar mapping
-        const customMaterial = new THREE.ShaderMaterial({
-          uniforms: {
-            tDiffuse: { value: texture },
-            aspectRatio: { value: texture.image.width / texture.image.height },
-            scale: { value: 3 },
-            time: { value: 0 },
-            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
-          },
-          vertexShader: /*glsl*/ `
-            varying vec2 vUv;
-            varying vec3 vPosition;
-            varying vec4 vScreenPosition;
+      // Maintain aspect ratio while repeating
+      const repeatFactor = 5.0;
+      texture.repeat.set(repeatFactor, repeatFactor);
+
+      // Create a custom shader material for triplanar mapping
+      const customMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          tDiffuse: { value: texture },
+          aspectRatio: { value: texture.image.width / texture.image.height },
+          scale: { value: 3 },
+          time: { value: 0 },
+          resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+        },
+        vertexShader: /*glsl*/ `
+          varying vec2 vUv;
+          varying vec3 vPosition;
+          varying vec4 vScreenPosition;
+          
+          void main() {
+            vUv = uv;
+            vPosition = position;
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vec4 viewPosition = viewMatrix * worldPosition;
+            vScreenPosition = projectionMatrix * viewPosition;
+            gl_Position = vScreenPosition;
             
-            void main() {
-              vUv = uv;
-              vPosition = position;
-              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-              vec4 viewPosition = viewMatrix * worldPosition;
-              vScreenPosition = projectionMatrix * viewPosition;
-              gl_Position = vScreenPosition;
-              
-              // Pass positions to fragment shader for triplanar mapping
-              vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-            }
-          `,
-          fragmentShader: /*glsl*/ `
-            uniform sampler2D tDiffuse;
-            uniform float aspectRatio;
-            uniform float scale;
-            uniform float time;
-            uniform vec2 resolution;
-            
-            varying vec2 vUv;
-            varying vec3 vPosition;
-            varying vec4 vScreenPosition;
-            
-            void main() {
-              // Calculate normals from position derivatives for triplanar blending
-              vec3 normal = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
-              vec3 normalAbs = abs(normal);
-              
-              // Get texture scale
-              float texScale = scale * 0.1;
-              
-              // Flow animation for acid effect
-              float flowSpeed = 0.3;
-              vec2 flowOffset = vec2(
-                sin(time * flowSpeed) * 0.2,
-                cos(time * flowSpeed * 0.7) * 0.2
-              );
-              
-              // Animate UVs for all three planar projections
-              vec2 uvX = vPosition.zy * texScale + flowOffset;
-              vec2 uvY = vPosition.xz * texScale + flowOffset;
-              vec2 uvZ = vPosition.xy * texScale + flowOffset;
-              
-              // Sample texture from three directions
-              vec4 colorX = texture2D(tDiffuse, uvX);
-              vec4 colorY = texture2D(tDiffuse, uvY);
-              vec4 colorZ = texture2D(tDiffuse, uvZ);
-              
-              // Blend based on normal
-              float blendWeight = 0.8; // Adjust for sharper or smoother transitions
-              vec3 weights = normalAbs / (normalAbs.x + normalAbs.y + normalAbs.z + blendWeight);
-              vec4 color = colorX * weights.x + colorY * weights.y + colorZ * weights.z;
-
-              // colorize green
-              color.r *= 0.5;
-              color.g *= 0.8;
-              color.b *= 0.1;
-              color.a = (color.r + color.g + color.b) / 3.0 * 0.2 + 0.7;
-              
-              // Apply gamma correction
-              color.rgb = pow(color.rgb, vec3(1.0 * 2.2));
-              
-              gl_FragColor = color;
-            }
-          `,
-          transparent: true,
-          side: THREE.DoubleSide
-        });
-
-        // Update time and resolution uniforms in the render loop
-        const updateUniforms = function () {
-          if (customMaterial.uniforms) {
-            customMaterial.uniforms.time.value = performance.now() * 0.001;
-            customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+            // Pass positions to fragment shader for triplanar mapping
+            vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
           }
-          requestAnimationFrame(updateUniforms);
-        };
-        requestAnimationFrame(updateUniforms);
+        `,
+        fragmentShader: /*glsl*/ `
+          uniform sampler2D tDiffuse;
+          uniform float aspectRatio;
+          uniform float scale;
+          uniform float time;
+          uniform vec2 resolution;
+          
+          varying vec2 vUv;
+          varying vec3 vPosition;
+          varying vec4 vScreenPosition;
+          
+          void main() {
+            // Calculate normals from position derivatives for triplanar blending
+            vec3 normal = normalize(cross(dFdx(vPosition), dFdy(vPosition)));
+            vec3 normalAbs = abs(normal);
+            
+            // Get texture scale
+            float texScale = scale * 0.1;
+            
+            // Flow animation for acid effect
+            float flowSpeed = 0.3;
+            vec2 flowOffset = vec2(
+              sin(time * flowSpeed) * 0.2,
+              cos(time * flowSpeed * 0.7) * 0.2
+            );
+            
+            // Animate UVs for all three planar projections
+            vec2 uvX = vPosition.zy * texScale + flowOffset;
+            vec2 uvY = vPosition.xz * texScale + flowOffset;
+            vec2 uvZ = vPosition.xy * texScale + flowOffset;
+            
+            // Sample texture from three directions
+            vec4 colorX = texture2D(tDiffuse, uvX);
+            vec4 colorY = texture2D(tDiffuse, uvY);
+            vec4 colorZ = texture2D(tDiffuse, uvZ);
+            
+            // Blend based on normal
+            float blendWeight = 0.8; // Adjust for sharper or smoother transitions
+            vec3 weights = normalAbs / (normalAbs.x + normalAbs.y + normalAbs.z + blendWeight);
+            vec4 color = colorX * weights.x + colorY * weights.y + colorZ * weights.z;
 
-        // Add a resize listener to update resolution when window size changes
-        const handleResize = () => {
-          if (customMaterial.uniforms) {
-            customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+            // colorize green
+            color.r *= 0.5;
+            color.g *= 0.8;
+            color.b *= 0.1;
+            color.a = (color.r + color.g + color.b) / 3.0 * 0.2 + 0.7;
+            
+            // Apply gamma correction
+            color.rgb = pow(color.rgb, vec3(1.0 * 2.2));
+            
+            gl_FragColor = color;
           }
-        };
-        window.addEventListener('resize', handleResize);
+        `,
+        transparent: true,
+        side: THREE.DoubleSide
+      });
 
-        // Assign the material to the acid object
-        if (acid.material instanceof THREE.Material) {
-          acid.material = customMaterial;
-        } else if (Array.isArray(acid.material)) {
-          acid.material = Array(acid.material.length).fill(customMaterial);
+      // Update time and resolution uniforms in the render loop
+      const updateUniforms = function () {
+        if (customMaterial.uniforms) {
+          customMaterial.uniforms.time.value = performance.now() * 0.001;
+          customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
         }
-      },
-      undefined,
-      (error) => {
-        console.error('Error loading acid3 texture:', error);
+        requestAnimationFrame(updateUniforms);
+      };
+      requestAnimationFrame(updateUniforms);
+
+      // Add a resize listener to update resolution when window size changes
+      const handleResize = () => {
+        if (customMaterial.uniforms) {
+          customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+        }
+      };
+      window.addEventListener('resize', handleResize);
+
+      if (acid instanceof THREE.Mesh) {
+        acid.material = customMaterial;
       }
-    );
-  }
+
+      if (cokeInside instanceof THREE.Mesh) {
+        cokeInside.material = customMaterial;
+      }
+
+      if (bepisInside instanceof THREE.Mesh) {
+        bepisInside.material = customMaterial;
+      }
+    },
+    undefined,
+    (error) => {
+      console.error('Error loading acid3 texture:', error);
+    }
+  );
 
   // Play music on the boombox object
   const boombox = scene.getObjectByName("boombox_0");
