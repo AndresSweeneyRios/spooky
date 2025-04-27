@@ -142,9 +142,12 @@ export const init = async () => {
   musicAudio = await loadAudio('/audio/music/worbly.ogg', {
     loop: true,
     volume: 0.01,
-    autoplay: true,
+    autoplay: false,
   });
-  musicAudio.play();
+
+  setTimeout(() => {
+    musicAudio!.play();
+  }, 1000);
 
   setGravity(-0.2)
 
@@ -323,10 +326,9 @@ export const init = async () => {
 
     public Draw(): void {
       // log player y position
-      const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
-      const playerY = playerPosition[1];
+      const playerY = camera.position.y;
 
-      if (!this.hasEnded && playerY <= -810) {
+      if (!this.hasEnded && playerY <= -372) {
         this.hasEnded = true;
         if (eatChipAudioPromise) {
           eatChipAudioPromise.then(audio => {

@@ -18,6 +18,7 @@ import { JustPressedEvent, playerInput } from "../../input/player";
 import * as state from "./state";
 import { SimulationCommand } from "../../simulation/commands/_command";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
+import { loadScene, scenes } from "..";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -77,7 +78,15 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
         volume: 0.1,
       }).then(audio => audio.play());
 
-      music.then(audio => audio.stop());
+      enableLoading();
+
+      state.incrementWins();
+
+      music.then(audio => audio.stop())
+
+      setTimeout(() => {
+        loadScene(scenes.crazeoh)
+      }, 1000)
     }
   };
 
@@ -91,7 +100,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 };
 
 const setupPizzaEating = (simulation: Simulation, scene: THREE.Scene) => {
-  eat("piza_low_01_Group259", simulation, scene);
+  eat("pizza", simulation, scene);
 };
 
 
@@ -192,7 +201,7 @@ export const init = async () => {
 
   const { scene, camera, simulation, cleanup, sceneEntId } = initScene();
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 
   scene.add(ambientLight);
 
@@ -406,17 +415,15 @@ export const init = async () => {
             // Get texture scale
             float texScale = scale * 0.1;
             
-            // Flow animation for acid effect
-            float flowSpeed = 0.3;
-            vec2 flowOffset = vec2(
-              sin(time * flowSpeed) * 0.2,
-              cos(time * flowSpeed * 0.7) * 0.2
-            );
+            // Downward-only flow animation for acid effect
+            float flowSpeed = 0.1;
+            float downwardFlow = mod(time * flowSpeed, 1.0); // Only flow downward
             
-            // Animate UVs for all three planar projections
-            vec2 uvX = vPosition.zy * texScale + flowOffset;
-            vec2 uvY = vPosition.xz * texScale + flowOffset;
-            vec2 uvZ = vPosition.xy * texScale + flowOffset;
+            // Animate UVs for all three planar projections with downward-only flow
+            // For each plane, apply downward flow to the vertical component only
+            vec2 uvX = vec2(vPosition.z * texScale, (vPosition.y * texScale) + downwardFlow);
+            vec2 uvY = vec2(vPosition.x * texScale, (vPosition.z * texScale) + downwardFlow);
+            vec2 uvZ = vec2(vPosition.x * texScale, (vPosition.y * texScale) + downwardFlow);
             
             // Sample texture from three directions
             vec4 colorX = texture2D(tDiffuse, uvX);
@@ -462,17 +469,21 @@ export const init = async () => {
       };
       window.addEventListener('resize', handleResize);
 
-      if (acid instanceof THREE.Mesh) {
-        acid.material = customMaterial;
-      }
+      // Apply the material to each mesh, handling both single materials and material arrays
+      const applyAcidMaterial = (object: THREE.Object3D | null) => {
+        if (!(object instanceof THREE.Mesh)) return;
 
-      if (cokeInside instanceof THREE.Mesh) {
-        cokeInside.material = customMaterial;
-      }
+        if (Array.isArray(object.material)) {
+          // Handle material arrays
+          object.material = Array(object.material.length).fill(customMaterial);
+        } else {
+          // Handle single material
+          object.material = customMaterial;
+        }
+      };
 
-      if (bepisInside instanceof THREE.Mesh) {
-        bepisInside.material = customMaterial;
-      }
+      // Apply to all acid-related objects
+      [acid, cokeInside, bepisInside].forEach(value => applyAcidMaterial(value!));
     },
     undefined,
     (error) => {
