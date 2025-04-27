@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
-import { loadGltf } from '../../graphics/loaders';
+import { loadGltf, loadAudio } from '../../graphics/loaders';
 import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -17,6 +17,7 @@ import { updateGameLogic } from "../../simulation/loop";
 import { JustPressedEvent, playerInput } from "../../input/player";
 import * as state from "./state";
 import { setGravity } from "../../simulation/repository/PhysicsRepository";
+import { loadScene, scenes, unloadScene } from "..";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -37,7 +38,12 @@ export const enableLoading = (): void => {
 
 const mapLoader = loadGltf("/3d/scenes/island/dropper_OPTIMIZED.glb").then(gltf => gltf.scene);
 
+let musicAudio: Awaited<ReturnType<typeof loadAudio>> | null = null;
+let eatChipAudioPromise: Promise<Awaited<ReturnType<typeof loadAudio>>> | null = null;
+
 const initScene = () => {
+  setGravity(-0.02)
+
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
   const simulation = new Simulation(camera, scene);
@@ -128,6 +134,17 @@ const initScene = () => {
 
 export const init = async () => {
   enableLoading();
+
+  // Preload eat_chip.ogg for end-level event
+  eatChipAudioPromise = loadAudio('/audio/sfx/eat_chip.ogg', { volume: 0.5 });
+
+  // Start background music
+  musicAudio = await loadAudio('/audio/music/worbly.ogg', {
+    loop: true,
+    volume: 0.01,
+    autoplay: true,
+  });
+  musicAudio.play();
 
   setGravity(-0.2)
 
@@ -285,7 +302,7 @@ export const init = async () => {
     );
   }
 
-  const spotLight = new THREE.SpotLight(0xff0000);
+  const spotLight = new THREE.SpotLight(0xffffff);
   spotLight.position.set(2, 3, -6);
   spotLight.castShadow = false;
   spotLight.intensity = 8;
@@ -302,8 +319,32 @@ export const init = async () => {
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
     private isCleanedUp = false;
     private tempVec3 = new THREE.Vector3();
+    private hasEnded = false;
 
     public Draw(): void {
+      // log player y position
+      const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
+      const playerY = playerPosition[1];
+
+      if (!this.hasEnded && playerY <= -810) {
+        this.hasEnded = true;
+        if (eatChipAudioPromise) {
+          eatChipAudioPromise.then(audio => {
+            audio.setVolume(0.03);
+            audio.play();
+          });
+        }
+        enableLoading();
+        musicAudio?.stop();
+        state.incrementWins();
+
+        setTimeout(() => {
+          loadScene(scenes.crazeoh);
+        }, 1000);
+
+        return;
+      }
+
       if (this.isCleanedUp) return;
       camera.getWorldPosition(this.tempVec3);
       spotLight.position.copy(this.tempVec3);
@@ -311,6 +352,19 @@ export const init = async () => {
       spotLight.target.position.copy(this.tempVec3.add(camera.position));
       spotLight.target.updateMatrixWorld();
       playerInput.update();
+
+      // Gradually increase music volume as player descends
+      if (musicAudio && playerY > -1000 && playerY < 0) {
+        // Linear interpolation from 0.01 to 0.5 as player descends from 0 to -1000
+        const volumeFactor = Math.abs(playerY) / 1000;
+        const targetVolume = 0.01 + (0.1 - 0.01) * volumeFactor;
+
+        // Apply the calculated volume with a slight smoothing effect
+        const currentVolume = musicAudio.volume;
+        const newVolume = currentVolume + (targetVolume - currentVolume) * 0.1;
+
+        musicAudio.volume = newVolume;
+      }
 
       try {
         updateGameLogic(simulation, 0);
@@ -356,5 +410,8 @@ export const init = async () => {
     disableLoading();
   }, 2000);
 
-  return cleanup;
+  return () => {
+    if (musicAudio) musicAudio.stop();
+    cleanup();
+  };
 };

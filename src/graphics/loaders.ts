@@ -433,11 +433,29 @@ export const loadAudio = async (path: string, {
         audio.detune = Math.random() * pitchRange * 2 - pitchRange + detune;
       }
 
-      // Ensure volume is correct before playing
-      audio.setVolume(volume);
+      // Store the target volume and start from zero
+      const targetVolume = volume;
+      audio.setVolume(0);
 
       // Play the audio
       audio.play();
+
+      const fadeSteps = 5;
+      const fadeInterval = 0.02 / fadeSteps;
+
+      return await new Promise<void>(resolve => {
+        let step = 0;
+        activeFadeTimer = window.setInterval(() => {
+          step++;
+          audio.setVolume(targetVolume * (step / fadeSteps));
+
+          if (step >= fadeSteps) {
+            clearInterval(activeFadeTimer!);
+            activeFadeTimer = null;
+            resolve();
+          }
+        }, fadeInterval * 1000) as unknown as number;
+      });
     } finally {
       isPlayPending = false;
     }
@@ -486,5 +504,13 @@ export const loadAudio = async (path: string, {
     play,
     stop,
     getPositionalAudio,
+
+    get volume() {
+      return audio.getVolume();
+    },
+
+    set volume(value: number) {
+      audio.setVolume(value);
+    },
   };
 }
