@@ -364,7 +364,7 @@ export const init = async () => {
           uniforms: {
             tDiffuse: { value: texture },
             aspectRatio: { value: texture.image.width / texture.image.height },
-            scale: { value: 0.8 },
+            scale: { value: 3 },
             time: { value: 0 },
             resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
           },
@@ -422,7 +422,7 @@ export const init = async () => {
               vec4 colorZ = texture2D(tDiffuse, uvZ);
               
               // Blend based on normal
-              float blendWeight = 1.0; // Adjust for sharper or smoother transitions
+              float blendWeight = 0.8; // Adjust for sharper or smoother transitions
               vec3 weights = normalAbs / (normalAbs.x + normalAbs.y + normalAbs.z + blendWeight);
               vec4 color = colorX * weights.x + colorY * weights.y + colorZ * weights.z;
 
@@ -430,7 +430,7 @@ export const init = async () => {
               color.r *= 0.5;
               color.g *= 0.8;
               color.b *= 0.1;
-              color.a = (color.r + color.g + color.b) / 3.0 * 0.3 + 0.5;
+              color.a = (color.r + color.g + color.b) / 3.0 * 0.2 + 0.7;
               
               // Apply gamma correction
               color.rgb = pow(color.rgb, vec3(1.0 * 2.2));
