@@ -239,10 +239,15 @@ const dropper = async (simulation: Simulation) => {
   await loadScene(scenes.dropper)
 }
 
+const stomach = async (simulation: Simulation) => {
+  await loadScene(scenes.stomach)
+}
+
 const winScript: Record<number, typeof intro> = {
   // 0: intro,
   // 20: outro,
-  0: basement,
+  0: stomach,
+  5: basement,
   10: dropper,
 }
 

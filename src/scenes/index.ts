@@ -8,6 +8,7 @@ export const scenes = Object.freeze({
   crazeoh: () => import('./crazeoh'),
   interloper: () => import('./crazeoh/interloper'),
   dropper: () => import('./crazeoh/dropper'),
+  stomach: () => import('./crazeoh/stomach'),
 })
 
 const DEFAULT_SCENE = scenes.city
