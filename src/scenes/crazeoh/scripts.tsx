@@ -4,12 +4,13 @@ import * as state from "./state"
 import { JustPressedEvent, playerInput } from "../../input/player"
 import { Simulation } from "../../simulation"
 import { createCaseoh } from "../../entities/crazeoh/caseoh"
-import { carIdling, ceilingFanAudioPromise, currentCrtPass, currentPlayerView, disableLoading, enableLoading, garageScreamAudioPromise, windAudioPromise } from "."
-import type { loadAudio } from "../../graphics/loaders"
+import { carIdling, ceilingFanAudioPromise, currentCrtPass, currentPlayerView, disableLoading, enableLoading, garageScreamAudioPromise, ventAudioPromise, windAudioPromise } from "."
+import { loadAudio, loadTexture } from "../../graphics/loaders"
 import * as THREE from "three"
 import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
-import { DEFAULT_ANOMALIES } from "./anomaly"
-import { loadScene, scenes } from ".."
+import { clockAudioPromise, DEFAULT_ANOMALIES } from "./anomaly"
+import { loadScene, scenes, unloadScene } from ".."
+import { renderer } from "../../components/Viewport"
 
 const loaderPromise = import("../../graphics/loaders")
 
@@ -132,6 +133,8 @@ export const intro = async (simulation: Simulation) => {
 
   explainer.setAttribute("is-hidden", "true")
 }
+    
+const caseohLiveTexture = loadTexture("/screenshots/caseoh_live.webp")
 
 const outro = async (simulation: Simulation) => {
   enableLoading()
@@ -227,8 +230,103 @@ const outro = async (simulation: Simulation) => {
   screamPromise.then(scream => scream.play())
 
   await new Promise(resolve => setTimeout(resolve, 1000))
+
+  // bigmonitorscreen
+  const bigScreen = simulation.ThreeScene.getObjectByName("bigmonitorscreen")
+  // Animate player movement from 4.0 to 3.1 on x-axis
+  const startX = 4.0;
+  const endX = 3.1;
+  const duration = 15000; // 15 seconds
+  const startTime = Date.now();
   
-  location.assign("/spooky")
+  const animatePosition = () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // Applying cubic ease-in: f(t) = t³
+    const easedProgress = Math.pow(progress, 3);
+    const currentX = startX + (endX - startX) * easedProgress;
+    
+    simulation.SimulationState.PhysicsRepository.SetPosition(
+      playerEntId, 
+      [currentX, 0.2, -5.7]
+    );
+    
+    if (progress < 1) {
+      requestAnimationFrame(animatePosition);
+    }
+  };
+  
+  animatePosition();
+
+  simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(-90), 0, "YXZ"))
+
+  if (bigScreen instanceof THREE.Mesh) {
+    bigScreen.visible = true
+
+    caseohLiveTexture.center.set(0.5, 0.5); // Set rotation center to middle of texture
+    caseohLiveTexture.rotation = -Math.PI / 2;   // Already in radians (180 degrees)
+    caseohLiveTexture.wrapS = THREE.RepeatWrapping; // Repeat the texture in the S direction
+    caseohLiveTexture.wrapT = THREE.RepeatWrapping;
+    caseohLiveTexture.repeat.set(-1, 1); // Flip the texture horizontally
+    caseohLiveTexture.needsUpdate = true;   // Ensure the texture updates
+
+    bigScreen.material = new THREE.MeshBasicMaterial({
+      map: caseohLiveTexture,
+      side: THREE.DoubleSide,
+      color: 0xffffff,
+    })
+
+    bigScreen.material.needsUpdate = true
+  }
+
+  currentCrtPass!.uniforms["noiseIntensity"].value = 0.3
+  currentCrtPass!.uniforms["scanlineIntensity"].value = 0.0
+  currentCrtPass!.uniforms["rgbOffset"].value.set(0.000, 0.000)
+
+  await new Promise(resolve => setTimeout(resolve, 15000))
+
+  loadAudio("/audio/sfx/outro.ogg", {
+    volume: 0.3,
+    loop: false,
+    autoplay: true,
+  })
+
+  // spawn a new caseoh at the camera position
+  const caseoh = await createCaseoh(simulation)
+  const caseohMesh = await caseoh.meshPromise
+
+  caseohMesh.position.set(simulation.Camera.position.x, -0.5, simulation.Camera.position.z)
+  caseohMesh.rotateY(THREE.MathUtils.degToRad(90))
+
+  // flip the camera 180 degrees
+  simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(90), 0, "YXZ"))
+
+  // move the player position X to 4.0
+  simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [4.0, 0.2, -5.7])
+
+  await new Promise(resolve => setTimeout(resolve, 10000))
+
+  // stop all sounds
+  ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,windAudioPromise,
+    ceilingFanAudioPromise, clockAudioPromise, ventAudioPromise,
+  ].forEach(promise => promise.then(audio => audio.stop()))
+
+  loadAudio("/audio/sfx/eat_chip.ogg", {
+    volume: 0.3,
+    loop: false,
+    positional: false,
+    autoplay: true,
+  })
+
+  unloadScene()
+
+  renderer.clear()
+
+  document.exitPointerLock()
+
+  await new Promise(resolve => {})
+
+  // location.assign("/spooky")
 }
 
 const basement = async (simulation: Simulation) => {
@@ -244,11 +342,11 @@ const stomach = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  // 0: intro,
-  // 20: outro,
-  0: stomach,
+  0: intro,
   5: basement,
   10: dropper,
+  15: stomach,
+  20: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {

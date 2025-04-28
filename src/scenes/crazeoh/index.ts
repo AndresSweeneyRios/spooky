@@ -88,7 +88,7 @@ export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
 
 export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
   loop: true,
-  volume: 0.02,
+  volume: 0.005,
   autoplay: true,
 })
 
@@ -98,6 +98,14 @@ export const ventAudioPromise = loadAudio("/audio/sfx/vent.ogg", {
   detune: -400,
   autoplay: true,
 })
+
+const allLoopingAudio = [
+  ceilingFanAudioPromise,
+  garageScreamAudioPromise,
+  carIdling,
+  windAudioPromise,
+  ventAudioPromise,
+];
 
 export const setupVent = (simulation: Simulation, scene: THREE.Scene) => {
   const vent = scene.getObjectByName("vent") as THREE.Mesh;
@@ -451,6 +459,12 @@ export const init = async () => {
   setupBurgerKing(simulation, scene);
   setupGarageScream(simulation, playerView.EntId);
   setupCarIdling(simulation, scene);
+
+  allLoopingAudio.forEach(audio => {
+    audio.then(a => {
+      a.play();
+    });
+  })
 
   const spotLight = new THREE.SpotLight(0xffffff);
   spotLight.position.set(2, 3, -6);
