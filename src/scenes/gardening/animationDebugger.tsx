@@ -38,7 +38,7 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [, playerModelGLTF, animationListJSON] = await Promise.all([
-    loadEquirectangularAsEnvMap("/3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("./3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 0.0
       scene.environment = texture
@@ -48,9 +48,9 @@ export const init = async () => {
       scene.backgroundRotation.y = Math.PI / -4
     }),
 
-    loadGltf("/3d/entities/caseoh.glb"),
+    loadGltf("./3d/entities/caseoh.glb"),
 
-    fetch("/3d/animations/_list.json").then((response) => response.json())
+    fetch("./3d/animations/_list.json").then((response) => response.json())
   ])
 
   const animationList = animationListJSON as { [directory: string]: string[] }

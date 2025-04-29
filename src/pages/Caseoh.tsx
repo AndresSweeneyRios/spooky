@@ -75,7 +75,7 @@ const initializeAudio = async () => {
     });
 
     // Load and play background music.
-    const audio = await loadAudioFile('/audio/music/caseoh.ogg', { loop: true, volume: 0.05 });
+    const audio = await loadAudioFile('./audio/music/caseoh.ogg', { loop: true, volume: 0.05 });
     audio.play();
     stopMusic = () => audio.stop();
   } catch (error) {
@@ -83,8 +83,8 @@ const initializeAudio = async () => {
   }
 };
 
-const errorAudio = loadAudioFile('/audio/sfx/error.ogg', { loop: false, volume: 0.05 });
-const coinsAudio = loadAudioFile('/audio/sfx/coins.ogg', { loop: false, volume: 0.05 });
+const errorAudio = loadAudioFile('./audio/sfx/error.ogg', { loop: false, volume: 0.05 });
+const coinsAudio = loadAudioFile('./audio/sfx/coins.ogg', { loop: false, volume: 0.05 });
 
 // ─── GAME START & DECISION HANDLERS ─────────────────────────────────────────────
 
@@ -156,6 +156,11 @@ const handleDecision = async (decision: boolean) => {
         renderer.domElement.requestPointerLock();
       } catch { }
     }
+
+    // caseoh-loading
+    document.querySelector("#caseoh-loading")!.setAttribute("is-hidden", "false");
+
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     await loadScene(scenes.crazeoh);
   } catch (error) {

@@ -26,7 +26,7 @@ export default function Spooky() {
     const noteMap = new Map<symbol, midi.Note>();
 
     async function playNotes() {
-      for await (const notes of midi.playNotesWithinInterval("/audio/music/fastbeat.wav", "/audio/music/fastbeat.mid", 4000, 2, 2000, 300, 200)) {
+      for await (const notes of midi.playNotesWithinInterval("./audio/music/fastbeat.wav", "./audio/music/fastbeat.mid", 4000, 2, 2000, 300, 200)) {
         const dpad = document.getElementById("dpad");
 
         for (const note of notes) {

@@ -36,7 +36,7 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("/3d/scenes/island/dropper_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf("./3d/scenes/island/dropper_OPTIMIZED.glb").then(gltf => gltf.scene);
 
 let musicAudio: Awaited<ReturnType<typeof loadAudio>> | null = null;
 let eatChipAudioPromise: Promise<Awaited<ReturnType<typeof loadAudio>>> | null = null;
@@ -136,10 +136,10 @@ export const init = async () => {
   enableLoading();
 
   // Preload eat_chip.ogg for end-level event
-  eatChipAudioPromise = loadAudio('/audio/sfx/eat_chip.ogg', { volume: 0.5 });
+  eatChipAudioPromise = loadAudio('./audio/sfx/eat_chip.ogg', { volume: 0.5 });
 
   // Start background music
-  musicAudio = await loadAudio('/audio/music/worbly.ogg', {
+  musicAudio = await loadAudio('./audio/music/worbly.ogg', {
     loop: true,
     volume: 0.01,
     autoplay: false,
@@ -195,7 +195,7 @@ export const init = async () => {
   if (cylinder instanceof THREE.Mesh) {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(
-      '/3d/textures/meatwireeyes.webp',
+      './3d/textures/meatwireeyes.webp',
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;

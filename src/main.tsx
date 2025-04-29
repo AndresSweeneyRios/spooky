@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
 import {
-  createBrowserRouter,
+  createHashRouter,
   RouterProvider,
 } from "react-router-dom";
 import './index.css';
@@ -47,7 +47,7 @@ console.log(`%c
                   ###                      
                   `, "font-weight: bold; font-size: 14px; color: #FFF375;");
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   // Home
   {
     path: "/",
@@ -80,6 +80,10 @@ const router = createBrowserRouter([
     element: <Suspense fallback={<div></div>}><NotFound /></Suspense>,
   },
 ]);
+
+if (process.env.PROJECT === 'crazeoh') {
+  router.navigate('/crazeoh')
+}
 
 ReactDOM.render(
   <React.StrictMode>

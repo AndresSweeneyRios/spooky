@@ -17,7 +17,7 @@ if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
 }
 
-const footstepAudio = loadAudio("/audio/sfx/footsteps_concrete.ogg", {
+const footstepAudio = loadAudio("./audio/sfx/footsteps_concrete.ogg", {
   randomPitch: true,
   // detune: -4000,
   pitchRange: 800,

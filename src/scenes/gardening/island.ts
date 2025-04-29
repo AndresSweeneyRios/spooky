@@ -104,14 +104,14 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [, island] = await Promise.all([
-    loadEquirectangularAsEnvMap("/3d/env/fantasy_sky_2.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("./3d/env/fantasy_sky_2.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
       scene.environmentIntensity = 0.9
     }),
 
-    loadTiledJSON("/3d/maps/island.json")
+    loadTiledJSON("./3d/maps/island.json")
   ])
 
   for (const mesh of island.meshes) {

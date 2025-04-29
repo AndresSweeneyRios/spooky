@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AnimationKey } from '../assets/animations';
 
-export const animationsPromise = fetch('/3d/animations/animations.json').then((response) => response.json()).then((json) => {
+export const animationsPromise = fetch('./3d/animations/animations.json').then((response) => response.json()).then((json) => {
   const rawAnimations: {
     [key: string]: any
   } = json;

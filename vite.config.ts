@@ -28,7 +28,7 @@ const config = defineConfig({
     assetsInlineLimit: 1024 * 4,
     chunkSizeWarningLimit: 1024 * 4,
     emptyOutDir: true,
-    outDir: `dist/${PROJECT}`,
+    outDir: `electron/resources/app/dist/${PROJECT}`,
   },
   preview: {
     port: 3000,

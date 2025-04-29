@@ -47,25 +47,25 @@ export const init = async () => {
     public Draw(): void {
       renderer.render(scene, camera)
     }
-  
+
     public Cleanup(): void {
       renderer.dispose()
     }
   })
-  
+
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
   }, false);
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap("/3d/env/cityscape.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("./3d/env/cityscape.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
       scene.environmentIntensity = 1.0
     }),
 
-    loadGltf("/3d/scenes/startscene/starterscene.glb")
+    loadGltf("./3d/scenes/startscene/starterscene.glb")
   ])
 
   const scale = 0.6

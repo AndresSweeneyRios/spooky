@@ -37,10 +37,10 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("/3d/scenes/island/stomach_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf("./3d/scenes/island/stomach_OPTIMIZED.glb").then(gltf => gltf.scene);
 
 // Change to positional audio attached to boombox_0
-const music = loadAudio("/audio/music/synthkick.ogg", {
+const music = loadAudio("./audio/music/synthkick.ogg", {
   loop: true,
   positional: true,
   volume: 0.3,
@@ -71,7 +71,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 
     public Execute(sim: Simulation): void {
       foodObject.visible = false;
-      loadAudio("/audio/sfx/eat_chip.ogg", {
+      loadAudio("./audio/sfx/eat_chip.ogg", {
         detune: -600,
         randomPitch: true,
         pitchRange: 400,
@@ -244,7 +244,7 @@ export const init = async () => {
   if (stomach instanceof THREE.Mesh) {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(
-      '/3d/textures/ballsack.webp',
+      './3d/textures/ballsack.webp',
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
@@ -361,7 +361,7 @@ export const init = async () => {
 
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
-    '/3d/textures/acid3.webp',
+    './3d/textures/acid3.webp',
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;

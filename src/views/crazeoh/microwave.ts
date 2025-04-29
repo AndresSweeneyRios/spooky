@@ -7,12 +7,12 @@ const MICROWAVE_OPEN_SPEED = 500
 const MICROWAVE_OPEN_ANGLE = -Math.PI * 0.35
 const MICROWAVE_CLOSED_ANGLE = 0
 
-const openDoorAudioPromise = loadAudio("/audio/sfx/door_open.ogg", {
+const openDoorAudioPromise = loadAudio("./audio/sfx/door_open.ogg", {
   // randomPitch: true,
   detune: +500,
 })
 
-const closeDoorAudioPromise = loadAudio("/audio/sfx/door_close.ogg", {
+const closeDoorAudioPromise = loadAudio("./audio/sfx/door_close.ogg", {
   // randomPitch: true,
   detune: +500,
 })
