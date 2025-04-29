@@ -38,6 +38,10 @@ export let wins = 0
 
 export const incrementWins = () => {
   wins++
+
+  if (winAnomalyIndex < wins) {
+    incrementWinAnomalyIndex();
+  }
 }
 
 export const resetWins = () => {
@@ -74,6 +78,14 @@ export let winScriptIndex = -1
 
 export const incrementWinScriptIndex = () => {
   winScriptIndex++
+}
+
+// -----
+
+export let winAnomalyIndex = 0
+
+export const incrementWinAnomalyIndex = () => {
+  winAnomalyIndex++
 }
 
 // -----

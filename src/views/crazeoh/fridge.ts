@@ -7,11 +7,11 @@ const FRIDGE_OPEN_SPEED = 500
 const FRIDGE_OPEN_ANGLE = Math.PI / 3 * 2
 const FRIDGE_CLOSED_ANGLE = 0
 
-const openDoorAudioPromise = loadAudio("/audio/sfx/door_open.ogg", {
+const openDoorAudioPromise = loadAudio("./audio/sfx/door_open.ogg", {
   // randomPitch: true,
 })
 
-const closeDoorAudioPromise = loadAudio("/audio/sfx/door_close.ogg", {
+const closeDoorAudioPromise = loadAudio("./audio/sfx/door_close.ogg", {
   // randomPitch: true,
 })
 

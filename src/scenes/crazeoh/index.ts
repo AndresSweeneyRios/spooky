@@ -44,34 +44,34 @@ const tempVec3 = new THREE.Vector3();
 const tempEuler = new THREE.Euler();
 
 // Pre-load audio files
-const cameraAudioPromise = loadAudio("/audio/sfx/camera.ogg", {
+const cameraAudioPromise = loadAudio("./audio/sfx/camera.ogg", {
   volume: 0.1,
 });
 
-export const ceilingFanAudioPromise = loadAudio("/audio/sfx/ceiling_fan.ogg", {
+export const ceilingFanAudioPromise = loadAudio("./audio/sfx/ceiling_fan.ogg", {
   loop: true,
   positional: true,
   volume: 0.6,
   autoplay: true,
 });
 
-const eatChipAudioPromise = loadAudio("/audio/sfx/eat_chip.ogg", {
+const eatChipAudioPromise = loadAudio("./audio/sfx/eat_chip.ogg", {
   detune: -600,
   randomPitch: true,
   pitchRange: 400,
   volume: 0.1,
 });
 
-const burgerkingAudioPromise = loadAudio("/audio/sfx/burgerking.ogg", {
+const burgerkingAudioPromise = loadAudio("./audio/sfx/burgerking.ogg", {
   loop: false,
   positional: true,
 });
 
-const heartbeatAudioPromise = loadAudio("/audio/sfx/heartbeat.ogg", {
+const heartbeatAudioPromise = loadAudio("./audio/sfx/heartbeat.ogg", {
   loop: true,
 });
 
-export const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg", {
+export const garageScreamAudioPromise = loadAudio("./audio/sfx/garage_scream.ogg", {
   loop: true,
   positional: true,
   detune: -400,
@@ -79,20 +79,20 @@ export const garageScreamAudioPromise = loadAudio("/audio/sfx/garage_scream.ogg"
   volume: 0.1,
 });
 
-export const carIdling = loadAudio("/audio/sfx/car_idling.ogg", {
+export const carIdling = loadAudio("./audio/sfx/car_idling.ogg", {
   loop: true,
   positional: true,
   autoplay: true,
   volume: 0.4,
 });
 
-export const windAudioPromise = loadAudio("/audio/sfx/wind.ogg", {
+export const windAudioPromise = loadAudio("./audio/sfx/wind.ogg", {
   loop: true,
   volume: 0.005,
   autoplay: true,
 })
 
-export const ventAudioPromise = loadAudio("/audio/sfx/vent.ogg", {
+export const ventAudioPromise = loadAudio("./audio/sfx/vent.ogg", {
   loop: true,
   volume: 0.05,
   detune: -400,
@@ -294,7 +294,7 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("/3d/scenes/island/crazeoh_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf("./3d/scenes/island/crazeoh_OPTIMIZED.glb").then(gltf => gltf.scene);
 
 export let currentCrtPass: ShaderPass | null = null;
 export let currentOutlinePass: OutlinePass | null = null;

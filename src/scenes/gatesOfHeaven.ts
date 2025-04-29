@@ -83,7 +83,7 @@ export const init = async () => {
   resize()
 
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap("/3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap("./3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
@@ -93,7 +93,7 @@ export const init = async () => {
       scene.backgroundRotation.y = Math.PI / -4
     }),
 
-    loadGltf("/3d/scenes/stairs/stairs.glb")
+    loadGltf("./3d/scenes/stairs/stairs.glb")
   ])
 
   processAttributes(sceneGltf.scene, simulation, sceneEntId, false)
@@ -122,7 +122,7 @@ export const init = async () => {
     if (object.name === "Plane001" && object.parent!.name === "arc") {
       const plane = object as THREE.Mesh
 
-      loadEquirectangularAsEnvMap("/3d/env/dmt.png").then((envMap) => {
+      loadEquirectangularAsEnvMap("./3d/env/dmt.png").then((envMap) => {
         const parallax = createParallaxWindowMaterial(envMap, camera)
 
         plane.material = parallax.material

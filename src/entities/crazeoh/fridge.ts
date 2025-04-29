@@ -6,7 +6,7 @@ import { FridgeView } from "../../views/crazeoh/fridge";
 import { loadAudio } from "../../graphics/loaders";
 import * as THREE from "three";
 
-export const fridgeAudioPromise = loadAudio("/audio/sfx/old_fridge.ogg", {
+export const fridgeAudioPromise = loadAudio("./audio/sfx/old_fridge.ogg", {
   loop: true,
   positional: true,
 })

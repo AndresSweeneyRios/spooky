@@ -12,21 +12,21 @@ import { getAngle } from "../../utils/math"
 const loaderPromise = import("../../graphics/loaders")
 
 const monitorAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/weba.ogg', {
+  return await loadAudio('./audio/sfx/weba.ogg', {
     loop: true,
     positional: true,
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/keyboard_typing.ogg', {
+  return await loadAudio('./audio/sfx/keyboard_typing.ogg', {
     loop: true,
     positional: true,
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 export const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/clock.ogg', {
+  return await loadAudio('./audio/sfx/clock.ogg', {
     loop: true,
     positional: true,
     volume: 0.1,
@@ -983,14 +983,12 @@ const FakeMirror: Anomaly = {
 }
 
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
-  FrenchFries,
   Amogus,
   LettuceBurger,
   Keyboard,
   ClockSpinFast,
   Monitors,
   FakeMirror,
-  CaseohSlide,
   SeveredHand,
   ClockSix,
   Demon,
@@ -1007,14 +1005,19 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   Glock,
   CanBepis,
   FakeBuffet,
-  CaseohCorner,
-  CaseohExtraThicc,
   ShadowMan1,
   ShadowMan2,
   ShadowMan3,
   WaterBottleEggplant,
   AnomalyPainting,
 ]
+
+export const SPECIAL_ANOMALIES: Record<number, Anomaly> = {
+  0: FrenchFries,
+  3: CaseohSlide,
+  12: CaseohExtraThicc,
+  16: CaseohCorner,
+}
 
 export const getHighestAnomalyId = () => {
   let highestId = 0
@@ -1038,6 +1041,10 @@ export const disableAllAnomalies = (simulation: Simulation) => {
     anomaly?.Disable(simulation)
   }
 
+  for (const anomaly of Object.values(SPECIAL_ANOMALIES)) {
+    anomaly?.Disable(simulation)
+  }
+
   Bloodshake.Disable(simulation)
   FanFast.Disable(simulation)
   RedDemon.Disable(simulation)
@@ -1052,6 +1059,24 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
     anomalies.push(...DEFAULT_ANOMALIES)
   }
 
+  // If we have a special win anomaly to show, prioritize it
+  if (state.wins === state.winAnomalyIndex && SPECIAL_ANOMALIES[state.winAnomalyIndex]) {
+    const specialAnomalyId = state.winAnomalyIndex;
+    const specialAnomaly = SPECIAL_ANOMALIES[specialAnomalyId];
+
+    currentAnomalyId = specialAnomaly.Id;
+    currentAnomalyIndex = -1; // Mark as special anomaly
+
+    state.setAnomaly(true);
+    state.setFoundAnomaly(false);
+
+    const position = specialAnomaly.Enable(simulation);
+    state.setAnomalyPosition(position);
+
+    return;
+  }
+
+  // Normal random anomaly selection
   if (!previouslyNoAnomaly && !state.isTutorial && Math.random() < 0.2) {
     state.setAnomaly(false)
 

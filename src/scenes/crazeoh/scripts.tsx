@@ -15,7 +15,7 @@ import { renderer } from "../../components/Viewport"
 const loaderPromise = import("../../graphics/loaders")
 
 const voicePromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/voice.ogg', {
+  return await loadAudio('./audio/sfx/voice.ogg', {
     loop: false,
     positional: false,
     volume: 0.2,
@@ -26,7 +26,7 @@ const voicePromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const noisePromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/noise.ogg', {
+  return await loadAudio('./audio/sfx/noise.ogg', {
     loop: true,
     positional: false,
     volume: 0.1,
@@ -35,7 +35,7 @@ const noisePromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const oofPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/oof.ogg', {
+  return await loadAudio('./audio/sfx/oof.ogg', {
     loop: false,
     positional: false,
     volume: 0.1,
@@ -43,7 +43,7 @@ const oofPromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const loudPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/loud.ogg', {
+  return await loadAudio('./audio/sfx/loud.ogg', {
     loop: false,
     positional: false,
     volume: 0.3,
@@ -51,7 +51,7 @@ const loudPromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const screamPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('/audio/sfx/scream.ogg', {
+  return await loadAudio('./audio/sfx/scream.ogg', {
     loop: false,
     positional: false,
     volume: 0.7,
@@ -134,7 +134,7 @@ export const intro = async (simulation: Simulation) => {
   explainer.setAttribute("is-hidden", "true")
 }
     
-const caseohLiveTexture = loadTexture("/screenshots/caseoh_live.webp")
+const caseohLiveTexture = loadTexture("./screenshots/caseoh_live.webp")
 
 const outro = async (simulation: Simulation) => {
   enableLoading()
@@ -285,7 +285,7 @@ const outro = async (simulation: Simulation) => {
 
   await new Promise(resolve => setTimeout(resolve, 15000))
 
-  loadAudio("/audio/sfx/outro.ogg", {
+  loadAudio("./audio/sfx/outro.ogg", {
     volume: 0.3,
     loop: false,
     autoplay: true,
@@ -311,7 +311,7 @@ const outro = async (simulation: Simulation) => {
     ceilingFanAudioPromise, clockAudioPromise, ventAudioPromise,
   ].forEach(promise => promise.then(audio => audio.stop()))
 
-  loadAudio("/audio/sfx/eat_chip.ogg", {
+  loadAudio("./audio/sfx/eat_chip.ogg", {
     volume: 0.3,
     loop: false,
     positional: false,
@@ -357,12 +357,12 @@ export const executeWinScript = async (simulation: Simulation) => {
   }
 
   try {
+    if (!state.isTutorial) {
+      state.incrementWinScriptIndex()
+    }
+
     if (winScript[index]) {
       state.setInDialogue(true)
-
-      if (!state.isTutorial) {
-        state.incrementWinScriptIndex()
-      }
 
       await winScript[index](simulation)
 

@@ -36,10 +36,10 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("/3d/scenes/island/interloper_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf("./3d/scenes/island/interloper_OPTIMIZED.glb").then(gltf => gltf.scene);
 
 // AveMarisStella.mp3
-const music = loadAudio("/audio/music/AveMarisStella.mp3", {
+const music = loadAudio("./audio/music/AveMarisStella.mp3", {
   loop: true,
   positional: false,
   volume: 0.0,
@@ -67,7 +67,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 
     public Execute(sim: Simulation): void {
       foodObject.visible = false;
-      loadAudio("/audio/sfx/eat_chip.ogg", {
+      loadAudio("./audio/sfx/eat_chip.ogg", {
         detune: -600,
         randomPitch: true,
         pitchRange: 400,
