@@ -1,14 +1,9 @@
 name: Deploy to Prod
 
 on:
-  workflow_dispatch: {}  # manual trigger
   push:
     branches:
       - prod
-
-permissions:
-  id-token: write           # required for OIDC-based assume-role :contentReference[oaicite:7]{index=7}
-  contents: read
 
 env:
   AWS_REGION: us-east-1
@@ -21,36 +16,37 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # latest v4 checkout :contentReference[oaicite:8]{index=8}
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4  # setup-node v4 :contentReference[oaicite:9]{index=9}
+        uses: actions/setup-node@v4
         with:
-          node-version: '22.x'       # Node 22 LTS :contentReference[oaicite:10]{index=10}
-          check-latest: true         # enable caching & latest patch
+          node-version: '22.x'
+          check-latest: true
 
-      - name: Install dependencies and build
+      - name: Install dependencies & build
         run: |
           npm ci
           npm run build
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4  # v4 with OIDC support :contentReference[oaicite:11]{index=11}
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }} 
 
-      - name: Sync Tripshred to S3
-        run: aws s3 sync dist/tripshred s3://${{ env.S3_BUCKET }}/  # AWS CLI s3 sync :contentReference[oaicite:12]{index=12}
+      - name: Sync “tripshred” to S3 root
+        run: aws s3 sync dist/tripshred s3://${{ env.S3_BUCKET }}/ 
 
-      - name: Sync CrazeOh to S3
-        run: aws s3 sync dist/crazeoh s3://${{ env.S3_BUCKET }}/crazeoh/
+      - name: Sync “crazeoh” subpath
+        run: aws s3 sync dist/crazeoh s3://${{ env.S3_BUCKET }}/crazeoh/ 
 
-      - name: Sync Spooky to S3
-        run: aws s3 sync dist/spooky s3://${{ env.S3_BUCKET }}/spooky/
+      - name: Sync “spooky” subpath
+        run: aws s3 sync dist/spooky s3://${{ env.S3_BUCKET }}/spooky/ 
 
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ env.DISTRIBUTION_ID }} \
-            --paths "/*"               # invalidate all paths :contentReference[oaicite:13]{index=13}
+            --paths "/*"
