@@ -109,7 +109,7 @@ const allLoopingAudio = [
 ];
 
 const winIndexScenes = {
-  5: scenes.interloper,
+  0: scenes.interloper,
   10: scenes.dropper,
   15: scenes.stomach,
 }

@@ -992,7 +992,6 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   SeveredHand,
   ClockSix,
   Demon,
-  RedDemon,
   Head,
   KitchenKnife,
   Feet,

@@ -342,10 +342,7 @@ const stomach = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  0: intro,
-  5: basement,
-  10: dropper,
-  15: stomach,
+  // 0: intro,
   20: outro,
 }
 
