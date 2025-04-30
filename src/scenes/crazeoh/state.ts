@@ -49,11 +49,11 @@ export const resetWins = () => {
 }
 
 export const decrementWins = () => {
-  wins--
-
-  if (wins < 0) {
-    wins = 0
+  if (wins <= 1) {
+    return
   }
+
+  wins--
 }
 
 // -----

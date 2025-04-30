@@ -133,6 +133,15 @@ export const intro = async (simulation: Simulation) => {
 
   explainer.setAttribute("is-hidden", "true")
 }
+
+export const introNoAnomaly = async (simulation: Simulation) => {
+  const dialogueTexts = [
+    <i>[NOTE: <b>There is no anomaly this round</b>.]</i>,
+    <i>[Return to your car when you're ready.]</i>,
+  ]
+
+  await playDialogueWithVoice(dialogueTexts)
+}
     
 const caseohLiveTexture = loadTexture("./screenshots/caseoh_live.webp")
 
@@ -339,6 +348,7 @@ const stomach = async (simulation: Simulation) => {
 
 const winScript: Record<number, typeof intro> = {
   0: intro,
+  1: introNoAnomaly,
   20: outro,
 }
 
