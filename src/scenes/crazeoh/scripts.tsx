@@ -309,7 +309,7 @@ const outro = async (simulation: Simulation) => {
     autoplay: true,
   })
 
-  mesh.position.set(simulation.Camera.position.x, -0.5, simulation.Camera.position.z)
+  mesh.position.set(endX, -0.5, -5.7)
   mesh.rotation.y = THREE.MathUtils.degToRad(90)
 
   // flip the camera 180 degrees
