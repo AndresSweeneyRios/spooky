@@ -23,6 +23,8 @@ export const Viewport: React.FC<{
       canvas,
       antialias: RENDERER.antialias,
       preserveDrawingBuffer: true,
+      failIfMajorPerformanceCaveat: false,
+      powerPreference: "high-performance",
     })
     
     renderer.shadowMap.enabled = true;
