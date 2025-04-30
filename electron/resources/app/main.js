@@ -10,8 +10,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    autoHideMenuBar: true, // Hide the menu bar
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: true,
       enableRemoteModule: true,
@@ -21,10 +21,13 @@ function createWindow() {
   });
 
   // Load the main HTML file
-  mainWindow.loadFile(path.join(__dirname, './dist/crazeoh/index.html'));
+  // mainWindow.loadFile(path.join(__dirname, './dist/crazeoh/index.html'));
+
+  // load https://tripshred.com/crazeoh/#/crazeoh
+  mainWindow.loadURL('https://tripshred.com/crazeoh/#/crazeoh');
 
   // Open DevTools in development mode
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   // Show window when ready to avoid flashing
   mainWindow.once('ready-to-show', () => {

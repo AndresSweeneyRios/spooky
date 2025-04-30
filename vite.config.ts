@@ -17,7 +17,7 @@ function selectivePublicCopy(excludePatterns: RegExp[]) {
     // Use writeBundle instead of closeBundle for more reliable execution
     writeBundle() {
       const publicDir = path.resolve('public')
-      const outDir = path.resolve(`electron/resources/app/dist/${PROJECT}`)
+      const outDir = path.resolve(`dist/${PROJECT}`)
 
       console.log(`Copying from ${publicDir} to ${outDir}`)
       console.log(`Excluding patterns:`, excludePatterns.map(p => p.toString()))
@@ -90,6 +90,8 @@ const config = defineConfig({
       /\.fbx/,
       /\.png/,
       /\.xcf/,
+      /\.wav/,
+      /\.mp3/,
       /animations\/humanoid\//,
       /crazeoh\.glb/,
       /interloper\.glb/,
@@ -108,7 +110,7 @@ const config = defineConfig({
     assetsInlineLimit: 1024 * 4,
     chunkSizeWarningLimit: 1024 * 4,
     emptyOutDir: true,
-    outDir: `electron/resources/app/dist/${PROJECT}`,
+    outDir: `dist/${PROJECT}`,
     rollupOptions: {
       // We can remove the external config since it's not helping with public directory
     }
