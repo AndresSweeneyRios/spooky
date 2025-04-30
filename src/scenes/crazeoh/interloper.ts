@@ -47,6 +47,8 @@ const music = loadAudio("./audio/music/AveMarisStella.mp3", {
 
 const tempVec3 = new THREE.Vector3();
 
+export let pizzaEaten = false;
+
 const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
   const foodObject = scene.getObjectByName(food) as THREE.Mesh;
   if (!foodObject) {
@@ -60,6 +62,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
   simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [2, 2, 2], [tempVec3.x, tempVec3.y, tempVec3.z], undefined, true);
   simulation.SimulationState.SensorCommandRepository.CreateComponent(entId);
 
+
   // Create the command with explicit Owner property
   const command = new class extends SimulationCommand {
     // Explicitly add the Owner property
@@ -67,6 +70,11 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 
     public Execute(sim: Simulation): void {
       foodObject.visible = false;
+
+      if (food === "pizza") {
+        pizzaEaten = true;
+      }
+
       loadAudio("./audio/sfx/eat_chip.ogg", {
         detune: -600,
         randomPitch: true,

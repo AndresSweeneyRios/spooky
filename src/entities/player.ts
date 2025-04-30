@@ -3,7 +3,7 @@ import type { vec3 } from "gl-matrix"
 import { StatType } from "../simulation/repository/StatRepository"
 import type { PlayerView } from "../views/player"
 
-const SPEED = 4
+const SPEED = 5
 
 let thirdPerson = false
 let size = 0.5
