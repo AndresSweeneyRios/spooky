@@ -137,6 +137,9 @@ const handleDecision = async (decision: boolean) => {
     } else if (!state.anomaly && !decision) {
       state.incrementWins();
       coinsAudio.then(audio => audio.play());
+    } else if (decision && state.winAnomalyIndex === 3) {
+      state.incrementWins();
+      coinsAudio.then(audio => audio.play());
     } else {
       errorAudio.then(audio => audio.play());
       state.decrementWins();
