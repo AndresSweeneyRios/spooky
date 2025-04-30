@@ -4,7 +4,6 @@ import wasm from "vite-plugin-wasm"
 import { ViteEjsPlugin } from 'vite-plugin-ejs'
 
 const ENV = process.env.ENV || 'production'
-// @ts-ignore
 const PROJECT = (process.env.VITE_PROJECT || 'tripshred') as 'crazeoh' | 'spooky' | 'tripshred'
 
 const config = defineConfig({
