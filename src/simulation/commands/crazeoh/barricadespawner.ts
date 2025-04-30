@@ -14,7 +14,7 @@ export class barricadespawner extends SimulationCommand {
 
     let spawned = false
 
-    let interloper: (typeof import("c:/gamedev/spooky/src/scenes/crazeoh/interloper")) | null = null
+    let interloper: (typeof import("../../../scenes/crazeoh/interloper")) | null = null
 
     import("../../../scenes/crazeoh/interloper").then(interloperModule => {
       interloper = interloperModule;
