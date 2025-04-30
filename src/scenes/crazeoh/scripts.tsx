@@ -133,6 +133,15 @@ export const intro = async (simulation: Simulation) => {
 
   explainer.setAttribute("is-hidden", "true")
 }
+
+export const introNoAnomaly = async (simulation: Simulation) => {
+  const dialogueTexts = [
+    <i>[NOTE: <b>There is no anomaly this round</b>.]</i>,
+    <i>[Return to your car when you're ready.]</i>,
+  ]
+
+  await playDialogueWithVoice(dialogueTexts)
+}
     
 const caseohLiveTexture = loadTexture("./screenshots/caseoh_live.webp")
 
@@ -291,12 +300,8 @@ const outro = async (simulation: Simulation) => {
     autoplay: true,
   })
 
-  // spawn a new caseoh at the camera position
-  const caseoh = await createCaseoh(simulation)
-  const caseohMesh = await caseoh.meshPromise
-
-  caseohMesh.position.set(simulation.Camera.position.x, -0.5, simulation.Camera.position.z)
-  caseohMesh.rotateY(THREE.MathUtils.degToRad(90))
+  mesh.position.set(simulation.Camera.position.x, -0.5, simulation.Camera.position.z)
+  mesh.rotation.y = THREE.MathUtils.degToRad(90)
 
   // flip the camera 180 degrees
   simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(90), 0, "YXZ"))
@@ -343,9 +348,7 @@ const stomach = async (simulation: Simulation) => {
 
 const winScript: Record<number, typeof intro> = {
   0: intro,
-  5: basement,
-  10: dropper,
-  15: stomach,
+  1: introNoAnomaly,
   20: outro,
 }
 

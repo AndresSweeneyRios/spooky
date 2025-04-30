@@ -5,7 +5,7 @@ import { Viewport, renderer } from '../components/Viewport';
 import { DialogueBox } from '../components/DialogueBox';
 import { loadScene, scenes, unloadScene } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp";
-import PolaroidPng from "../assets/caseoh/polaroid.png";
+import PolaroidPng from "../assets/caseoh/polaroid.webp";
 import * as state from "../scenes/crazeoh/state";
 import { currentAnomalyId, removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 import _SVG from 'react-inlinesvg';
@@ -135,6 +135,9 @@ const handleDecision = async (decision: boolean) => {
       state.setIsTutorial(false);
       coinsAudio.then(audio => audio.play());
     } else if (!state.anomaly && !decision) {
+      state.incrementWins();
+      coinsAudio.then(audio => audio.play());
+    } else if (decision && state.winAnomalyIndex === 3) {
       state.incrementWins();
       coinsAudio.then(audio => audio.play());
     } else {

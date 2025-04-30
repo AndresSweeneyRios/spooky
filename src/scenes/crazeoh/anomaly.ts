@@ -992,7 +992,6 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   SeveredHand,
   ClockSix,
   Demon,
-  RedDemon,
   Head,
   KitchenKnife,
   Feet,
@@ -1053,6 +1052,14 @@ export const disableAllAnomalies = (simulation: Simulation) => {
 let previouslyNoAnomaly = false
 
 export const pickRandomAnomaly = (simulation: Simulation): void => {
+  // Always no anomaly if winScriptIndex is 0
+  if (state.winScriptIndex === 0) {
+    disableAllAnomalies(simulation)
+    state.setAnomaly(false)
+    previouslyNoAnomaly = true
+    return
+  }
+
   disableAllAnomalies(simulation)
 
   if (anomalies.length === 0) {
