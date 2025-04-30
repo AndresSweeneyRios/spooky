@@ -2,7 +2,7 @@ import type { Simulation } from "../..";
 import { View } from "../../View";
 import { SimulationCommand } from "../_command";
 import * as THREE from "three";
-import { currentCrtPass } from "c:/gamedev/spooky/src/scenes/crazeoh/interloper";
+import { currentCrtPass } from "../../../scenes/crazeoh/interloper";
 
 export class barricadespawner extends SimulationCommand {
   public Execute(simulation: Simulation): void {
