@@ -41,13 +41,13 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
       - name: Sync Tripshred to S3
-        run: aws s3 sync dist/tripshred s3://${{ env.S3_BUCKET }}/ --delete  # AWS CLI s3 sync :contentReference[oaicite:12]{index=12}
+        run: aws s3 sync dist/tripshred s3://${{ env.S3_BUCKET }}/  # AWS CLI s3 sync :contentReference[oaicite:12]{index=12}
 
       - name: Sync CrazeOh to S3
-        run: aws s3 sync dist/crazeoh s3://${{ env.S3_BUCKET }}/crazeoh/ --delete
+        run: aws s3 sync dist/crazeoh s3://${{ env.S3_BUCKET }}/crazeoh/
 
       - name: Sync Spooky to S3
-        run: aws s3 sync dist/spooky s3://${{ env.S3_BUCKET }}/spooky/ --delete
+        run: aws s3 sync dist/spooky s3://${{ env.S3_BUCKET }}/spooky/
 
       - name: Invalidate CloudFront cache
         run: |
