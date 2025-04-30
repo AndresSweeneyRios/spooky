@@ -2,9 +2,9 @@ import { rapierFinishedLoading } from '../simulation/repository/PhysicsRepositor
 
 export const scenes = Object.freeze({
   gatesOfHeaven: () => import('./gatesOfHeaven'),
-  island: () => import('./gardening/island'),
+  // island: () => import('./gardening/island'),
   city: () => import('./city'),
-  animationDebugger: () => import('./gardening/animationDebugger'),
+  // animationDebugger: () => import('./gardening/animationDebugger'),
   crazeoh: () => import('./crazeoh'),
   interloper: () => import('./crazeoh/interloper'),
   dropper: () => import('./crazeoh/dropper'),
