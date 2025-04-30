@@ -4,6 +4,8 @@ import * as THREE from "three";
 import { View } from "../simulation/View";
 import { particleMaterial } from "../graphics/shaders";
 import { loadGltf } from "../graphics/loaders";
+import headGlb from '../assets/3d/head.glb';
+import smoke1Png from '../assets/3d/textures/smoke1.png';
 import { traverse } from "../utils/traverse";
 
 export class HeadView extends View {
@@ -11,11 +13,11 @@ export class HeadView extends View {
   scene: THREE.Scene
 
   async init() {
-    this.head = await loadGltf("./3d/head.glb")
+    this.head = await loadGltf(headGlb)
 
     {
       const textureLoader = new THREE.TextureLoader()
-      const texture = textureLoader.load("./3d/textures/smoke1.png")
+      const texture = textureLoader.load(smoke1Png)
 
       const geometry = new THREE.PlaneGeometry(1, 1)
       const material = particleMaterial(texture)

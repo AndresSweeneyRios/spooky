@@ -31,6 +31,17 @@ import { EntId } from "../../simulation/EntityRegistry";
 import { executeWinScript } from "./scripts";
 import { loadScene, scenes } from "..";
 
+import crazeohGlb from '../../assets/3d/scenes/island/crazeoh_OPTIMIZED.glb';
+import cameraOgg from '../../assets/audio/sfx/camera.ogg';
+import ceilingFanOgg from '../../assets/audio/sfx/ceiling_fan.ogg';
+import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
+import burgerkingOgg from '../../assets/audio/sfx/burgerking.ogg';
+import heartbeatOgg from '../../assets/audio/sfx/heartbeat.ogg';
+import garageScreamOgg from '../../assets/audio/sfx/garage_scream.ogg';
+import carIdlingOgg from '../../assets/audio/sfx/car_idling.ogg';
+import windOgg from '../../assets/audio/sfx/wind.ogg';
+import ventOgg from '../../assets/audio/sfx/vent.ogg';
+
 const SHADOW_BIAS = -0.0009;
 
 // Cache frequently accessed DOM elements
@@ -45,34 +56,34 @@ const tempVec3 = new THREE.Vector3();
 const tempEuler = new THREE.Euler();
 
 // Pre-load audio files
-const cameraAudioPromise = loadAudio("./audio/sfx/camera.ogg", {
+const cameraAudioPromise = loadAudio(cameraOgg, {
   volume: 0.1,
 });
 
-export const ceilingFanAudioPromise = loadAudio("./audio/sfx/ceiling_fan.ogg", {
+export const ceilingFanAudioPromise = loadAudio(ceilingFanOgg, {
   loop: true,
   positional: true,
   volume: 0.6,
   autoplay: true,
 });
 
-const eatChipAudioPromise = loadAudio("./audio/sfx/eat_chip.ogg", {
+const eatChipAudioPromise = loadAudio(eatChipOgg, {
   detune: -600,
   randomPitch: true,
   pitchRange: 400,
   volume: 0.1,
 });
 
-const burgerkingAudioPromise = loadAudio("./audio/sfx/burgerking.ogg", {
+const burgerkingAudioPromise = loadAudio(burgerkingOgg, {
   loop: false,
   positional: true,
 });
 
-const heartbeatAudioPromise = loadAudio("./audio/sfx/heartbeat.ogg", {
+const heartbeatAudioPromise = loadAudio(heartbeatOgg, {
   loop: true,
 });
 
-export const garageScreamAudioPromise = loadAudio("./audio/sfx/garage_scream.ogg", {
+export const garageScreamAudioPromise = loadAudio(garageScreamOgg, {
   loop: true,
   positional: true,
   detune: -400,
@@ -80,20 +91,20 @@ export const garageScreamAudioPromise = loadAudio("./audio/sfx/garage_scream.ogg
   volume: 0.1,
 });
 
-export const carIdling = loadAudio("./audio/sfx/car_idling.ogg", {
+export const carIdling = loadAudio(carIdlingOgg, {
   loop: true,
   positional: true,
   autoplay: true,
   volume: 0.4,
 });
 
-export const windAudioPromise = loadAudio("./audio/sfx/wind.ogg", {
+export const windAudioPromise = loadAudio(windOgg, {
   loop: true,
   volume: 0.005,
   autoplay: true,
 })
 
-export const ventAudioPromise = loadAudio("./audio/sfx/vent.ogg", {
+export const ventAudioPromise = loadAudio(ventOgg, {
   loop: true,
   volume: 0.05,
   detune: -400,
@@ -301,7 +312,7 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("./3d/scenes/island/crazeoh_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf(crazeohGlb).then(gltf => gltf.scene);
 
 export let currentCrtPass: ShaderPass | null = null;
 export let currentOutlinePass: OutlinePass | null = null;

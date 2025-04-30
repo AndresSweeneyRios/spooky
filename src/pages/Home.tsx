@@ -2,6 +2,9 @@ import "./Home.css";
 import React, { Fragment } from 'react';
 import _SVG from 'react-inlinesvg';
 import TripshredSvg from '../assets/icons/tripshred.svg';
+import crazeohScreenshot from '../assets/screenshots/crazeoh.webp';
+import acid1Webp from '../assets/3d/throne/ACID1.webp';
+import smptePng from '../assets/3d/throne/smpte.png';
 
 const SVG = _SVG as any;
 
@@ -40,9 +43,9 @@ function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
   resize();
 
   const acid1 = new Image();
-  acid1.src = "./3d/throne/ACID1.webp"
+  acid1.src = acid1Webp
   const acid2 = new Image();
-  acid2.src = "./3d/throne/smpte.png"
+  acid2.src = smptePng
 
   const texturePromiseAll = Promise.all<HTMLImageElement>([
     new Promise((resolve) => {
@@ -236,7 +239,7 @@ export default function Home() {
           </div>
           <div style={{ flexDirection: 'row' }}>
             <div className="screenshot" >
-              <img src="./screenshots/crazeoh.webp" alt="A CrazeOh screenshot" />
+              <img src={crazeohScreenshot} alt="A CrazeOh screenshot" />
             </div>
             <div className="separator"></div>
             <div style={{ alignItems: 'flex-start' }}>
@@ -246,7 +249,7 @@ export default function Home() {
           </div>
           <div style={{ flexDirection: 'row-reverse' }}>
             <div className="screenshot" >
-              <img src="./screenshots/crazeoh.webp" alt="A CrazeOh screenshot" />
+              <img src={crazeohScreenshot} alt="A CrazeOh screenshot" />
             </div>
             <div className="separator"></div>
             <div style={{ alignItems: 'flex-end' }} className="mobile-align-start">

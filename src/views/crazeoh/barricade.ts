@@ -5,14 +5,16 @@ import { loadAudio, loadGltf } from "../../graphics/loaders";
 import { processAttributes } from "../../utils/processAttributes";
 import { EntId } from "../../simulation/EntityRegistry";
 import { SkeletonUtils } from "three/examples/jsm/Addons.js";
-import { AnimationKey } from "../../assets/animations";
+import { AnimationKey } from "../../assets/3d/animations";
 import { animationsPromise, getAnimation, playAnimation } from "../../animation";
 import * as shaders from "../../graphics/shaders";
+import barricadeGlb from '../../assets/3d/scenes/island/barricade_OPTIMIZED.glb';
+import noiseOgg from '../../assets/audio/sfx/noise.ogg';
 
 const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
 const IDLE_TIMESCALE = 1
 
-const noiseAudio = loadAudio("./audio/sfx/noise.ogg", {
+const noiseAudio = loadAudio(noiseOgg, {
   autoplay: false,
   volume: 1.6,
   loop: true,
@@ -27,7 +29,7 @@ export class BarricadeView extends View {
   async init() {
     await animationsPromise
 
-    const barricade = await loadGltf("./3d/scenes/island/barricade_OPTIMIZED.glb")
+    const barricade = await loadGltf(barricadeGlb)
 
     this.barricade = SkeletonUtils.clone(barricade.scene)
 

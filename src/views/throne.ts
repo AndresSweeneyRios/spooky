@@ -9,8 +9,12 @@ import { EntityView } from "../simulation/EntityView";
 import { vec3 } from "gl-matrix";
 import { renderer } from "../components/Viewport";
 import { currentCrtPass } from "../scenes/gatesOfHeaven";
+import throneGlb from '../assets/3d/throne.glb';
+import acid1Webp from '../assets/3d/throne/ACID1.webp';
+import acid2Webp from '../assets/3d/throne/ACID2.webp';
+import acid3Webp from '../assets/3d/throne/ACID3.webp';
 
-const gltfPromise = loadGltf("./3d/throne.glb")
+const gltfPromise = loadGltf(throneGlb)
 
 // const battlesphereMaterial = new THREE.ShaderMaterial({
 //   uniforms: {
@@ -139,9 +143,9 @@ const loadAcidTexture = async (uniformName: string, path: string) => {
   battlesphereMaterial.needsUpdate = true
 }
 
-// loadAcidTexture("acid1", "./3d/throne/ACID1.webp")
-// loadAcidTexture("acid2", "./3d/throne/ACID2.webp")
-// loadAcidTexture("acid3", "./3d/throne/ACID3.webp")
+// loadAcidTexture("acid1", acid1Webp)
+// loadAcidTexture("acid2", acid2Webp)
+// loadAcidTexture("acid3", acid3Webp)
 
 export class ThroneView extends EntityView {
   throne: THREE.Object3D | null = null

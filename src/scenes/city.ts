@@ -7,6 +7,8 @@ import * as shaders from '../graphics/shaders';
 import { processAttributes } from '../utils/processAttributes';
 import { CollidersDebugger } from '../views/collidersDebugger';
 import { traverse } from '../utils/traverse';
+import cityscapeWebp from '../assets/3d/env/cityscape.webp';
+import starterSceneGlb from '../assets/3d/scenes/startscene/starterscene.glb';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -58,14 +60,14 @@ export const init = async () => {
     camera.updateProjectionMatrix();
   }, false);
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap("./3d/env/cityscape.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap(cityscapeWebp, THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
       scene.environmentIntensity = 1.0
     }),
 
-    loadGltf("./3d/scenes/startscene/starterscene.glb")
+    loadGltf(starterSceneGlb)
   ])
 
   const scale = 0.6

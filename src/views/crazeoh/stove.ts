@@ -2,17 +2,19 @@ import { Simulation } from "../../simulation";
 import * as THREE from "three";
 import { View } from "../../simulation/View";
 import { loadAudio } from "../../graphics/loaders";
+import doorOpenOgg from '../../assets/audio/sfx/door_open.ogg';
+import doorCloseOgg from '../../assets/audio/sfx/door_close.ogg';
 
 const STOVE_OPEN_SPEED = 500
 const STOVE_OPEN_ANGLE = Math.PI / 3 * 1
 const STOVE_CLOSED_ANGLE = 0
 
-const openDoorAudioPromise = loadAudio("./audio/sfx/door_open.ogg", {
+const openDoorAudioPromise = loadAudio(doorOpenOgg, {
   // randomPitch: true,
   detune: -1000,
 })
 
-const closeDoorAudioPromise = loadAudio("./audio/sfx/door_close.ogg", {
+const closeDoorAudioPromise = loadAudio(doorCloseOgg, {
   // randomPitch: true,
   detune: -1000,
 })

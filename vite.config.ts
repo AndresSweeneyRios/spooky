@@ -26,6 +26,13 @@ function selectivePublicCopy(excludePatterns: RegExp[]) {
       function copyRecursive(src: string, dest: string) {
         const stat = fs.statSync(src)
 
+        // temporarily block any file that isnt favicon.ico
+        if (src.endsWith('favicon.ico')) {
+          console.log(`Copying: ${src}`)
+          fs.copyFileSync(src, dest)
+          return
+        }
+
         // Check if path matches any exclude pattern
         const relativePath = path.relative(publicDir, src).replace(/\\/g, '/')
         const shouldExclude = excludePatterns.some(pattern => pattern.test(relativePath))
@@ -74,6 +81,7 @@ const config = defineConfig({
   base: './',
   // Disable default public directory copying
   publicDir: (process.env.ENV !== "production") ? "public" : false,
+  assetsInclude: ['**/*.glb', '**/*.mid'], // Include .glb files as assets
   plugins: [
     ViteEjsPlugin({
       ENV: ENV,
@@ -92,6 +100,8 @@ const config = defineConfig({
       /\.xcf/,
       /\.wav/,
       /\.mp3/,
+      /\.zip/,
+      /\.flac/,
       /animations\/humanoid\//,
       /crazeoh\.glb/,
       /interloper\.glb/,

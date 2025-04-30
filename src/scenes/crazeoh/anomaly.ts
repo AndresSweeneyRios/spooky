@@ -8,25 +8,28 @@ import * as state from "./state"
 import * as THREE from 'three'
 import type { loadAudio } from "../../graphics/loaders"
 import { getAngle } from "../../utils/math"
+import webaOgg from '../../assets/audio/sfx/weba.ogg';
+import keyboardTypingOgg from '../../assets/audio/sfx/keyboard_typing.ogg';
+import clockOgg from '../../assets/audio/sfx/clock.ogg';
 
 const loaderPromise = import("../../graphics/loaders")
 
 const monitorAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/weba.ogg', {
+  return await loadAudio(webaOgg, {
     loop: true,
     positional: true,
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/keyboard_typing.ogg', {
+  return await loadAudio(keyboardTypingOgg, {
     loop: true,
     positional: true,
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 export const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/clock.ogg', {
+  return await loadAudio(clockOgg, {
     loop: true,
     positional: true,
     volume: 0.1,

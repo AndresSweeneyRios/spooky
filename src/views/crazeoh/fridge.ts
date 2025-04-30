@@ -2,16 +2,18 @@ import { Simulation } from "../../simulation";
 import * as THREE from "three";
 import { View } from "../../simulation/View";
 import { loadAudio } from "../../graphics/loaders";
+import doorOpenOgg from '../../assets/audio/sfx/door_open.ogg';
+import doorCloseOgg from '../../assets/audio/sfx/door_close.ogg';
 
 const FRIDGE_OPEN_SPEED = 500
 const FRIDGE_OPEN_ANGLE = Math.PI / 3 * 2
 const FRIDGE_CLOSED_ANGLE = 0
 
-const openDoorAudioPromise = loadAudio("./audio/sfx/door_open.ogg", {
+const openDoorAudioPromise = loadAudio(doorOpenOgg, {
   // randomPitch: true,
 })
 
-const closeDoorAudioPromise = loadAudio("./audio/sfx/door_close.ogg", {
+const closeDoorAudioPromise = loadAudio(doorCloseOgg, {
   // randomPitch: true,
 })
 

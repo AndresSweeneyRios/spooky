@@ -4,8 +4,9 @@ import { Simulation } from "../simulation";
 import { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import * as THREE from 'three';
+import houseGlb from '../assets/3d/houses/mushy.glb';
 
-const houseGltfPromise = loadGltf("./3d/houses/mushy.glb")
+const houseGltfPromise = loadGltf(houseGlb)
 
 export class GardenView extends EntityView {
   private house: THREE.Object3D | null = null;

@@ -18,6 +18,10 @@ import { JustPressedEvent, playerInput } from "../../input/player";
 import * as state from "./state";
 import { setGravity } from "../../simulation/repository/PhysicsRepository";
 import { loadScene, scenes, unloadScene } from "..";
+import dropperGlb from '../../assets/3d/scenes/island/dropper_OPTIMIZED.glb';
+import meatwireeyesWebp from '../../assets/3d/textures/meatwireeyes.webp';
+import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
+import worblyOgg from '../../assets/audio/music/worbly.ogg';
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -36,7 +40,7 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("./3d/scenes/island/dropper_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf(dropperGlb).then(gltf => gltf.scene);
 
 let musicAudio: Awaited<ReturnType<typeof loadAudio>> | null = null;
 let eatChipAudioPromise: Promise<Awaited<ReturnType<typeof loadAudio>>> | null = null;
@@ -136,10 +140,10 @@ export const init = async () => {
   enableLoading();
 
   // Preload eat_chip.ogg for end-level event
-  eatChipAudioPromise = loadAudio('./audio/sfx/eat_chip.ogg', { volume: 0.5 });
+  eatChipAudioPromise = loadAudio(eatChipOgg, { volume: 0.5 });
 
   // Start background music
-  musicAudio = await loadAudio('./audio/music/worbly.ogg', {
+  musicAudio = await loadAudio(worblyOgg, {
     loop: true,
     volume: 0.01,
     autoplay: false,
@@ -195,7 +199,7 @@ export const init = async () => {
   if (cylinder instanceof THREE.Mesh) {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(
-      './3d/textures/meatwireeyes.webp',
+      meatwireeyesWebp,
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;

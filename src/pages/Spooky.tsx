@@ -12,6 +12,8 @@ const SVG = _SVG as any;
 
 import DpadSvg from '../assets/spooky/dpad.svg';
 import * as midi from '../audio/midi';
+import fastbeatWav from '../assets/audio/music/fastbeat.wav';
+import fastbeatMidURL from '../assets/audio/music/fastbeat.mid';
 
 Input.listenForEvents()
 
@@ -26,7 +28,9 @@ export default function Spooky() {
     const noteMap = new Map<symbol, midi.Note>();
 
     async function playNotes() {
-      for await (const notes of midi.playNotesWithinInterval("./audio/music/fastbeat.wav", "./audio/music/fastbeat.mid", 4000, 2, 2000, 300, 200)) {
+      const fastbeatMid = await fetch(fastbeatMidURL).then(response => response.text());
+
+      for await (const notes of midi.playNotesWithinInterval(fastbeatWav, fastbeatMid, 4000, 2, 2000, 300, 200)) {
         const dpad = document.getElementById("dpad");
 
         for (const note of notes) {

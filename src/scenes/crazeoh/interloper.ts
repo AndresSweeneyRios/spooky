@@ -19,6 +19,10 @@ import * as state from "./state";
 import { SimulationCommand } from "../../simulation/commands/_command";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 
+import interloperGlb from '../../assets/3d/scenes/island/interloper_OPTIMIZED.glb';
+import aveMarisStellaMp3 from '../../assets/audio/music/AveMarisStella.mp3';
+import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
+
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
 const splashEl = document.getElementById("splash");
@@ -36,10 +40,9 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("./3d/scenes/island/interloper_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf(interloperGlb).then(gltf => gltf.scene);
 
-// AveMarisStella.mp3
-const music = loadAudio("./audio/music/AveMarisStella.mp3", {
+const music = loadAudio(aveMarisStellaMp3, {
   loop: true,
   positional: false,
   volume: 0.0,
@@ -75,7 +78,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
         pizzaEaten = true;
       }
 
-      loadAudio("./audio/sfx/eat_chip.ogg", {
+      loadAudio(eatChipOgg, {
         detune: -600,
         randomPitch: true,
         pitchRange: 400,

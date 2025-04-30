@@ -9,7 +9,7 @@
     "build-tripshred": "cross-env ENV=production PROJECT=tripshred vite build",
     "build-crazeoh": "cross-env ENV=production PROJECT=crazeoh vite build",
     "build-loh": "cross-env ENV=production PROJECT=loh vite build",
-    "preview": "vite preview",
+    "preview": "cross-env ENV=development PROJECT=crazeoh vite preview",
     "test": "vitest",
     "engine": "npm run generate-animations && cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node ./engine/index.ts",
     "generate-animations": "node ./public/3d/animations/_generate.js",

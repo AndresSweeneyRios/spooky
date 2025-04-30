@@ -3,7 +3,7 @@
 /// <reference types="react-dom" />
 
 declare namespace NodeJS {
-  interface Process{
+  interface Process {
     env: ProcessEnv
   }
   interface ProcessEnv {
@@ -37,14 +37,39 @@ declare module '*.jpeg' {
   export default src
 }
 
+declare module '*.mp3' {
+  const src: string
+  export default src
+}
+
 declare module '*.png' {
   const src: string
   export default src
 }
 
 declare module '*.webp' {
-    const src: string
-    export default src
+  const src: string
+  export default src
+}
+
+declare module '*.glb' {
+  const src: string
+  export default src
+}
+
+declare module '*.json' {
+  const src: string
+  export default src
+}
+
+declare module '*.ogg' {
+  const src: string
+  export default src
+}
+
+declare module '*.mid' {
+  const src: string
+  export default src
 }
 
 declare module '*.svg' {
@@ -89,6 +114,11 @@ declare module '*?base64' {
 }
 
 declare module '*.ttf' {
+  const src: string
+  export default src
+}
+
+declare module '*.wav' {
   const src: string
   export default src
 }

@@ -20,6 +20,12 @@ import { SimulationCommand } from "../../simulation/commands/_command";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { loadScene, scenes } from "..";
 
+import stomachGlb from '../../assets/3d/scenes/island/stomach_OPTIMIZED.glb';
+import synthkickOgg from '../../assets/audio/music/synthkick.ogg';
+import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
+import acid3Webp from '../../assets/3d/textures/acid3.webp';
+import ballsackWebp from '../../assets/3d/textures/ballsack.webp';
+
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
 const splashEl = document.getElementById("splash");
@@ -37,10 +43,10 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
-const mapLoader = loadGltf("./3d/scenes/island/stomach_OPTIMIZED.glb").then(gltf => gltf.scene);
+const mapLoader = loadGltf(stomachGlb).then(gltf => gltf.scene);
 
 // Change to positional audio attached to boombox_0
-const music = loadAudio("./audio/music/synthkick.ogg", {
+const music = loadAudio(synthkickOgg, {
   loop: true,
   positional: true,
   volume: 0.3,
@@ -71,7 +77,7 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 
     public Execute(sim: Simulation): void {
       foodObject.visible = false;
-      loadAudio("./audio/sfx/eat_chip.ogg", {
+      loadAudio(eatChipOgg, {
         detune: -600,
         randomPitch: true,
         pitchRange: 400,
@@ -244,7 +250,7 @@ export const init = async () => {
   if (stomach instanceof THREE.Mesh) {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load(
-      './3d/textures/ballsack.webp',
+      ballsackWebp,
       (texture) => {
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
@@ -361,7 +367,7 @@ export const init = async () => {
 
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
-    './3d/textures/acid3.webp',
+    acid3Webp,
     (texture) => {
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;

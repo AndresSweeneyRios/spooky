@@ -7,7 +7,11 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import { playAnimation } from '../../animation/animationPlayer';
-import { animationKeys } from '../../assets/animations';
+import { animationKeys } from '../../assets/3d/animations';
+
+import skyMirrorWebp from '../../assets/3d/env/sky_mirror.webp';
+import caseohGlb from '../../assets/3d/entities/caseoh.glb';
+import animationsListJson from '../../assets/3d/animations/_list.json';
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -38,7 +42,7 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [, playerModelGLTF, animationListJSON] = await Promise.all([
-    loadEquirectangularAsEnvMap("./3d/env/sky_mirror.webp", THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 0.0
       scene.environment = texture
@@ -48,9 +52,9 @@ export const init = async () => {
       scene.backgroundRotation.y = Math.PI / -4
     }),
 
-    loadGltf("./3d/entities/caseoh.glb"),
+    loadGltf(caseohGlb),
 
-    fetch("./3d/animations/_list.json").then((response) => response.json())
+    Promise.resolve(animationsListJson),
   ])
 
   const animationList = animationListJSON as { [directory: string]: string[] }

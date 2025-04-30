@@ -19,6 +19,9 @@ import { ArgumentsType } from "vitest";
 import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
 import TripshredSvg from "../assets/icons/tripshred.svg";
 import TrophySvg from "../assets/icons/trophy.svg";
+import caseohOgg from '../assets/audio/music/caseoh.ogg';
+import errorOgg from '../assets/audio/sfx/error.ogg';
+import coinsOgg from '../assets/audio/sfx/coins.ogg';
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
@@ -75,7 +78,7 @@ const initializeAudio = async () => {
     });
 
     // Load and play background music.
-    const audio = await loadAudioFile('./audio/music/caseoh.ogg', { loop: true, volume: 0.05 });
+    const audio = await loadAudioFile(caseohOgg, { loop: true, volume: 0.05 });
     audio.play();
     stopMusic = () => audio.stop();
   } catch (error) {
@@ -83,8 +86,8 @@ const initializeAudio = async () => {
   }
 };
 
-const errorAudio = loadAudioFile('./audio/sfx/error.ogg', { loop: false, volume: 0.05 });
-const coinsAudio = loadAudioFile('./audio/sfx/coins.ogg', { loop: false, volume: 0.05 });
+const errorAudio = loadAudioFile(errorOgg, { loop: false, volume: 0.05 });
+const coinsAudio = loadAudioFile(coinsOgg, { loop: false, volume: 0.05 });
 
 // ─── GAME START & DECISION HANDLERS ─────────────────────────────────────────────
 

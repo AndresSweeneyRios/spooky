@@ -12,10 +12,19 @@ import { clockAudioPromise, DEFAULT_ANOMALIES } from "./anomaly"
 import { loadScene, scenes, unloadScene } from ".."
 import { renderer } from "../../components/Viewport"
 
+import voiceOgg from '../../assets/audio/sfx/voice.ogg';
+import noiseOgg from '../../assets/audio/sfx/noise.ogg';
+import oofOgg from '../../assets/audio/sfx/oof.ogg';
+import loudOgg from '../../assets/audio/sfx/loud.ogg';
+import screamOgg from '../../assets/audio/sfx/scream.ogg';
+import outroOgg from '../../assets/audio/sfx/outro.ogg';
+import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
+import caseohLiveWebp from '../../assets/screenshots/caseoh_live.webp';
+
 const loaderPromise = import("../../graphics/loaders")
 
 const voicePromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/voice.ogg', {
+  return await loadAudio(voiceOgg, {
     loop: false,
     positional: false,
     volume: 0.2,
@@ -26,7 +35,7 @@ const voicePromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const noisePromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/noise.ogg', {
+  return await loadAudio(noiseOgg, {
     loop: true,
     positional: false,
     volume: 0.1,
@@ -35,7 +44,7 @@ const noisePromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const oofPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/oof.ogg', {
+  return await loadAudio(oofOgg, {
     loop: false,
     positional: false,
     volume: 0.1,
@@ -43,7 +52,7 @@ const oofPromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const loudPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/loud.ogg', {
+  return await loadAudio(loudOgg, {
     loop: false,
     positional: false,
     volume: 0.3,
@@ -51,7 +60,7 @@ const loudPromise = loaderPromise.then(async ({ loadAudio }) => {
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
 const screamPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio('./audio/sfx/scream.ogg', {
+  return await loadAudio(screamOgg, {
     loop: false,
     positional: false,
     volume: 0.7,
@@ -143,7 +152,7 @@ export const introNoAnomaly = async (simulation: Simulation) => {
   await playDialogueWithVoice(dialogueTexts)
 }
     
-const caseohLiveTexture = loadTexture("./screenshots/caseoh_live.webp")
+const caseohLiveTexture = loadTexture(caseohLiveWebp)
 
 const outro = async (simulation: Simulation) => {
   enableLoading()
@@ -294,7 +303,7 @@ const outro = async (simulation: Simulation) => {
 
   await new Promise(resolve => setTimeout(resolve, 15000))
 
-  loadAudio("./audio/sfx/outro.ogg", {
+  loadAudio(outroOgg, {
     volume: 0.3,
     loop: false,
     autoplay: true,
@@ -316,7 +325,7 @@ const outro = async (simulation: Simulation) => {
     ceilingFanAudioPromise, clockAudioPromise, ventAudioPromise,
   ].forEach(promise => promise.then(audio => audio.stop()))
 
-  loadAudio("./audio/sfx/eat_chip.ogg", {
+  loadAudio(eatChipOgg, {
     volume: 0.3,
     loop: false,
     positional: false,

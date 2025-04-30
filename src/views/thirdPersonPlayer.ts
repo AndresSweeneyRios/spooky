@@ -11,10 +11,11 @@ import * as shaders from "../graphics/shaders";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { processAttributes } from "../utils/processAttributes";
 import { animationsPromise, getAnimation, playAnimation } from "../animation";
-import { AnimationKey } from "../assets/animations";
+import { AnimationKey } from "../assets/3d/animations";
 import normalizeWheel from "../input/normalizeWheel";
+import fungiGlb from '../assets/3d/entities/fungi.glb';
 
-const gltfPromise = loadGltf("./3d/entities/fungi.glb")
+const gltfPromise = loadGltf(fungiGlb)
 
 const ROTATION_SPEED = 3; // Adjust this value to control speed
 

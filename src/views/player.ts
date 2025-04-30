@@ -9,6 +9,7 @@ import { vec3 } from "gl-matrix";
 import * as THREE from "three";
 import { EventEmitter } from "events";
 import { TypedEmitter } from "../utils/emitter";
+import footstepsConcreteOgg from '../assets/audio/sfx/footsteps_concrete.ogg';
 
 const MIN_SENSITIVITY = 200;
 const MAX_SENSITIVITY = 300000;
@@ -17,7 +18,7 @@ if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
 }
 
-const footstepAudio = loadAudio("./audio/sfx/footsteps_concrete.ogg", {
+const footstepAudio = loadAudio(footstepsConcreteOgg, {
   randomPitch: true,
   // detune: -4000,
   pitchRange: 800,

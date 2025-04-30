@@ -3,13 +3,14 @@ import { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from "three";
 import { View } from "../simulation/View";
 import { loadGltf } from "../graphics/loaders";
+import reliquaryGlb from '../assets/3d/reliquary/reliquary.glb';
 
 export class ReliquaryView extends View {
   reliquary: GLTF | null = null
   scene: THREE.Scene
 
-  async init () {
-    this.reliquary = await loadGltf("./3d/reliquary/reliquary.glb")
+  async init() {
+    this.reliquary = await loadGltf(reliquaryGlb)
 
     this.reliquary.scene.position.set(0, -1, 0)
 
