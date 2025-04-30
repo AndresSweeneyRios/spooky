@@ -422,8 +422,6 @@ export let currentPlayerView: PlayerView | null = null;
 export const init = async () => {
   enableLoading();
 
-  console.log(state.winAnomalyIndex)
-
   if (winIndexScenes[state.winAnomalyIndex as keyof typeof winIndexScenes]) {
     const scene = winIndexScenes[state.winAnomalyIndex as keyof typeof winIndexScenes];
 
