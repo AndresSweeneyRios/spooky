@@ -67,6 +67,11 @@ if (import.meta.env.VITE_PROJECT === 'crazeoh') {
     path: "/",
     element: <Suspense fallback={<div></div>}><CrazeOh /></Suspense>,
   });
+  
+  routes.push({
+    path: "/crazeoh",
+    element: <Suspense fallback={<div></div>}><CrazeOh /></Suspense>,
+  });
 
   routes.push({
     path: "/loh",
