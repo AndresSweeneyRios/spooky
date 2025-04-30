@@ -15,7 +15,7 @@
     "optimize-glb": "node ./tools/optimizeGLB.js *",
     "generate-animations": "node ./tools/animation/_generate.js",
     "generate-brotli": "node ./tools/generateBrotli.js",
-    "build": "npm run optimize-glb && npm run build-tripshred && npm run build-crazeoh && npm run build-loh"
+    "build": "npm run build-tripshred && npm run build-crazeoh && npm run build-loh"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
