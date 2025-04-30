@@ -12,8 +12,10 @@
     "preview": "cross-env ENV=development VITE_PROJECT=crazeoh vite preview",
     "test": "vitest",
     "engine": "npm run generate-animations && cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node ./engine/index.ts",
-    "generate-animations": "node ./public/3d/animations/_generate.js",
-    "generate-brotli": "node ./tools/generateBrotli.js"
+    "optimize-glb": "node ./tools/optimizeGLB.js *",
+    "generate-animations": "node ./tools/animation/_generate.js",
+    "generate-brotli": "node ./tools/generateBrotli.js",
+    "build": "npm run generate-animations && npm run optimize-glb && npm run build-tripshred && npm run build-crazeoh && npm run build-loh"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",

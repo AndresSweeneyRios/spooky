@@ -12,6 +12,13 @@ const title = (PROJECT === 'loh') ? 'Lord of Hosts — TripShred' : (PROJECT ===
   <title><%= title %></title>
   <!-- icon /favicon.ico -->
   <link rel="icon" href="/favicon.ico" />
+  <base href="./">
+  <script>
+    // if path exists, is not root, doesn't end with index.html and doesn't have a trailing slash, add a trailing slash
+    if (window.location.pathname.length > 1 && window.location.pathname.slice(-10) !== 'index.html' && window.location.pathname.slice(-1) !== '/') {
+      window.location.pathname += '/';
+    }
+  </script>
   <% if (PROJECT !== 'tripshred') { %>
   <style>
     #splash {
@@ -131,6 +138,6 @@ const title = (PROJECT === 'loh') ? 'Lord of Hosts — TripShred' : (PROJECT ===
       </svg>
   </div>
   <%}%>
-  <script type="module" src="./src/main.tsx"></script>
+  <script type="module" src="%BASE_URL%src/main.tsx"></script>
 </body>
 </html>
