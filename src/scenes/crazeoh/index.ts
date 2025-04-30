@@ -29,6 +29,7 @@ import "./scripts";
 import { updateGameLogic } from "../../simulation/loop";
 import { EntId } from "../../simulation/EntityRegistry";
 import { executeWinScript } from "./scripts";
+import { loadScene, scenes } from "..";
 
 const SHADOW_BIAS = -0.0009;
 
@@ -106,6 +107,12 @@ const allLoopingAudio = [
   windAudioPromise,
   ventAudioPromise,
 ];
+
+const winIndexScenes = {
+  5: scenes.interloper,
+  10: scenes.dropper,
+  15: scenes.stomach,
+}
 
 export const setupVent = (simulation: Simulation, scene: THREE.Scene) => {
   const vent = scene.getObjectByName("vent") as THREE.Mesh;
@@ -403,6 +410,16 @@ export let currentPlayerView: PlayerView | null = null;
 
 export const init = async () => {
   enableLoading();
+
+  console.log(state.winAnomalyIndex)
+
+  if (winIndexScenes[state.winAnomalyIndex as keyof typeof winIndexScenes]) {
+    const scene = winIndexScenes[state.winAnomalyIndex as keyof typeof winIndexScenes];
+
+    loadScene(scene)
+
+    return () => { }
+  }
 
   state.setAnomalyPosition(new THREE.Vector3(0, 0, 0));
   state.setAnomaly(false);
