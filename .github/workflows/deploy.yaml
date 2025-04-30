@@ -43,8 +43,8 @@ jobs:
       - name: Sync “crazeoh” subpath
         run: aws s3 sync dist/crazeoh s3://${{ env.S3_BUCKET }}/crazeoh/ 
 
-      - name: Sync “spooky” subpath
-        run: aws s3 sync dist/spooky s3://${{ env.S3_BUCKET }}/spooky/ 
+      - name: Sync “loh” subpath
+        run: aws s3 sync dist/loh s3://${{ env.S3_BUCKET }}/loh/ 
 
       - name: Invalidate CloudFront cache
         run: |
