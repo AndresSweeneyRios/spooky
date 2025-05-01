@@ -30,6 +30,13 @@ const config = defineConfig({
     chunkSizeWarningLimit: 1024 * 4,
     emptyOutDir: true,
     outDir: `dist/${PROJECT}`,
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`
+      }
+    }
   },
   preview: {
     port: 3000,
