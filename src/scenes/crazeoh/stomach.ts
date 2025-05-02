@@ -25,6 +25,7 @@ import synthkickOgg from '../../assets/audio/music/synthkick.ogg';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import acid3Webp from '../../assets/3d/textures/acid3.webp';
 import ballsackWebp from '../../assets/3d/textures/ballsack.webp';
+import { requestFullscreen } from "../../utils/requestFullscreen";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -569,7 +570,7 @@ export const init = async () => {
     try {
       if (document.fullscreenElement !== document.body) {
         payload.consume();
-        document.body.requestFullscreen();
+        requestFullscreen();
       }
     } catch { }
     if (payload.action !== "mainAction1") return;

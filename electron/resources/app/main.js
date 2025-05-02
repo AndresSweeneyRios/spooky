@@ -1,5 +1,5 @@
 // @ts-ignore
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -15,6 +15,7 @@ function createWindow() {
     autoHideMenuBar: true, // Hide the menu bar
     fullscreen: true, // Start in fullscreen mode immediately
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: true,
       enableRemoteModule: true,
@@ -37,6 +38,10 @@ function createWindow() {
   // Handle window closing
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  ipcMain.on('enable-fullscreen', () => {
+    mainWindow.setFullScreen(true);
   });
 }
 

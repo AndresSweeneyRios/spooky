@@ -351,6 +351,20 @@ export class InputManager {
   }
 }
 
+export const waitForAction = (action: InputAction | "all" = "mainAction1") => new Promise<void>(resolve => {
+  const handler = (payload: JustPressedEvent) => {
+    if (action !== "all" && payload.action !== action) {
+      return
+    }
+
+    playerInput.emitter.off("justpressed", handler)
+
+    resolve()
+  }
+
+  playerInput.emitter.on("justpressed", handler)
+})
+
 // Setup a global instance and update loop.
 const inputManager = new InputManager();
 export const playerInput = inputManager;

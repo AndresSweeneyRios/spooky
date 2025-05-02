@@ -20,6 +20,7 @@ import TrophySvg from "../assets/icons/trophy.svg";
 import errorOgg from '../assets/audio/sfx/error.ogg';
 import coinsOgg from '../assets/audio/sfx/coins.ogg';
 import { loadAudio } from "../graphics/loaders";
+import { requestFullscreen } from "../utils/requestFullscreen";
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
@@ -32,36 +33,24 @@ const coinsAudio = loadAudio(coinsOgg, { loop: false, volume: 0.05 });
 
 // ─── GAME START & DECISION HANDLERS ─────────────────────────────────────────────
 
-/**
- * Begins the game by stopping music, setting state flags, hiding UI, and ensuring
- * fullscreen/pointer lock. Early returns prevent race conditions.
- */
-const startGame = async () => {
-  try {
-    const anyButton = document.querySelector("#caseoh-anybutton");
-    if (
-      state.gameStarted || state.picking || state.outro || state.inDialogue ||
-      (anyButton && anyButton.getAttribute("is-hidden") === "false")
-    ) {
-      return;
-    }
-    state.setGameStarted(true);
-    document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
-
-    if (!document.fullscreenElement) {
-      try {
-        document.body.requestFullscreen();
-      } catch { /* ignore */ }
-    }
-    if (!document.pointerLockElement) {
-      try {
-        renderer.domElement.requestPointerLock();
-      } catch { /* ignore */ }
-    }
-  } catch (error) {
-    console.error("Error starting game:", error);
-  }
+export const hideMainMenu = async () => {
+  document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
 };
+
+window.addEventListener("click", () => {
+  try {
+    if (!state.picking && !state.inSettings && document.pointerLockElement !== renderer.domElement) {
+      requestFullscreen();
+      renderer.domElement.requestPointerLock()
+    }
+  } catch { }
+})
+
+document.addEventListener("pointerlockchange", () => {
+  if (document.pointerLockElement !== renderer.domElement) {
+    state.setInSettings(true);
+  }
+})
 
 /**
  * Handles a decision from the user (YES/NO) regarding the anomaly.
@@ -94,7 +83,7 @@ const handleDecision = async (decision: boolean) => {
 
     if (!document.fullscreenElement) {
       try {
-        document.body.requestFullscreen();
+        requestFullscreen();
       } catch { }
     }
     if (!document.pointerLockElement) {
@@ -124,7 +113,7 @@ const cancelDecision = async () => {
 
     if (!document.fullscreenElement) {
       try {
-        document.body.requestFullscreen();
+        requestFullscreen();
       } catch { }
     }
     if (!document.pointerLockElement) {
@@ -142,27 +131,21 @@ const cancelDecision = async () => {
 // Use a high order so this handler is called last.
 playerInput.emitter.on(
   "justpressed",
-  ({ action, inputSource, consume }) => {
-    if (inputSource !== "gamepad") return;
-
-    switch (action) {
-      case "mainAction1":
-        startGame();
-        handleDecision(true);
-        consume();
-        break;
-      case "interact":
-        startGame();
-        handleDecision(false);
-        consume();
-        break;
-      case "cancel":
-        cancelDecision();
-        consume();
-        break;
+  ({ action, consume }) => {
+    if (action === "settings") {
+      state.toggleSettings();
+      consume();
+  
+      requestFullscreen();
+  
+      return
     }
+  
+    try {
+      requestFullscreen();
+    } catch { }
   },
-  { order: 99999 }
+  { order: 0 }
 );
 
 // ─── REACT COMPONENT ───────────────────────────────────────────────────────────
@@ -215,7 +198,7 @@ export const CrazeOh = () => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-            <button onClick={startGame}>Play</button>
+            {/* <button onClick={startGame}>Play</button> */}
             {/* <SVG src={DpadSoloIconSvg} style={{
               width: '4em',
               transform: 'rotate(-90deg)',

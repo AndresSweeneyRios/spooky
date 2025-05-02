@@ -14,13 +14,11 @@ import { createDoor } from "../../entities/crazeoh/door";
 import { currentPlayerView } from "../../views/player";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { SimulationCommand } from "../../simulation/commands/_command";
-import { JustPressedEvent, playerInput } from "../../input/player";
+import { JustPressedEvent, playerInput, waitForAction } from "../../input/player";
 import "./scripts";
 import { updateGameLogic } from "../../simulation/loop";
-import { EntId } from "../../simulation/EntityRegistry";
 import { executeWinScript } from "./scripts";
 import { loadScene, scenes } from "..";
-
 import crazeohGlb from '../../assets/3d/scenes/island/crazeoh_OPTIMIZED.glb';
 import cameraOgg from '../../assets/audio/sfx/camera.ogg';
 import ceilingFanOgg from '../../assets/audio/sfx/ceiling_fan.ogg';
@@ -32,9 +30,7 @@ import windOgg from '../../assets/audio/sfx/wind.ogg';
 import ventOgg from '../../assets/audio/sfx/vent.ogg';
 import caseohOgg from '../../assets/audio/music/caseoh.ogg';
 import { initScene } from "./initScene";
-import { waitUntil as until } from "../../utils/defer";
-
-const SHADOW_BIAS = -0.0009;
+import { hideMainMenu } from "../../pages/Caseoh";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -354,56 +350,6 @@ export const init = async () => {
 
   document.addEventListener("pointerlockchange", handlePointerLock);
 
-  let shutterOn = false;
-
-  const justPressed = (payload: JustPressedEvent) => {
-    if (state.inSettings) return;
-    if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
-      payload.consume();
-      try { renderer.domElement.requestPointerLock(); } catch { }
-    }
-    try {
-      if (document.fullscreenElement !== document.body) {
-        payload.consume();
-        document.body.requestFullscreen();
-      }
-    } catch { }
-    if (payload.action !== "mainAction1") return;
-    if (!(state.gameStarted && !state.picking && !state.inDialogue)) return;
-    currentPlayerView!.enableControls();
-    if (shutterOn || document.pointerLockElement !== renderer.domElement) return;
-    payload.consume();
-    shutterOn = true;
-    cameraAudioPromise.then(audio => audio.play());
-
-    const dataUrl = renderer.domElement.toDataURL();
-    polaroidEl.src = dataUrl;
-    polaroid2El.src = dataUrl;
-    polaroidEl.parentElement!.setAttribute("is-hidden", "false");
-    polaroidEl.parentElement!.setAttribute("shutter", "true");
-
-    if (state.anomaly) {
-      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(currentPlayerView!.EntId);
-      if (pPos) {
-        tempVec3.set(
-          pPos[0] - state.anomalyPosition.x,
-          pPos[1] - state.anomalyPosition.y,
-          pPos[2] - state.anomalyPosition.z
-        );
-        const distance = tempVec3.length();
-        const angle = getAngle(state.anomalyPosition, new THREE.Vector3(pPos[0], pPos[1], pPos[2]), camera);
-        state.setFoundAnomaly(angle < 63 && distance < 10);
-      }
-    }
-    state.setTookPicture(true);
-    setTimeout(() => {
-      polaroidEl.parentElement!.setAttribute("shutter", "false");
-      shutterOn = false;
-    }, 2000);
-  };
-
-  playerInput.emitter.on("justpressed", justPressed);
-
   {
     const object = scene.getObjectByName("Cube003__0001") as THREE.Mesh;
     if (object) object.visible = false;
@@ -440,7 +386,13 @@ export const init = async () => {
 
   simulation.Start();
 
-  await until(() => state.gameStarted)
+  await waitForAction("mainAction1");
+
+  hideMainMenu()
+
+  state.setGameStarted(true)
+
+  renderer.domElement.requestPointerLock()
 
   caseohAudioPromise.then(audio => audio.stop())
 
@@ -453,6 +405,49 @@ export const init = async () => {
   currentPlayerView!.enableControls()
 
   teleportPlayer();
+
+  let shutterOn = false;
+
+  const justPressed = (payload: JustPressedEvent) => {
+    if (payload.action !== "mainAction1" || state.picking || state.inSettings) return;
+
+    currentPlayerView!.enableControls();
+
+    if (shutterOn || document.pointerLockElement !== renderer.domElement) return;
+
+    payload.consume();
+
+    shutterOn = true;
+
+    cameraAudioPromise.then(audio => audio.play());
+
+    const dataUrl = renderer.domElement.toDataURL();
+    polaroidEl.src = dataUrl;
+    polaroid2El.src = dataUrl;
+    polaroidEl.parentElement!.setAttribute("is-hidden", "false");
+    polaroidEl.parentElement!.setAttribute("shutter", "true");
+
+    if (state.anomaly) {
+      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(currentPlayerView!.EntId);
+      if (pPos) {
+        tempVec3.set(
+          pPos[0] - state.anomalyPosition.x,
+          pPos[1] - state.anomalyPosition.y,
+          pPos[2] - state.anomalyPosition.z
+        );
+        const distance = tempVec3.length();
+        const angle = getAngle(state.anomalyPosition, new THREE.Vector3(pPos[0], pPos[1], pPos[2]), camera);
+        state.setFoundAnomaly(angle < 63 && distance < 10);
+      }
+    }
+    state.setTookPicture(true);
+    setTimeout(() => {
+      polaroidEl.parentElement!.setAttribute("shutter", "false");
+      shutterOn = false;
+    }, 2000);
+  };
+
+  playerInput.emitter.on("justpressed", justPressed);
 
   return () => {
     enableLoading()

@@ -22,6 +22,7 @@ import dropperGlb from '../../assets/3d/scenes/island/dropper_OPTIMIZED.glb';
 import meatwireeyesWebp from '../../assets/3d/textures/meatwireeyes.webp';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import worblyOgg from '../../assets/audio/music/worbly.ogg';
+import { requestFullscreen } from "../../utils/requestFullscreen";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -401,7 +402,7 @@ export const init = async () => {
     try {
       if (document.fullscreenElement !== document.body) {
         payload.consume();
-        document.body.requestFullscreen();
+        requestFullscreen();
       }
     } catch { }
     if (payload.action !== "mainAction1") return;

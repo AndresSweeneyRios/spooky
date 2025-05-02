@@ -10,7 +10,7 @@ export const defer = <TValue>() => {
   return { resolve: resolve!, reject: reject!, promise }
 }
 
-export const waitUntil = (condition: () => boolean) => {
+export const until = (condition: () => boolean) => {
   return new Promise<void>((resolve) => {
     const checkCondition = () => {
       if (condition()) {

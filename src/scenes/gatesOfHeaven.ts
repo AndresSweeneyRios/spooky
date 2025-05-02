@@ -23,6 +23,7 @@ import { CollidersDebugger } from "../views/collidersDebugger";
 import skyMirrorWebp from '../assets/3d/env/sky_mirror.webp';
 import stairsGlb from '../assets/3d/scenes/stairs/stairs.glb';
 import dmtPng from '../assets/3d/env/dmt.png';
+import { requestFullscreen } from "../utils/requestFullscreen";
 
 // import "../graphics/injections/cel"
 // import "../graphics/injections/outline"
@@ -196,7 +197,7 @@ export const init = async () => {
     }
     try {
       if (document.fullscreenElement !== document.body) {
-        document.body.requestFullscreen();
+        requestFullscreen();
       }
     } catch { }
   }

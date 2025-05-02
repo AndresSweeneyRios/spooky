@@ -1,14 +1,14 @@
 import React from "react"
 import { setDialogue, timedDialogue } from "../../components/DialogueBox"
 import * as state from "./state"
-import { JustPressedEvent, playerInput } from "../../input/player"
+import { waitForAction } from "../../input/player"
 import { Simulation } from "../../simulation"
 import { createCaseoh } from "../../entities/crazeoh/caseoh"
 import { carIdling, ceilingFanAudioPromise, disableLoading, enableLoading, garageScreamAudioPromise, ventAudioPromise, windAudioPromise } from "."
 import { loadAudio, loadTexture } from "../../graphics/loaders"
 import * as THREE from "three"
 import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
-import { clockAudioPromise, DEFAULT_ANOMALIES } from "./anomaly"
+import { clockAudioPromise } from "./anomaly"
 import { loadScene, scenes, unloadScene } from ".."
 import { renderer } from "../../components/Viewport"
 
@@ -100,20 +100,6 @@ const playDialogueWithVoice = async (texts: React.ReactNode[]) => {
     await waitForAction()
   }
 }
-
-const waitForAction = () => new Promise<void>(resolve => {
-  const handler = (payload: JustPressedEvent) => {
-    if (payload.action !== "mainAction1") {
-      return
-    }
-
-    playerInput.emitter.off("justpressed", handler)
-
-    resolve()
-  }
-
-  playerInput.emitter.on("justpressed", handler)
-})
 
 export const intro = async (simulation: Simulation) => {
   const explainer = document.getElementById("caseoh-explainer")!

@@ -22,6 +22,7 @@ import { ExecutionMode } from "../../simulation/repository/SensorCommandReposito
 import interloperGlb from '../../assets/3d/scenes/island/interloper_OPTIMIZED.glb';
 import aveMarisStellaMp3 from '../../assets/audio/music/AveMarisStella.mp3';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
+import { requestFullscreen } from "../../utils/requestFullscreen";
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading");
@@ -314,7 +315,7 @@ export const init = async () => {
     try {
       if (document.fullscreenElement !== document.body) {
         payload.consume();
-        document.body.requestFullscreen();
+        requestFullscreen();
       }
     } catch { }
     if (payload.action !== "mainAction1") return;
