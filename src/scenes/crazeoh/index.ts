@@ -41,6 +41,7 @@ import garageScreamOgg from '../../assets/audio/sfx/garage_scream.ogg';
 import carIdlingOgg from '../../assets/audio/sfx/car_idling.ogg';
 import windOgg from '../../assets/audio/sfx/wind.ogg';
 import ventOgg from '../../assets/audio/sfx/vent.ogg';
+import caseohOgg from '../../assets/audio/music/caseoh.ogg';
 
 const SHADOW_BIAS = -0.0009;
 
@@ -64,7 +65,6 @@ export const ceilingFanAudioPromise = loadAudio(ceilingFanOgg, {
   loop: true,
   positional: true,
   volume: 0.6,
-  autoplay: true,
 });
 
 const eatChipAudioPromise = loadAudio(eatChipOgg, {
@@ -87,29 +87,30 @@ export const garageScreamAudioPromise = loadAudio(garageScreamOgg, {
   loop: true,
   positional: true,
   detune: -400,
-  autoplay: true,
   volume: 0.1,
 });
 
 export const carIdling = loadAudio(carIdlingOgg, {
   loop: true,
   positional: true,
-  autoplay: true,
   volume: 0.4,
 });
 
 export const windAudioPromise = loadAudio(windOgg, {
   loop: true,
   volume: 0.005,
-  autoplay: true,
 })
 
 export const ventAudioPromise = loadAudio(ventOgg, {
   loop: true,
   volume: 0.05,
   detune: -400,
-  autoplay: true,
 })
+
+const caseohAudioPromise = loadAudio(caseohOgg, {
+  loop: true,
+  volume: 0.1,
+});
 
 const allLoopingAudio = [
   ceilingFanAudioPromise,
@@ -118,6 +119,16 @@ const allLoopingAudio = [
   windAudioPromise,
   ventAudioPromise,
 ];
+
+/**
+ * Plays all sounds with autoplay functionality
+ * Centralizes audio playback instead of using the autoplay property
+ */
+export const playAllAutoplaySounds = () => {
+  allLoopingAudio.forEach(audioPromise => {
+    audioPromise.then(audio => audio.play());
+  });
+};
 
 const winIndexScenes = {
   5: scenes.interloper,
@@ -440,6 +451,8 @@ export const init = async () => {
 
   const { scene, camera, simulation, cleanup, sceneEntId } = initScene();
 
+  camera.position.set(2, 0, 0);
+
   const [sceneGltfOriginal, playerView] = await Promise.all([
     mapLoader,
     player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
@@ -535,12 +548,6 @@ export const init = async () => {
   };
 
   const detectPlayStateChange = async () => {
-    requestAnimationFrame(() => {
-      if (state.inDialogue || !state.gameStarted) {
-        disableLoading()
-      }
-    })
-
     if (state.playing === prevPlay && state.picking === prevPicking &&
       state.inDialogue === prevDialogue && state.gameStarted === prevGameStarted) return;
     prevPlay = state.playing;
@@ -627,10 +634,6 @@ export const init = async () => {
     }, 2000);
   };
 
-  setTimeout(() => {
-    disableLoading();
-  }, 2000);
-
   playerInput.emitter.on("justpressed", justPressed);
 
   for (let i = 0; i < 10; i++) {
@@ -704,6 +707,35 @@ export const init = async () => {
     const obj = scene.getObjectByName(item) as THREE.Mesh;
     if (obj) obj.visible = false;
   })
+
+  if (state.inDialogue || !state.gameStarted) {
+    disableLoading()
+
+    playAllAutoplaySounds();
+
+    if (!state.gameStarted) {
+      caseohAudioPromise.then(audio => {
+        audio.play(0);
+      })
+
+      // wait until game starts to stop the music
+      simulation.ViewSync.AddAuxiliaryView(new class extends View {
+        private isCleanedUp = false;
+
+        public Draw(): void {
+          if (this.isCleanedUp) return;
+          if (state.gameStarted) {
+            caseohAudioPromise.then(audio => audio.stop());
+            this.isCleanedUp = true;
+          }
+        }
+
+        public Cleanup(): void {
+          this.isCleanedUp = true;
+        }
+      });
+    }
+  }
 
   return () => {
     enableLoading();

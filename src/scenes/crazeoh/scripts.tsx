@@ -306,8 +306,9 @@ const outro = async (simulation: Simulation) => {
   loadAudio(outroOgg, {
     volume: 0.3,
     loop: false,
-    autoplay: true,
-  })
+  }).then(audio => {
+    audio.play();
+  });
 
   mesh.position.set(endX, -0.5, -5.7)
   mesh.rotation.y = THREE.MathUtils.degToRad(90)
@@ -329,7 +330,8 @@ const outro = async (simulation: Simulation) => {
     volume: 0.3,
     loop: false,
     positional: false,
-    autoplay: true,
+  }).then(audio => {
+    audio.play()
   })
 
   unloadScene()

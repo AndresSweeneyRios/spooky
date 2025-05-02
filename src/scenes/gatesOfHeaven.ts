@@ -87,7 +87,7 @@ export const init = async () => {
   resize()
 
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter, renderer).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
@@ -126,7 +126,7 @@ export const init = async () => {
     if (object.name === "Plane001" && object.parent!.name === "arc") {
       const plane = object as THREE.Mesh
 
-      loadEquirectangularAsEnvMap(dmtPng).then((envMap) => {
+      loadEquirectangularAsEnvMap(dmtPng, undefined, undefined, renderer).then((envMap) => {
         const parallax = createParallaxWindowMaterial(envMap, camera)
 
         plane.material = parallax.material

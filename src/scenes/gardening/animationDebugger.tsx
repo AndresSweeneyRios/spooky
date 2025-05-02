@@ -42,7 +42,7 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [, playerModelGLTF, animationListJSON] = await Promise.all([
-    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter, renderer).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 0.0
       scene.environment = texture

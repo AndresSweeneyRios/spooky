@@ -1,7 +1,3 @@
-// InputManager.ts
-
-import { inSettings } from "../scenes/crazeoh/state";
-
 // A simple 2D vector type.
 interface Vector2 {
   x: number;
@@ -149,18 +145,10 @@ export class InputManager {
   }
 
   private onMouseDown(e: MouseEvent) {
-    if (e.target instanceof HTMLElement && e.target.id === "caseoh-settings-indicator" || inSettings) {
-      return
-    }
-
     this.mouseButtonsPressed.add(e.button);
   }
 
   private onMouseUp(e: MouseEvent) {
-    if (e.target instanceof HTMLElement && e.target.id === "caseoh-settings-indicator" || inSettings) {
-      return
-    }
-
     this.mouseButtonsPressed.delete(e.button);
   }
 

@@ -7,87 +7,28 @@ import { loadScene, scenes, unloadScene } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp";
 import PolaroidPng from "../assets/caseoh/polaroid.webp";
 import * as state from "../scenes/crazeoh/state";
-import { currentAnomalyId, removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
+import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 import _SVG from 'react-inlinesvg';
 const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
 import CameraHintSvg from "../assets/icons/camera_hint.svg";
 import SplashWebp from "../assets/caseoh/splash.webp";
 import { playerInput } from "../input/player";
-import { executeWinScript } from "../scenes/crazeoh/scripts";
-import { ArgumentsType } from "vitest";
 import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
 import TripshredSvg from "../assets/icons/tripshred.svg";
 import TrophySvg from "../assets/icons/trophy.svg";
-import caseohOgg from '../assets/audio/music/caseoh.ogg';
 import errorOgg from '../assets/audio/sfx/error.ogg';
 import coinsOgg from '../assets/audio/sfx/coins.ogg';
+import { loadAudio } from "../graphics/loaders";
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
 }
 
-window.addEventListener("keyup", () => {
-  // if press ESC and in settings, close settings and request pointer lock/fullscreen
-
-  if (state.inSettings) {
-    state.setInSettings(false);
-
-    const target = document.querySelector(".caseoh-settings-indicator")!;
-    target.setAttribute("in-settings", state.inSettings ? "true" : "false");
-
-    requestAnimationFrame(() => {
-      if (!document.fullscreenElement) {
-        try {
-          document.body.requestFullscreen();
-        } catch { }
-      }
-      if (!document.pointerLockElement) {
-        try {
-          renderer.domElement.requestPointerLock();
-        } catch { }
-      }
-    })
-  }
-}, {
-  capture: false,
-})
-
-// Lazy–load loaders so we don’t block startup.
-const loaderPromise = import("../graphics/loaders");
-
 // ─── AUDIO INITIALIZATION & HELPER FUNCTIONS ────────────────────────────────
 
-let stopMusic: () => void = () => {};
-
-/**
- * Loads an audio file with the given options and sets a default volume.
- */
-const loadAudioFile = async (path: string, options: Parameters<Awaited<typeof loaderPromise>["loadAudio"]>[1]) => {
-  const { loadAudio } = await loaderPromise;
-  const audio = await loadAudio(path, options);
-  return audio;
-};
-
-const initializeAudio = async () => {
-  try {
-    // Wait for the first click (if required) to unlock audio.
-    const { firstClick } = await loaderPromise;
-    firstClick.then(() => {
-      document.querySelector("#caseoh-anybutton")!.setAttribute("is-hidden", "true");
-    });
-
-    // Load and play background music.
-    const audio = await loadAudioFile(caseohOgg, { loop: true, volume: 0.05 });
-    audio.play();
-    stopMusic = () => audio.stop();
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const errorAudio = loadAudioFile(errorOgg, { loop: false, volume: 0.05 });
-const coinsAudio = loadAudioFile(coinsOgg, { loop: false, volume: 0.05 });
+const errorAudio = loadAudio(errorOgg, { loop: false, volume: 0.05 });
+const coinsAudio = loadAudio(coinsOgg, { loop: false, volume: 0.05 });
 
 // ─── GAME START & DECISION HANDLERS ─────────────────────────────────────────────
 
@@ -104,7 +45,6 @@ const startGame = async () => {
     ) {
       return;
     }
-    stopMusic();
     state.setGameStarted(true);
     document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
 
@@ -226,9 +166,6 @@ playerInput.emitter.on(
   { order: 99999 }
 );
 
-// Start audio initialization immediately.
-initializeAudio();
-
 // ─── REACT COMPONENT ───────────────────────────────────────────────────────────
 
 export const CrazeOh = () => {
@@ -261,11 +198,6 @@ export const CrazeOh = () => {
 
     return () => cancelAnimationFrame(animationFrame);
   }, [])
-
-  React.useEffect(() => {
-    document.querySelector(".caseoh-settings-indicator")!.setAttribute("is-hidden", pointerLocked ? "true" : "false");
-    document.querySelector(".caseoh-interactable")!.setAttribute("is-hidden", pointerLocked ? "false" : "true");
-  }, [pointerLocked])
 
   // useMemo to memoize the JSX since this layout is static.
   return React.useMemo(() => (
@@ -330,18 +262,6 @@ export const CrazeOh = () => {
         <SVG src={InteractableIconSvg} />
       </div>
 
-      <div in-settings={state.inSettings ? "true" : "false"} className="caseoh-settings-indicator" onMouseDownCapture={(e) => {
-        state.toggleSettings();
-
-        e.stopPropagation();
-        e.preventDefault();
-
-        const target = document.querySelector(".caseoh-settings-indicator")!;
-        target.setAttribute("in-settings", state.inSettings ? "true" : "false");
-
-        return false;
-      }}>
-      </div>
 
       {/* Decision screen */}
       <div id="caseoh-decision" is-hidden="true">
@@ -389,17 +309,22 @@ export const CrazeOh = () => {
             localStorage.setItem('sensitivity', (parseFloat(e.target.value) / 100).toString());
           }} />
         </div>
+        <button onClick={() => {
+          window.close();
+        }}>
+          Exit Game
+        </button>
       </div>
 
       {/* "Press Any Button" overlay */}
-      <div id="caseoh-anybutton" is-hidden="false">
+      <div id="caseoh-anybutton" is-hidden="true">
         <h1>Press Any Button</h1>
       </div>
 
       {/* Loading overlay */}
       <div id="caseoh-loading" is-hidden="false">
         <img src={TvWebp} alt="TV Loading" />
-        <h1>Randomizing anomaly...</h1>
+        {/* <h1>Randomizing anomaly...</h1> */}
       </div>
 
       <img src={SplashWebp} alt="Explainer" id="caseoh-explainer" is-hidden="true" />

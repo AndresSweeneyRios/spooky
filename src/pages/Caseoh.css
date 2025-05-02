@@ -411,6 +411,7 @@
   padding: 1em;
   font-size: 1.5em;
   background-color: black;
+  z-index: 1000;
 }
 
 #caseoh-settings h1 {

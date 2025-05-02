@@ -29,7 +29,7 @@ const config = defineConfig({
     assetsInlineLimit: 1024 * 4,
     chunkSizeWarningLimit: 1024 * 4,
     emptyOutDir: true,
-    outDir: `dist/${PROJECT}`,
+    outDir: PROJECT === 'crazeoh' ? 'electron/resources/app/dist' : `dist/${PROJECT}`,
     rollupOptions: {
       output: {
         entryFileNames: `assets/[name].js`,

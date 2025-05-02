@@ -146,7 +146,6 @@ export const init = async () => {
   musicAudio = await loadAudio(worblyOgg, {
     loop: true,
     volume: 0.01,
-    autoplay: false,
   });
 
   setTimeout(() => {
