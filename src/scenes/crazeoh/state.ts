@@ -2,14 +2,6 @@ import * as THREE from 'three'
 
 // -----
 
-export let playing = false
-
-export const setPlaying = (value: boolean) => {
-  playing = value
-}
-
-// -----
-
 export let anomaly = false
 
 export const setAnomaly = (value: boolean) => {
@@ -142,4 +134,14 @@ export const setInSettings = (value: boolean) => {
 
 export const toggleSettings = () => {
   setInSettings(!inSettings)
+}
+
+// -----
+
+export const resetRound = () => {
+  setAnomalyPosition(new THREE.Vector3(0, 0, 0));
+  setAnomaly(false);
+  setFoundAnomaly(false);
+  setTookPicture(false);
+  setPicking(false);
 }

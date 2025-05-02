@@ -68,7 +68,7 @@ const startGame = async () => {
  */
 const handleDecision = async (decision: boolean) => {
   try {
-    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking) return;
+    if (!state.picking) return;
 
     unloadScene();
 
@@ -120,7 +120,6 @@ const handleDecision = async (decision: boolean) => {
 const cancelDecision = async () => {
   try {
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
-    state.setPlaying(true);
     state.setPicking(false);
 
     if (!document.fullscreenElement) {
@@ -189,7 +188,7 @@ export const CrazeOh = () => {
       const wins = document.getElementById("caseoh-wins")!
       const stats = document.getElementById("caseoh-stats")!
       wins.innerText = `${state.wins} / 20 WINS`;
-      stats.setAttribute("is-hidden", state.playing ? "false" : "true");
+      stats.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue) ? "false" : "true");
 
       animationFrame = requestAnimationFrame(handler);
     }

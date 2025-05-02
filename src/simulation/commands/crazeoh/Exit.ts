@@ -1,20 +1,11 @@
 import type { Simulation } from "../..";
 import { SimulationCommand } from "../_command";
 import * as state from "../../../scenes/crazeoh/state";
-import { currentPlayerView } from "../../../scenes/crazeoh";
-import { loadScene, scenes } from "../../../scenes";
+import { currentPlayerView } from "../../../views/player";
 
 export class Exit extends SimulationCommand {
   public Execute(simulation: Simulation): void {
     currentPlayerView?.disableControls()
-
-    state.setPlaying(false)
-
-    // if (state.isTutorial) {
-    //   loadScene(scenes.crazeoh)
-
-    //   return
-    // }
 
     document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "false")
 

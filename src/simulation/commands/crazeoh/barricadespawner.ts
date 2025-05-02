@@ -2,7 +2,6 @@ import type { Simulation } from "../..";
 import { View } from "../../View";
 import { SimulationCommand } from "../_command";
 import * as THREE from "three";
-import { currentCrtPass } from "../../../scenes/crazeoh/interloper";
 
 export class barricadespawner extends SimulationCommand {
   public Execute(simulation: Simulation): void {
@@ -53,11 +52,11 @@ export class barricadespawner extends SimulationCommand {
             [2.2, 2.2, 2.2]
           );
 
-          const initialIntensity = currentCrtPass!.uniforms["noiseIntensity"].value
+          const initialIntensity = interloper!.currentCrtPass!.uniforms["noiseIntensity"].value
 
           simulation.ViewSync.AddAuxiliaryView(new class extends View {
             public Draw(simulation: Simulation, lerpFactor: number): void {
-              if (!view.barricade || !currentCrtPass) return
+              if (!view.barricade || !interloper!.currentCrtPass) return
 
               // Calculate distance from player to barricade
               const playerVec = simulation.Camera.position.clone();
@@ -73,7 +72,7 @@ export class barricadespawner extends SimulationCommand {
               const noiseValue = initialIntensity * (1 + 15 * (1 - distanceFactor));
 
               // Apply the noise effect
-              currentCrtPass.uniforms["noiseIntensity"].value = noiseValue;
+              interloper!.currentCrtPass.uniforms["noiseIntensity"].value = noiseValue;
             }
           })
 

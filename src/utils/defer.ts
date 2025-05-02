@@ -6,6 +6,20 @@ export const defer = <TValue>() => {
     resolve = res
     reject = rej
   })
-  
+
   return { resolve: resolve!, reject: reject!, promise }
+}
+
+export const waitUntil = (condition: () => boolean) => {
+  return new Promise<void>((resolve) => {
+    const checkCondition = () => {
+      if (condition()) {
+        resolve()
+      } else {
+        requestAnimationFrame(checkCondition)
+      }
+    }
+
+    checkCondition()
+  })
 }

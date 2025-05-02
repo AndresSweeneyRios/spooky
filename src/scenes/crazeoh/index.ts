@@ -3,27 +3,17 @@ import { renderer } from '../../components/Viewport';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
 import { loadAudio, loadGltf } from '../../graphics/loaders';
-import { processAttributes } from '../../utils/processAttributes';
 import * as player from '../../entities/player';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { OutlinePass, PositionalAudioHelper, ShaderPass } from 'three/examples/jsm/Addons.js';
-import { ToneMappingShader } from '../../graphics/toneMappingShader';
-import { traverse } from "../../utils/traverse";
 import * as state from "./state";
 import { clockAudioPromise, disableAllAnomalies, pickRandomAnomaly } from "./anomaly";
 import { createFridge, fridgeAudioPromise } from "../../entities/crazeoh/fridge";
 import { createStove } from "../../entities/crazeoh/stove";
 import { createMicrowave } from "../../entities/crazeoh/microwave";
-import * as shaders from '../../graphics/shaders';
-import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { getAngle, getMeshCenter } from "../../utils/math";
 import { createDoor } from "../../entities/crazeoh/door";
-import { PlayerView } from "../../views/player";
+import { currentPlayerView } from "../../views/player";
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
 import { SimulationCommand } from "../../simulation/commands/_command";
-import { CollidersDebugger } from "../../views/collidersDebugger";
 import { JustPressedEvent, playerInput } from "../../input/player";
 import "./scripts";
 import { updateGameLogic } from "../../simulation/loop";
@@ -36,12 +26,13 @@ import cameraOgg from '../../assets/audio/sfx/camera.ogg';
 import ceilingFanOgg from '../../assets/audio/sfx/ceiling_fan.ogg';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import burgerkingOgg from '../../assets/audio/sfx/burgerking.ogg';
-import heartbeatOgg from '../../assets/audio/sfx/heartbeat.ogg';
 import garageScreamOgg from '../../assets/audio/sfx/garage_scream.ogg';
 import carIdlingOgg from '../../assets/audio/sfx/car_idling.ogg';
 import windOgg from '../../assets/audio/sfx/wind.ogg';
 import ventOgg from '../../assets/audio/sfx/vent.ogg';
 import caseohOgg from '../../assets/audio/music/caseoh.ogg';
+import { initScene } from "./initScene";
+import { waitUntil as until } from "../../utils/defer";
 
 const SHADOW_BIAS = -0.0009;
 
@@ -79,10 +70,6 @@ const burgerkingAudioPromise = loadAudio(burgerkingOgg, {
   positional: true,
 });
 
-const heartbeatAudioPromise = loadAudio(heartbeatOgg, {
-  loop: true,
-});
-
 export const garageScreamAudioPromise = loadAudio(garageScreamOgg, {
   loop: true,
   positional: true,
@@ -105,6 +92,7 @@ export const ventAudioPromise = loadAudio(ventOgg, {
   loop: true,
   volume: 0.05,
   detune: -400,
+  positional: true,
 })
 
 const caseohAudioPromise = loadAudio(caseohOgg, {
@@ -117,7 +105,6 @@ const allLoopingAudio = [
   garageScreamAudioPromise,
   carIdling,
   windAudioPromise,
-  ventAudioPromise,
 ];
 
 /**
@@ -130,13 +117,26 @@ export const playAllAutoplaySounds = () => {
   });
 };
 
+export const stopAllSounds = () => {
+  allLoopingAudio.forEach(audioPromise => {
+    audioPromise.then(audio => audio.stop());
+  });
+
+  cameraAudioPromise.then(audio => audio.stop());
+  caseohAudioPromise.then(audio => audio.stop());
+  clockAudioPromise.then(audio => audio.stop());
+  fridgeAudioPromise.then(audio => audio.stop());
+  eatChipAudioPromise.then(audio => audio.stop());
+  burgerkingAudioPromise.then(audio => audio.stop());
+}
+
 const winIndexScenes = {
   5: scenes.interloper,
   10: scenes.dropper,
   15: scenes.stomach,
 }
 
-export const setupVent = (simulation: Simulation, scene: THREE.Scene) => {
+export const setupVent = (scene: THREE.Scene) => {
   const vent = scene.getObjectByName("vent") as THREE.Mesh;
   if (!vent) return;
 
@@ -144,56 +144,9 @@ export const setupVent = (simulation: Simulation, scene: THREE.Scene) => {
     const posAudio = audio.getPositionalAudio();
     vent.add(posAudio);
   });
-
-  simulation.ViewSync.AddAuxiliaryView(new class extends View {
-    private isCleanedUp = false;
-
-    public Draw(): void {
-      if (this.isCleanedUp) return;
-      vent.rotateY(0.01);
-    }
-
-    public Cleanup(): void {
-      this.isCleanedUp = true;
-    }
-  });
 }
 
-// Audio helper setup functions with proper cleanup
-const setupHeartbeat = (simulation: Simulation, playerEntId: EntId) => {
-  heartbeatAudioPromise.then(audio => {
-    audio.setVolume(0);
-    audio.play();
-    const readyTime = Date.now() + 120000;
-
-    simulation.ViewSync.AddAuxiliaryView(new class extends View {
-      private isCleanedUp = false;
-
-      public Draw(): void {
-        if (this.isCleanedUp) return;
-        if (!state.anomaly || Date.now() < readyTime) {
-          audio.setVolume(0);
-          return;
-        }
-        const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId);
-        tempVec3.set(
-          playerPos[0] - state.anomalyPosition.x,
-          playerPos[1] - state.anomalyPosition.y,
-          playerPos[2] - state.anomalyPosition.z
-        );
-        const volume = Math.min(1, Math.max(0, 1 - tempVec3.length() / 6)) * 0.2;
-        audio.setVolume(volume);
-      }
-
-      public Cleanup(): void {
-        this.isCleanedUp = true;
-        audio.stop();
-      }
-    });
-  });
-};
-
-const setupGarageScream = (simulation: Simulation, playerEntId: EntId) => {
+const setupGarageScream = (simulation: Simulation) => {
   garageScreamAudioPromise.then(audio => {
     const posAudio = audio.getPositionalAudio();
     posAudio.setRolloffFactor(3);
@@ -207,7 +160,7 @@ const setupGarageScream = (simulation: Simulation, playerEntId: EntId) => {
 
       public Draw(): void {
         if (this.isCleanedUp) return;
-        audio.setVolume(!state.gameStarted || !state.playing || state.picking || state.inDialogue ? 0 : 0.05);
+        audio.setVolume((!state.gameStarted || state.picking || state.inDialogue) ? 0 : 0.05);
       }
 
       public Cleanup(): void {
@@ -283,7 +236,6 @@ const setupBurgerKing = (simulation: Simulation, scene: THREE.Scene) => {
     const posAudio = audio.getPositionalAudio();
     posAudio.position.copy(centerPoint);
     simulation.ThreeScene.add(posAudio);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
     audio.setVolume(0.5);
   });
 
@@ -323,216 +275,61 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false");
 };
 
+export const loadWinIndexSceneIfExists = async (index: number): Promise<boolean> => {
+  const scene = winIndexScenes[index as keyof typeof winIndexScenes];
+
+  if (scene) {
+    await loadScene(scene);
+
+    return true
+  }
+
+  return false
+}
+
 const mapLoader = loadGltf(crazeohGlb).then(gltf => gltf.scene);
-
-export let currentCrtPass: ShaderPass | null = null;
-export let currentOutlinePass: OutlinePass | null = null;
-
-const initScene = () => {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const simulation = new Simulation(camera, scene);
-  camera.add(new THREE.AudioListener());
-
-  const effectComposer = new EffectComposer(renderer);
-  effectComposer.addPass(new RenderPass(scene, camera));
-
-  ToneMappingShader.uniforms.contrast = { value: 1.3 };
-  ToneMappingShader.uniforms.contrastMidpoint = { value: 0.1 };
-  ToneMappingShader.uniforms.saturation = { value: 0.6 };
-  ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 };
-  const toneMappingPass = new ShaderPass(ToneMappingShader);
-  effectComposer.addPass(toneMappingPass);
-
-  currentOutlinePass = new OutlinePass(
-    new THREE.Vector2(renderer.domElement.width, renderer.domElement.height),
-    scene,
-    camera,
-  )
-  // tweak outline pass
-  currentOutlinePass.edgeStrength = 10;
-  currentOutlinePass.edgeGlow = 0.0;
-  currentOutlinePass.edgeThickness = 0.1;
-  currentOutlinePass.visibleEdgeColor.set(0xffffff);
-  currentOutlinePass.hiddenEdgeColor.set(0x00000000);
-  effectComposer.addPass(currentOutlinePass);
-
-  const crtPass = new ShaderPass(shaders.CRTShader);
-  crtPass.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
-  effectComposer.addPass(crtPass);
-  currentCrtPass = crtPass;
-
-  effectComposer.addPass(new OutputPass());
-
-  simulation.ViewSync.AddAuxiliaryView(new class extends View {
-    private isCleanedUp = false;
-
-    public Draw(): void {
-      if (this.isCleanedUp) return;
-      crtPass.uniforms.time.value = (Date.now() / 1000) % 1.0;
-      crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
-      if (!state.playing && !state.outro) camera.rotateY(-0.0005);
-      effectComposer.render();
-    }
-
-    public Cleanup(): void {
-      this.isCleanedUp = true;
-      renderer.dispose();
-    }
-  });
-
-  const resize = (): void => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
-    effectComposer.setSize(renderer.domElement.width, renderer.domElement.height);
-  };
-  resize();
-  window.addEventListener('resize', resize, false);
-
-  const sceneEntId = simulation.EntityRegistry.Create();
-  simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId);
-
-  const cleanup = () => {
-    window.removeEventListener('resize', resize);
-    scene.traverse(obj => {
-      if (obj instanceof THREE.Mesh) {
-        obj.geometry.dispose();
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach(mat => {
-            if (mat.map) mat.map.dispose();
-            if (mat.lightMap) mat.lightMap.dispose();
-            if (mat.bumpMap) mat.bumpMap.dispose();
-            if (mat.normalMap) mat.normalMap.dispose();
-            if (mat.specularMap) mat.specularMap.dispose();
-            if (mat.envMap) mat.envMap.dispose();
-            mat.dispose();
-          });
-        } else {
-          if (obj.material.map) obj.material.map.dispose();
-          if (obj.material.lightMap) obj.material.lightMap.dispose();
-          if (obj.material.bumpMap) obj.material.bumpMap.dispose();
-          if (obj.material.normalMap) obj.material.normalMap.dispose();
-          if (obj.material.specularMap) obj.material.specularMap.dispose();
-          if (obj.material.envMap) obj.material.envMap.dispose();
-          obj.material.dispose();
-        }
-      }
-    });
-    scene.clear();
-    effectComposer.dispose();
-    simulation.ViewSync.Cleanup(simulation);
-    simulation.Stop();
-  };
-
-  return { scene, camera, simulation, effectComposer, crtPass, cleanup, sceneEntId };
-};
-
-export let currentPlayerView: PlayerView | null = null;
 
 export const init = async () => {
   enableLoading();
 
-  if (winIndexScenes[state.winAnomalyIndex as keyof typeof winIndexScenes]) {
-    const scene = winIndexScenes[state.winAnomalyIndex as keyof typeof winIndexScenes];
-
-    loadScene(scene)
-
-    return () => { }
+  if (await loadWinIndexSceneIfExists(state.winAnomalyIndex)) {
+    return () => { };
   }
 
-  state.setAnomalyPosition(new THREE.Vector3(0, 0, 0));
-  state.setAnomaly(false);
-  state.setFoundAnomaly(false);
-  state.setTookPicture(false);
-  state.setPlaying(false);
+  state.resetRound();
+
   player.setThirdPerson(false);
   player.setCameraHeight(2);
 
-  const { scene, camera, simulation, cleanup, sceneEntId } = initScene();
+  const { scene, camera, simulation, cleanup, createFlashlight } = await initScene(mapLoader);
+
+  await player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
+
+  currentPlayerView!.disableControls()
 
   camera.position.set(2, 0, 0);
 
-  const [sceneGltfOriginal, playerView] = await Promise.all([
-    mapLoader,
-    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
-  ]);
-  currentPlayerView = playerView;
-
-  playerView.interactionEmitter.on("interactionsChanged", interactions => {
-    let closestInteraction = null;
-
-    for (const interaction of interactions) {
-      if (!closestInteraction || interaction.angle < closestInteraction.angle) {
-        closestInteraction = interaction;
-      }
-    }
-
-    const selectedObjects = closestInteraction?.command.Owner ? [closestInteraction.command.Owner] : [];
-
-    currentOutlinePass?.selectedObjects.splice(0, currentOutlinePass.selectedObjects.length);
-    currentOutlinePass?.selectedObjects.push(...selectedObjects);
-  });
-
-  const sceneGltf = SkeletonUtils.clone(sceneGltfOriginal);
-  processAttributes(sceneGltf, simulation, sceneEntId, false);
-  shaders.applyInjectedMaterials(sceneGltf);
-
-  sceneGltf.traverse(child => {
-    if (child instanceof THREE.Mesh) {
-      child.castShadow = false;
-      child.receiveShadow = false;
-      (child.material as THREE.Material).side = THREE.DoubleSide;
-    }
-  });
-  scene.add(sceneGltf);
-
+  createFlashlight();
   disableAllAnomalies(simulation);
   createFridge(simulation);
   createStove(simulation);
   createMicrowave(simulation);
   createDoor(simulation);
-
   setupFan(simulation, scene);
   setupEat(simulation, scene);
   setupBurgerKing(simulation, scene);
-  setupGarageScream(simulation, playerView.EntId);
+  setupGarageScream(simulation);
   setupCarIdling(simulation, scene);
-
-  allLoopingAudio.forEach(audio => {
-    audio.then(a => {
-      a.play();
-    });
-  })
-
-  const spotLight = new THREE.SpotLight(0xffffff);
-  spotLight.position.set(2, 3, -6);
-  spotLight.castShadow = false;
-  spotLight.shadow.mapSize.set(4096, 4096);
-  spotLight.shadow.camera.near = 0.1;
-  spotLight.shadow.camera.far = 30;
-  spotLight.shadow.camera.fov = 30;
-  spotLight.intensity = 8;
-  spotLight.decay = 0.999;
-  spotLight.angle = Math.PI * 0.35;
-  spotLight.penumbra = 1;
-  spotLight.shadow.bias = SHADOW_BIAS;
-  scene.add(spotLight);
-  const target = new THREE.Object3D();
-  scene.add(target);
-  spotLight.target = target;
-
-  let prevPlay = false, prevDialogue = false, prevPicking = false, prevGameStarted = false;
-  let teleportedPlayer = false, pickedAnomaly = false, startedDialogue = false;
+  setupVent(scene);
+  playAllAutoplaySounds();
 
   const teleportPlayer = () => {
-    teleportedPlayer = true;
     const playerSpawnPosition = new THREE.Vector3(2, 0, 0);
     const playerObject = scene.getObjectByName("PLAYER") as THREE.Mesh;
     if (playerObject) {
       playerObject.visible = false;
     }
-    simulation.SimulationState.PhysicsRepository.SetPosition(playerView.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z]);
+    simulation.SimulationState.PhysicsRepository.SetPosition(currentPlayerView!.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z]);
     camera.position.set(playerSpawnPosition.x, 0.5, playerSpawnPosition.z);
     const lookTarget = scene.getObjectByName("Cube__0") as THREE.Mesh;
     lookTarget.getWorldPosition(tempVec3);
@@ -547,47 +344,18 @@ export const init = async () => {
     }
   };
 
-  const detectPlayStateChange = async () => {
-    if (state.playing === prevPlay && state.picking === prevPicking &&
-      state.inDialogue === prevDialogue && state.gameStarted === prevGameStarted) return;
-    prevPlay = state.playing;
-    prevPicking = state.picking;
-    prevDialogue = state.inDialogue;
-    prevGameStarted = state.gameStarted;
-
-    state.gameStarted && !state.picking && !state.inDialogue
-      ? playerView.enableControls()
-      : playerView.disableControls();
-
-    if (state.gameStarted && !state.picking && !state.inDialogue && !startedDialogue) {
-      executeWinScript(simulation).then(detectPlayStateChange).catch(console.error);
-      startedDialogue = true;
-    }
-
-    state.setPlaying(state.gameStarted && !state.picking && !state.inDialogue);
-
-    if (state.playing) {
-      if (!teleportedPlayer) {
-        teleportPlayer();
-      }
-
-      if (!pickedAnomaly) {
-        pickRandomAnomaly(simulation);
-        pickedAnomaly = true;
-      }
-    }
-  };
-
   const handlePointerLock = () => {
     if (document.pointerLockElement !== renderer.domElement) {
-      playerView.disableControls();
+      currentPlayerView!.disableControls()
     } else if (state.gameStarted && !state.picking && !state.inDialogue) {
-      playerView.enableControls();
+      currentPlayerView!.enableControls()
     }
-  };
+  }
+
   document.addEventListener("pointerlockchange", handlePointerLock);
 
   let shutterOn = false;
+
   const justPressed = (payload: JustPressedEvent) => {
     if (state.inSettings) return;
     if (state.gameStarted && !state.picking && document.pointerLockElement !== renderer.domElement) {
@@ -602,7 +370,7 @@ export const init = async () => {
     } catch { }
     if (payload.action !== "mainAction1") return;
     if (!(state.gameStarted && !state.picking && !state.inDialogue)) return;
-    playerView.enableControls();
+    currentPlayerView!.enableControls();
     if (shutterOn || document.pointerLockElement !== renderer.domElement) return;
     payload.consume();
     shutterOn = true;
@@ -615,7 +383,7 @@ export const init = async () => {
     polaroidEl.parentElement!.setAttribute("shutter", "true");
 
     if (state.anomaly) {
-      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
+      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(currentPlayerView!.EntId);
       if (pPos) {
         tempVec3.set(
           pPos[0] - state.anomalyPosition.x,
@@ -636,124 +404,61 @@ export const init = async () => {
 
   playerInput.emitter.on("justpressed", justPressed);
 
-  for (let i = 0; i < 10; i++) {
-    const name = `chip${i + 1}`;
-    const object = scene.getObjectByName(name) as THREE.Mesh;
-    if (object) object.visible = false;
-    // if (state.wins <= i) {
-    //   const object = scene.getObjectByName(name) as THREE.Mesh;
-    //   if (object) {
-    //     object.visible = false;
-    //   }
-    // }
-  }
-
   {
     const object = scene.getObjectByName("Cube003__0001") as THREE.Mesh;
     if (object) object.visible = false;
   }
 
-  simulation.Start();
+  simulation.ViewSync.AddAuxiliaryView(new class extends View {
+    public Draw(): void {
+      playerInput.update();
 
-  requestAnimationFrame(() => {
-    detectPlayStateChange();
-
-    simulation.ViewSync.AddAuxiliaryView(new class extends View {
-      private isCleanedUp = false;
-
-      public Draw(): void {
-        if (this.isCleanedUp) return;
-        detectPlayStateChange();
-        camera.getWorldPosition(tempVec3);
-        spotLight.position.copy(tempVec3);
-        camera.getWorldDirection(tempVec3);
-        spotLight.target.position.copy(tempVec3.add(camera.position));
-        spotLight.target.updateMatrixWorld();
-        playerInput.update();
-
-        if (state.isTutorial) {
-          const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView.EntId);
-          tempVec3.set(
-            playerPos[0] - state.anomalyPosition.x,
-            playerPos[1] - state.anomalyPosition.y,
-            playerPos[2] - state.anomalyPosition.z
-          );
-          const distance = tempVec3.length();
-          const angle = getAngle(state.anomalyPosition, new THREE.Vector3(playerPos[0], playerPos[1], playerPos[2]), camera);
-          cameraHintEl.setAttribute("is-hidden", "false");
-          cameraHintEl.setAttribute("is-hinting", (angle < 63 && distance < 3) ? "true" : "false");
-        } else {
-          cameraHintEl.setAttribute("is-hidden", "true");
-        }
+      if (state.isTutorial) {
+        const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(currentPlayerView!.EntId);
+        tempVec3.set(
+          playerPos[0] - state.anomalyPosition.x,
+          playerPos[1] - state.anomalyPosition.y,
+          playerPos[2] - state.anomalyPosition.z
+        );
+        const distance = tempVec3.length();
+        const angle = getAngle(state.anomalyPosition, new THREE.Vector3(playerPos[0], playerPos[1], playerPos[2]), camera);
+        cameraHintEl.setAttribute("is-hidden", "false");
+        cameraHintEl.setAttribute("is-hinting", (angle < 63 && distance < 3) ? "true" : "false");
+      } else {
+        cameraHintEl.setAttribute("is-hidden", "true");
       }
-
-      public Cleanup(): void {
-        this.isCleanedUp = true;
-      }
-    });
+    }
   });
 
-  detectPlayStateChange();
-
-  const menuItems: string[] = [
-    "MENU_MOUSE_L",
-    "MENU_MOUSE_R",
-    "MENU_VOLUME_L",
-    "MENU_VOLUME_R",
-    "MENU"
-  ];
-
-  menuItems.forEach(item => {
-    const obj = scene.getObjectByName(item) as THREE.Mesh;
-    if (obj) obj.visible = false;
-  })
-
-  if (state.inDialogue || !state.gameStarted) {
-    disableLoading()
-
-    playAllAutoplaySounds();
-
-    if (!state.gameStarted) {
-      caseohAudioPromise.then(audio => {
-        audio.play(0);
-      })
-
-      // wait until game starts to stop the music
-      simulation.ViewSync.AddAuxiliaryView(new class extends View {
-        private isCleanedUp = false;
-
-        public Draw(): void {
-          if (this.isCleanedUp) return;
-          if (state.gameStarted) {
-            caseohAudioPromise.then(audio => audio.stop());
-            this.isCleanedUp = true;
-          }
-        }
-
-        public Cleanup(): void {
-          this.isCleanedUp = true;
-        }
-      });
-    }
+  if (!state.gameStarted) {
+    await caseohAudioPromise.then(audio => {
+      audio.play(0)
+    })
   }
 
-  return () => {
-    enableLoading();
-    cleanup();
-    playerInput.emitter.off("justpressed", justPressed);
-    document.removeEventListener("pointerlockchange", handlePointerLock);
+  disableLoading()
 
-    // stop all audio
-    cameraAudioPromise.then(audio => audio.stop());
-    ceilingFanAudioPromise.then(audio => audio.stop());
-    eatChipAudioPromise.then(audio => audio.stop());
-    burgerkingAudioPromise.then(audio => audio.stop());
-    heartbeatAudioPromise.then(audio => audio.stop());
-    garageScreamAudioPromise.then(audio => audio.stop());
-    carIdling.then(audio => audio.stop());
-    windAudioPromise.then(audio => audio.stop());
-    ventAudioPromise.then(audio => audio.stop());
-    fridgeAudioPromise.then(audio => audio.stop());
-    clockAudioPromise.then(audio => audio.stop());
+  simulation.Start();
+
+  await until(() => state.gameStarted)
+
+  caseohAudioPromise.then(audio => audio.stop())
+
+  playAllAutoplaySounds()
+
+  await executeWinScript(simulation)
+
+  pickRandomAnomaly(simulation);
+
+  currentPlayerView!.enableControls()
+
+  teleportPlayer();
+
+  return () => {
+    enableLoading()
+    cleanup()
+    playerInput.emitter.off("justpressed", justPressed)
+    document.removeEventListener("pointerlockchange", handlePointerLock)
+    stopAllSounds()
   };
 };

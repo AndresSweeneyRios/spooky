@@ -25,7 +25,7 @@ const config = defineConfig({
   },
   build: {
     target: 'esnext',
-    sourcemap: false,
+    sourcemap: true,
     assetsInlineLimit: 1024 * 4,
     chunkSizeWarningLimit: 1024 * 4,
     emptyOutDir: true,

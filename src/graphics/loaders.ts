@@ -468,6 +468,8 @@ export const loadAudio = async (path: string, {
   };
 
   const stop = async (fadeDuration = 0.02) => {
+    if (!audio.isPlaying) return;
+
     // If we already have an active fade timer, do nothing
     if (activeFadeTimer !== null) return;
 
