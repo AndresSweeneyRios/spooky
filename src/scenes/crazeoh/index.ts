@@ -376,17 +376,17 @@ export const init = async () => {
     }
   });
 
-  if (!state.gameStarted) {
-    await caseohAudioPromise.then(audio => {
-      audio.play(0)
-    })
-  }
-
   disableLoading()
 
   simulation.Start();
 
-  await waitForAction("mainAction1");
+  if (!state.gameStarted) {
+    await caseohAudioPromise.then(audio => {
+      audio.play(0)
+    })
+
+    await waitForAction("mainAction1");
+  }
 
   hideMainMenu()
 
