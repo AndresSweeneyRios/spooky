@@ -18,6 +18,28 @@ const config = defineConfig({
     checker({
       typescript: true,
     }),
+    // Custom plugin to copy crazeoh build files to electron directory
+    {
+      name: 'copy-crazeoh-to-electron',
+      closeBundle: {
+        sequential: true,
+        order: 'post',
+        handler: async () => {
+          if (PROJECT === 'crazeoh') {
+            const fs = await import('fs-extra');
+            const path = await import('path');
+            const sourcePath = path.resolve('dist/crazeoh');
+            const targetPath = path.resolve('electron/resources/app/dist');
+
+            console.log(`Copying build files from ${sourcePath} to ${targetPath}`);
+            await fs.ensureDir(targetPath);
+            await fs.emptyDir(targetPath);
+            await fs.copy(sourcePath, targetPath);
+            console.log('Files copied successfully');
+          }
+        }
+      }
+    }
   ],
   define: {
     'process.env.ENV': JSON.stringify(ENV),
@@ -29,7 +51,7 @@ const config = defineConfig({
     assetsInlineLimit: 1024 * 4,
     chunkSizeWarningLimit: 1024 * 4,
     emptyOutDir: true,
-    outDir: PROJECT === 'crazeoh' ? 'electron/resources/app/dist' : `dist/${PROJECT}`,
+    outDir: `dist/${PROJECT}`,
     rollupOptions: {
       output: {
         entryFileNames: `assets/[name].js`,
