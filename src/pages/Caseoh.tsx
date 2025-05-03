@@ -21,6 +21,7 @@ import errorOgg from '../assets/audio/sfx/error.ogg';
 import coinsOgg from '../assets/audio/sfx/coins.ogg';
 import { loadAudio } from "../graphics/loaders";
 import { requestFullscreen } from "../utils/requestFullscreen";
+import LogOutSvg from "../assets/icons/log-out.svg";
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
@@ -47,7 +48,7 @@ window.addEventListener("click", () => {
 })
 
 document.addEventListener("pointerlockchange", () => {
-  if (document.pointerLockElement !== renderer.domElement) {
+  if (!state.picking && document.pointerLockElement !== renderer.domElement) {
     state.setInSettings(true);
   }
 })
@@ -132,7 +133,25 @@ const cancelDecision = async () => {
 playerInput.emitter.on(
   "justpressed",
   ({ action, consume }) => {
+    if (action === "interact" && state.picking) {
+      state.setPicking(false);
+      document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
+
+      consume()
+
+      return
+    }
+
     if (action === "settings") {
+      if (state.picking) {
+        state.setPicking(false);
+        document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
+
+        consume()
+
+        return
+      }
+
       state.toggleSettings();
       consume();
   
@@ -291,9 +310,22 @@ export const CrazeOh = () => {
             localStorage.setItem('sensitivity', (parseFloat(e.target.value) / 100).toString());
           }} />
         </div>
+        <div className="are-you-sure" is-hidden="true">
+          <h2>Are you sure you want to quit?</h2>
+          <h3>(All progress will be lost.)</h3>
+          <div>
+            <button onClick={() => {
+              window.close();
+            }}>Yes</button>
+            <button onClick={() => {
+              document.querySelector("#caseoh-settings .are-you-sure")!.setAttribute("is-hidden", "true");
+            }}>No</button>
+          </div>
+        </div>
         <button onClick={() => {
-          window.close();
+          document.querySelector("#caseoh-settings .are-you-sure")!.setAttribute("is-hidden", "false");
         }}>
+          <SVG src={LogOutSvg} />
           Exit Game
         </button>
       </div>
