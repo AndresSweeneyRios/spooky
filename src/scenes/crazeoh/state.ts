@@ -144,4 +144,5 @@ export const resetRound = () => {
   setFoundAnomaly(false);
   setTookPicture(false);
   setPicking(false);
+  setInDialogue(false);
 }

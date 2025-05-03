@@ -14,9 +14,17 @@ export class barricadespawner extends SimulationCommand {
     let spawned = false
 
     let interloper: (typeof import("../../../scenes/crazeoh/interloper")) | null = null
+    // Creating a variable for the dynamically imported currentCrtPass module
+    let crtPassModule: (typeof import("../../../scenes/crazeoh/initScene")) | null = null
 
+    // Dynamic import of the interloper module
     import("../../../scenes/crazeoh/interloper").then(interloperModule => {
       interloper = interloperModule;
+    })
+
+    // Dynamic import of the initScene module (for currentCrtPass)
+    import("../../../scenes/crazeoh/initScene").then(initSceneModule => {
+      crtPassModule = initSceneModule;
     })
 
     const entId = simulation.EntityRegistry.Create()
@@ -52,11 +60,15 @@ export class barricadespawner extends SimulationCommand {
             [2.2, 2.2, 2.2]
           );
 
-          const initialIntensity = interloper!.currentCrtPass!.uniforms["noiseIntensity"].value
+          // Using the dynamically imported currentCrtPass
+          const currentCrtPass = crtPassModule?.currentCrtPass;
+          const initialIntensity = currentCrtPass?.uniforms["noiseIntensity"].value;
 
           simulation.ViewSync.AddAuxiliaryView(new class extends View {
             public Draw(simulation: Simulation, lerpFactor: number): void {
-              if (!view.barricade || !interloper!.currentCrtPass) return
+              // Using the dynamically imported currentCrtPass
+              const currentCrtPass = crtPassModule?.currentCrtPass;
+              if (!view.barricade || !currentCrtPass) return
 
               // Calculate distance from player to barricade
               const playerVec = simulation.Camera.position.clone();
@@ -72,7 +84,7 @@ export class barricadespawner extends SimulationCommand {
               const noiseValue = initialIntensity * (1 + 15 * (1 - distanceFactor));
 
               // Apply the noise effect
-              interloper!.currentCrtPass.uniforms["noiseIntensity"].value = noiseValue;
+              currentCrtPass.uniforms["noiseIntensity"].value = noiseValue;
             }
           })
 
