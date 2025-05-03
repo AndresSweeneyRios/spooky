@@ -161,6 +161,14 @@ playerInput.emitter.on(
   
       return
     }
+
+    if (action === "cancel") {
+      cancelDecision()
+      state.setInSettings(false)
+      consume()
+      
+      return
+    }
   
     try {
       requestFullscreen();
