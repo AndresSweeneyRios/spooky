@@ -12,9 +12,10 @@ import * as state from './state'
 import * as shaders from '../../graphics/shaders'
 import { SkeletonUtils } from "three/examples/jsm/Addons.js"
 import { processAttributes } from "../../utils/processAttributes"
-import { currentPlayerView, InteractionsChangedPayload } from "../../views/player"
+import { simulationPlayerViews, InteractionsChangedPayload } from "../../views/player"
 import { SimulationCommand } from "../../simulation/commands/_command"
 import { playerInput } from "../../input/player"
+import { until } from "../../utils/defer"
 
 export let currentOutlinePass: OutlinePass | null = null
 export let currentCrtPass: ShaderPass | null = null
@@ -80,9 +81,7 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
 
-  const [sceneGltfOriginal] = await Promise.all([
-    map,
-  ])
+  const sceneGltfOriginal = await map
 
   const sceneObject = SkeletonUtils.clone(sceneGltfOriginal)
   processAttributes(sceneObject, simulation, sceneEntId, false)
@@ -136,9 +135,9 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
   simulation.ViewSync.AddAuxiliaryView(new class PlayerControlsManager extends View {
     public Draw(): void {
       if (state.gameStarted && !state.picking && !state.inDialogue && !state.inSettings && !state.outro && document.pointerLockElement === renderer.domElement) {
-        currentPlayerView!.enableControls()
+        simulationPlayerViews[simulation.SimulationIndex]?.enableControls()
       } else {
-        currentPlayerView!.disableControls()
+        simulationPlayerViews[simulation.SimulationIndex]?.disableControls()
       }
     }
   })
@@ -158,22 +157,19 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
     currentOutlinePass?.selectedObjects.push(...selectedObjects)
   }
 
-  simulation.SimulationState.Commands.push(new class extends SimulationCommand {
-    Execute(): void {
-      currentPlayerView!.interactionEmitter.on("interactionsChanged", interactionsChangedHandler)
-    }
+  until(() => simulationPlayerViews[simulation.SimulationIndex] !== undefined).then(() => {
+    simulationPlayerViews[simulation.SimulationIndex]!.interactionEmitter.on("interactionsChanged", interactionsChangedHandler)
   })
 
   const cleanup = () => {
     window.removeEventListener('resize', resize)
     scene.clear()
     effectComposer.dispose()
+    simulationPlayerViews[simulation.SimulationIndex]!.interactionEmitter.off("interactionsChanged", interactionsChangedHandler)
     simulation.ViewSync.Cleanup(simulation)
     simulation.Stop()
     currentOutlinePass = null
     currentCrtPass = null
-
-    currentPlayerView!.interactionEmitter.off("interactionsChanged", interactionsChangedHandler)
   }
 
   return {

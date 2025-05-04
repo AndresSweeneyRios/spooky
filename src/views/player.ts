@@ -10,7 +10,9 @@ import * as THREE from "three";
 import { TypedEmitter } from "../utils/emitter";
 import footstepsConcreteOgg from '../assets/audio/sfx/footsteps_concrete.ogg';
 
-export let currentPlayerView: PlayerView | null = null;
+export let simulationPlayerViews: Record<number, PlayerView> = {}
+
+  ; (window as any)["simulationPlayerViews"] = simulationPlayerViews;
 
 const MIN_SENSITIVITY = 200;
 const MAX_SENSITIVITY = 300000;
@@ -67,7 +69,7 @@ export class PlayerView extends EntityView {
 
     document.querySelector("#debug")?.appendChild(this.debugElement);
 
-    currentPlayerView = this;
+    simulationPlayerViews[simulation.SimulationIndex] = this;
   }
 
   protected updateCamera(dx: number, dy: number): void {
@@ -113,6 +115,7 @@ export class PlayerView extends EntityView {
   }
 
   protected handleJustPressed(payload: JustPressedEvent): void {
+    if (!this.controlsEnabled) return;
     if (payload.action !== "interact") return;
 
     const availableInteractions = this.getAvailableInteractionsWithinAngle(20);
@@ -214,8 +217,12 @@ export class PlayerView extends EntityView {
   }
 
   public Cleanup(): void {
-    this.cleanupEvents();
+    this.cleanupEvents()
 
     this.debugElement.remove();
+
+    this.disableControls()
+
+    delete simulationPlayerViews[this.simulation.SimulationIndex]
   }
 }

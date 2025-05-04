@@ -9,7 +9,7 @@ import { loadAudio, loadTexture } from "../../graphics/loaders"
 import * as THREE from "three"
 import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
 import { clockAudioPromise } from "./anomaly"
-import { loadScene, scenes, unloadScene } from ".."
+import { unloadScene } from ".."
 import { renderer } from "../../components/Viewport"
 
 import voiceOgg from '../../assets/audio/sfx/voice.ogg';
@@ -20,7 +20,7 @@ import screamOgg from '../../assets/audio/sfx/scream.ogg';
 import outroOgg from '../../assets/audio/sfx/outro.ogg';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import caseohLiveWebp from '../../assets/screenshots/caseoh_live.webp';
-import { currentPlayerView } from "../../views/player"
+import { simulationPlayerViews } from "../../views/player"
 import { currentCrtPass } from "./initScene"
 
 const loaderPromise = import("../../graphics/loaders")
@@ -136,7 +136,7 @@ const outro = async (simulation: Simulation) => {
   const mesh = await view.meshPromise
   mesh.position.set(1.977, 0, -7.22);
   mesh.rotateY(THREE.MathUtils.degToRad(180))
-  const playerEntId = currentPlayerView!.EntId
+  const playerEntId = simulationPlayerViews[simulation.SimulationIndex]!.EntId
   simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [2, 0.2, -19.4886])
   simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(-180), 0, "YXZ"))
   
@@ -310,18 +310,6 @@ const outro = async (simulation: Simulation) => {
   await new Promise(resolve => {})
 
   // location.assign("/spooky")
-}
-
-const basement = async (simulation: Simulation) => {
-  await loadScene(scenes.interloper)
-}
-
-const dropper = async (simulation: Simulation) => {
-  await loadScene(scenes.dropper)
-}
-
-const stomach = async (simulation: Simulation) => {
-  await loadScene(scenes.stomach)
 }
 
 const winScript: Record<number, typeof intro> = {

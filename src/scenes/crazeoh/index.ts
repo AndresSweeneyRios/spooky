@@ -270,11 +270,11 @@ export const enableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "false")
 }
 
-export const loadWinIndexSceneIfExists = async (index: number): Promise<boolean> => {
+export const loadWinIndexSceneIfExists = (index: number): boolean => {
   const scene = winIndexScenes[index as keyof typeof winIndexScenes]
 
   if (scene) {
-    await loadScene(scene)
+    loadScene(scene)
 
     return true
   }
@@ -282,9 +282,11 @@ export const loadWinIndexSceneIfExists = async (index: number): Promise<boolean>
   return false
 }
 
-const mapLoader = loadGltf(crazeohGlb).then(gltf => gltf.scene)
+let mapLoader: Promise<THREE.Object3D> | undefined = undefined
 
 export const init = async () => {
+  await import("../../views/player")
+
   enableLoading()
 
   state.resetRound()
@@ -292,8 +294,12 @@ export const init = async () => {
   player.setThirdPerson(false)
   player.setCameraHeight(2)
 
-  if (await loadWinIndexSceneIfExists(state.winAnomalyIndex)) {
+  if (loadWinIndexSceneIfExists(state.winAnomalyIndex)) {
     return () => { }
+  }
+
+  if (mapLoader === undefined) {
+    mapLoader = loadGltf(crazeohGlb).then(gltf => gltf.scene)
   }
 
   const { scene, camera, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
