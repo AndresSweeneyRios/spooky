@@ -26,10 +26,6 @@ export const init = async () => {
     public Draw(): void {
       renderer.render(scene, camera)
     }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
   })
 
   const resize = () => {

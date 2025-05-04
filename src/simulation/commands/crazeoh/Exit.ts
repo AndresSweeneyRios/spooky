@@ -1,14 +1,11 @@
 import type { Simulation } from "../..";
 import { SimulationCommand } from "../_command";
 import * as state from "../../../scenes/crazeoh/state";
-import { currentPlayerView } from "../../../views/player";
 
 let caseohModule: typeof import("../../../pages/Caseoh") | undefined = undefined
 
 export class Exit extends SimulationCommand {
   public Execute(simulation: Simulation): void {
-    currentPlayerView?.disableControls()
-
     if (!caseohModule) {
       import("../../../pages/Caseoh").then((module) => {
         caseohModule = module

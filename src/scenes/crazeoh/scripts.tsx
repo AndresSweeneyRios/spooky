@@ -132,10 +132,6 @@ const outro = async (simulation: Simulation) => {
 
   state.setOutro(true)
 
-  setInterval(() => {
-    currentPlayerView!.disableControls()
-  }, 10)
-
   const view = await createCaseoh(simulation)
   const mesh = await view.meshPromise
   mesh.position.set(1.977, 0, -7.22);

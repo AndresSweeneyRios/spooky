@@ -11,7 +11,6 @@ import { createStove } from "../../entities/crazeoh/stove"
 import { createMicrowave } from "../../entities/crazeoh/microwave"
 import { getAngle, getMeshCenter } from "../../utils/math"
 import { createDoor } from "../../entities/crazeoh/door"
-import { currentPlayerView } from "../../views/player"
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository"
 import { SimulationCommand } from "../../simulation/commands/_command"
 import { JustPressedEvent, playerInput, waitForAction } from "../../input/player"
@@ -299,9 +298,7 @@ export const init = async () => {
 
   const { scene, camera, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
 
-  await player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
-
-  currentPlayerView!.disableControls()
+  const playerView = await player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
 
   camera.position.set(2, 0, 0)
 
@@ -325,7 +322,7 @@ export const init = async () => {
     if (playerObject) {
       playerObject.visible = false
     }
-    simulation.SimulationState.PhysicsRepository.SetPosition(currentPlayerView!.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z])
+    simulation.SimulationState.PhysicsRepository.SetPosition(playerView!.EntId, [playerSpawnPosition.x, 0.5, playerSpawnPosition.z])
     camera.position.set(playerSpawnPosition.x, 0.5, playerSpawnPosition.z)
     const lookTarget = scene.getObjectByName("Cube__0") as THREE.Mesh
     lookTarget.getWorldPosition(tempVec3)
@@ -348,7 +345,7 @@ export const init = async () => {
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
     public Draw(): void {
       if (state.isTutorial) {
-        const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(currentPlayerView!.EntId)
+        const playerPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView!.EntId)
         tempVec3.set(
           playerPos[0] - state.anomalyPosition.x,
           playerPos[1] - state.anomalyPosition.y,
@@ -412,7 +409,7 @@ export const init = async () => {
     polaroidEl.parentElement!.setAttribute("shutter", "true")
 
     if (state.anomaly) {
-      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(currentPlayerView!.EntId)
+      const pPos = simulation.SimulationState.PhysicsRepository.GetPosition(playerView!.EntId)
       if (pPos) {
         tempVec3.set(
           pPos[0] - state.anomalyPosition.x,

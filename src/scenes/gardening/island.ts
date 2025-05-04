@@ -88,10 +88,6 @@ export const init = async () => {
       // renderer.render(scene, camera)
       effectComposer.render()
     }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
   })
 
   const resize = () => {

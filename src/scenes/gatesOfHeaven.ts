@@ -176,10 +176,6 @@ export const init = async () => {
 
       playerInput.update()
     }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
   })
 
   const refocusHandler = () => {

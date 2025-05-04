@@ -1,9 +1,7 @@
 import * as THREE from 'three'
-import { renderer } from '../../components/Viewport'
 import { Simulation } from '../../simulation'
 import { loadAudio, loadGltf } from '../../graphics/loaders'
 import * as player from '../../entities/player'
-import { currentPlayerView } from "../../views/player"
 import * as state from "./state"
 import { SimulationCommand } from "../../simulation/commands/_command"
 import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository"

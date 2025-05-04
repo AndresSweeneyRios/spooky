@@ -448,6 +448,8 @@
 #caseoh-settings button:hover, #caseoh-settings button:focus {
   background-color: white;
   color: black;
+  border: 1px solid white;
+  outline: none;
 }
 
 #caseoh-settings .are-you-sure {

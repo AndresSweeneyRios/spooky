@@ -66,10 +66,6 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
       if (!state.gameStarted || state.inDialogue) camera.rotateY(-0.1 * simulation.ViewSync.DeltaTime)
       effectComposer.render()
     }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
   })
 
   const resize = (): void => {
@@ -139,7 +135,7 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
 
   simulation.ViewSync.AddAuxiliaryView(new class PlayerControlsManager extends View {
     public Draw(): void {
-      if (state.gameStarted && !state.picking && !state.inDialogue && !state.inSettings && document.pointerLockElement === renderer.domElement) {
+      if (state.gameStarted && !state.picking && !state.inDialogue && !state.inSettings && !state.outro && document.pointerLockElement === renderer.domElement) {
         currentPlayerView!.enableControls()
       } else {
         currentPlayerView!.disableControls()
@@ -176,7 +172,6 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
     simulation.Stop()
     currentOutlinePass = null
     currentCrtPass = null
-    renderer.dispose()
 
     currentPlayerView!.interactionEmitter.off("interactionsChanged", interactionsChangedHandler)
   }
