@@ -27,6 +27,24 @@ if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
 }
 
+interface InputTreeNode {
+  element: HTMLElement
+
+  up?: InputTreeNode | undefined
+  down?: InputTreeNode | undefined
+  left?: InputTreeNode | undefined
+  right?: InputTreeNode | undefined
+
+  upAction?: (() => void) | undefined
+  downAction?: (() => void) | undefined
+  leftAction?: (() => void) | undefined
+  rightAction?: (() => void) | undefined
+
+  mainAction?: (() => void) | undefined
+}
+
+let currentInputTreeNode: InputTreeNode | undefined = undefined
+
 // ─── AUDIO INITIALIZATION & HELPER FUNCTIONS ────────────────────────────────
 
 const errorAudio = loadAudio(errorOgg, { loop: false, volume: 0.05 });
@@ -37,6 +55,165 @@ const coinsAudio = loadAudio(coinsOgg, { loop: false, volume: 0.05 });
 export const hideMainMenu = async () => {
   document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
 };
+
+export const setPickerVisibility = (visible: boolean) => {
+  const decision = document.querySelector("#caseoh-decision")!;
+  decision.setAttribute("is-hidden", visible ? "false" : "true");
+  state.setPicking(visible);
+
+  if (visible) {
+    const yes = document.querySelector("#caseoh-decision .yes button") as HTMLElement;
+    const no = document.querySelector("#caseoh-decision .no button") as HTMLElement;
+    const cancel = document.querySelector("#caseoh-decision .cancel button") as HTMLElement;
+
+    const yesInputNode: InputTreeNode = {
+      element: yes,
+      down: undefined,
+
+      mainAction() {
+        handleDecision(true)
+      },
+    }
+
+    const cancelInputNode: InputTreeNode = {
+      element: cancel,
+      up: undefined,
+
+      mainAction() {
+        cancelDecision()
+      },
+    }
+
+    const noInputNode: InputTreeNode = {
+      element: no,
+      up: yesInputNode,
+      down: cancelInputNode,
+
+      mainAction() {
+        handleDecision(false)
+      },
+    }
+
+    yesInputNode.down = noInputNode;
+    cancelInputNode.up = noInputNode;
+
+    if (state.tookPicture) {
+      currentInputTreeNode = yesInputNode;
+    } else {
+      currentInputTreeNode = noInputNode;
+      noInputNode.up = undefined;
+    }
+  } else {
+    currentInputTreeNode?.element.blur();
+    currentInputTreeNode = undefined;
+  }
+}
+
+export const setSettingsVisibility = (visible: boolean) => {
+  const settingsOverlay = document.querySelector("#caseoh-settings")!;
+  settingsOverlay.setAttribute("is-hidden", visible ? "false" : "true");
+
+  if (visible) {
+    const volumeInput = document.querySelector("#caseoh-settings .volume") as HTMLInputElement;
+    const sensitivityInput = document.querySelector("#caseoh-settings .sensitivity") as HTMLInputElement;
+    const exitButton = document.querySelector("#caseoh-settings .exit") as HTMLButtonElement;
+
+    const volumeInputNode: InputTreeNode = {
+      element: volumeInput,
+      down: undefined,
+
+      leftAction() {
+        const currentVolume = parseFloat(volumeInput.value);
+        if (currentVolume > 0) {
+          volumeInput.value = (currentVolume - 5).toString();
+          setMasterVolumeFromPercentage(currentVolume - 5);
+        }
+      },
+
+      rightAction() {
+        const currentVolume = parseFloat(volumeInput.value);
+        if (currentVolume < 100) {
+          volumeInput.value = (currentVolume + 5).toString();
+          setMasterVolumeFromPercentage(currentVolume + 5);
+        }
+      },
+    }
+
+    const sensitivityInputNode: InputTreeNode = {
+      element: sensitivityInput,
+      up: volumeInputNode,
+
+      leftAction() {
+        const currentSensitivity = parseFloat(sensitivityInput.value);
+        if (currentSensitivity > 0) {
+          sensitivityInput.value = (currentSensitivity - 5).toString();
+          localStorage.setItem('sensitivity', (parseFloat(sensitivityInput.value) / 100).toString());
+        }
+      },
+
+      rightAction() {
+        const currentSensitivity = parseFloat(sensitivityInput.value);
+        if (currentSensitivity < 100) {
+          sensitivityInput.value = (currentSensitivity + 5).toString();
+          localStorage.setItem('sensitivity', (parseFloat(sensitivityInput.value) / 100).toString());
+        }
+      },
+    }
+
+    const exitButtonNode: InputTreeNode = {
+      element: exitButton,
+      up: sensitivityInputNode,
+
+      mainAction() {
+        setAreYouSureVisibility(true);
+      },
+    }
+
+    volumeInputNode.down = sensitivityInputNode;
+    sensitivityInputNode.down = exitButtonNode;
+
+    currentInputTreeNode = volumeInputNode;
+  } else {
+    currentInputTreeNode?.element.blur();
+    currentInputTreeNode = undefined;
+  }
+}
+
+export const setAreYouSureVisibility = (visible: boolean) => {
+  const areYouSure = document.querySelector("#caseoh-settings .are-you-sure")!;
+  areYouSure.setAttribute("is-hidden", visible ? "false" : "true");
+
+  if (visible) {
+    const yesButton = document.querySelector("#caseoh-settings .are-you-sure button:first-child") as HTMLButtonElement;
+    const noButton = document.querySelector("#caseoh-settings .are-you-sure button:last-child") as HTMLButtonElement;
+
+    const yesButtonNode: InputTreeNode = {
+      element: yesButton,
+      right: undefined,
+
+      mainAction() {
+        window.close();
+      },
+    }
+
+    const noButtonNode: InputTreeNode = {
+      element: noButton,
+      left: yesButtonNode,
+
+      mainAction() {
+        setAreYouSureVisibility(false);
+        setSettingsVisibility(true);
+      },
+    }
+
+    yesButtonNode.right = noButtonNode;
+
+    currentInputTreeNode = yesButtonNode;
+  } else {
+    currentInputTreeNode?.element.blur();
+    currentInputTreeNode = undefined;
+  }
+}
 
 window.addEventListener("click", () => {
   try {
@@ -60,7 +237,7 @@ document.addEventListener("pointerlockchange", () => {
  */
 const handleDecision = async (decision: boolean) => {
   try {
-    if (!state.picking) return;
+    setPickerVisibility(false);
 
     unloadScene();
 
@@ -79,10 +256,6 @@ const handleDecision = async (decision: boolean) => {
       errorAudio.then(audio => audio.play());
       state.decrementWins();
     }
-
-    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
-
-    state.setPicking(false);
 
     if (!document.fullscreenElement) {
       try {
@@ -111,8 +284,7 @@ const handleDecision = async (decision: boolean) => {
  */
 const cancelDecision = async () => {
   try {
-    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
-    state.setPicking(false);
+    setPickerVisibility(false);
 
     if (!document.fullscreenElement) {
       try {
@@ -134,10 +306,13 @@ const cancelDecision = async () => {
 // Use a high order so this handler is called last.
 playerInput.emitter.on(
   "justpressed",
-  ({ action, consume }) => {
+  ({ action, consume, inputSource }) => {
+    try {
+      requestFullscreen();
+    } catch { }
+
     if (action === "interact" && state.picking) {
-      state.setPicking(false);
-      document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
+      setPickerVisibility(false);
 
       consume()
 
@@ -155,16 +330,17 @@ playerInput.emitter.on(
 
     if (action === "settings") {
       if (state.picking) {
-        state.setPicking(false);
-        document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
+        setPickerVisibility(false);
 
         consume()
 
         return
       }
 
+      setAreYouSureVisibility(false);
+
       state.toggleSettings();
-      consume();
+      consume()
   
       requestFullscreen();
   
@@ -174,16 +350,83 @@ playerInput.emitter.on(
     if (action === "cancel") {
       cancelDecision()
       state.setInSettings(false)
+
       consume()
+
+      setAreYouSureVisibility(false);
       
       return
     }
-  
-    try {
-      requestFullscreen();
-    } catch { }
+
+    if (inputSource === "keyboard") {
+      return
+    }
+
+    if (action === "up" || action === "down" || action === "left" || action === "right" || action === "mainAction1") {
+      const hasFocus = currentInputTreeNode?.element === document.activeElement;
+      
+      if (!hasFocus) {
+        currentInputTreeNode?.element.focus();
+
+        return
+      }
+    }
+
+    if (action === "up") {
+      if (currentInputTreeNode?.upAction) {
+        currentInputTreeNode.upAction();
+      } else if (currentInputTreeNode?.up) {
+        currentInputTreeNode = currentInputTreeNode.up;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "down") {
+      if (currentInputTreeNode?.downAction) {
+        currentInputTreeNode.downAction();
+      } else if (currentInputTreeNode?.down) {
+        currentInputTreeNode = currentInputTreeNode.down;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "left") {
+      if (currentInputTreeNode?.leftAction) {
+        currentInputTreeNode.leftAction();
+      } else if (currentInputTreeNode?.left) {
+        currentInputTreeNode = currentInputTreeNode.left;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "right") {
+      if (currentInputTreeNode?.rightAction) {
+        currentInputTreeNode.rightAction();
+      } else if (currentInputTreeNode?.right) {
+        currentInputTreeNode = currentInputTreeNode.right;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "mainAction1") {
+      if (currentInputTreeNode?.mainAction) {
+        currentInputTreeNode.mainAction();
+      } else if (currentInputTreeNode) {
+        currentInputTreeNode.element.click();
+      }
+
+      return
+    }
   },
-  { order: 0 }
+  { order: -5 }
 );
 
 // ─── REACT COMPONENT ───────────────────────────────────────────────────────────
@@ -298,13 +541,13 @@ export const CrazeOh = () => {
               </button>
               {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} /> */}
             </div>
-            <div>
+            <div className="no">
               <button onClick={() => handleDecision(false)}>
               <span>✖</span> There is no anomaly
               </button>
               {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} /> */}
             </div>
-            <div>
+            <div className="cancel">
               <button onClick={cancelDecision}>
                 <span className="cancel-arrow">&lt;</span> Cancel
               </button>
@@ -319,16 +562,22 @@ export const CrazeOh = () => {
         <h1>Settings</h1>
         <div className="caseoh-setting">
           <label>VOLUME</label>
-          <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
+          <input className="volume" type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
             setMasterVolumeFromPercentage(parseFloat(e.target.value));
           }} />
         </div>
         <div className="caseoh-setting">
           <label>SENSITIVITY</label>
-          <input type="range" min="0" max="100" step="1" defaultValue={parseFloat(localStorage.getItem('sensitivity')!) * 100} onChange={(e) => {
+          <input className="sensitivity" type="range" min="0" max="100" step="1" defaultValue={parseFloat(localStorage.getItem('sensitivity')!) * 100} onChange={(e) => {
             localStorage.setItem('sensitivity', (parseFloat(e.target.value) / 100).toString());
           }} />
         </div>
+        <button className="exit" onClick={() => {
+          setAreYouSureVisibility(true);
+        }}>
+          <SVG src={LogOutSvg} />
+          Exit Game
+        </button>
         <div className="are-you-sure" is-hidden="true">
           <h2>Are you sure you want to quit?</h2>
           <h3>(All progress will be lost.)</h3>
@@ -337,16 +586,11 @@ export const CrazeOh = () => {
               window.close();
             }}>Yes</button>
             <button onClick={() => {
-              document.querySelector("#caseoh-settings .are-you-sure")!.setAttribute("is-hidden", "true");
+              setAreYouSureVisibility(false);
+              setSettingsVisibility(true);
             }}>No</button>
           </div>
         </div>
-        <button onClick={() => {
-          document.querySelector("#caseoh-settings .are-you-sure")!.setAttribute("is-hidden", "false");
-        }}>
-          <SVG src={LogOutSvg} />
-          Exit Game
-        </button>
       </div>
 
       {/* "Press Any Button" overlay */}

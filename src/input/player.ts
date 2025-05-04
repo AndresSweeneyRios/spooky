@@ -16,10 +16,15 @@ export interface InputState {
   mainAction2: boolean;
   settings: boolean;
   cancel: boolean;
+
+  up: boolean;
+  down: boolean;
+  left: boolean;
+  right: boolean;
 }
 
 // These are the button actions for which we emit “just pressed” events.
-export type InputAction = "interact" | "mainAction1" | "mainAction2" | "settings" | "cancel";
+export type InputAction = "interact" | "mainAction1" | "mainAction2" | "settings" | "cancel" | "up" | "down" | "left" | "right";
 
 // Input source types.
 export type InputSource = "keyboard" | "mouse" | "gamepad";
@@ -79,6 +84,10 @@ export class InputManager {
     mainAction2: false,
     settings: false,
     cancel: false,
+    up: false,
+    down: false,
+    left: false,
+    right: false,
   };
 
   // Previous frame’s state for button actions so we can detect “just pressed”.
@@ -88,6 +97,10 @@ export class InputManager {
     mainAction2: false,
     settings: false,
     cancel: false,
+    up: false,
+    down: false,
+    left: false,
+    right: false,
   };
 
   // An emitter for "just pressed" events.
@@ -174,6 +187,10 @@ export class InputManager {
       mainAction2: false,
       settings: false,
       cancel: false,
+      up: false,
+      down: false,
+      left: false,
+      right: false,
     };
     this.prevButtonStates = {
       interact: false,
@@ -181,6 +198,10 @@ export class InputManager {
       mainAction2: false,
       settings: false,
       cancel: false,
+      up: false,
+      down: false,
+      left: false,
+      right: false,
     };
   }
 
@@ -281,6 +302,12 @@ export class InputManager {
       mainAction2,
       settings,
       cancel,
+
+      // Implement directional buttons
+      up: this.keyboardPressed.has("arrowup") || Boolean(gp?.buttons[12]?.pressed),
+      down: this.keyboardPressed.has("arrowdown") || Boolean(gp?.buttons[13]?.pressed),
+      left: this.keyboardPressed.has("arrowleft") || Boolean(gp?.buttons[14]?.pressed),
+      right: this.keyboardPressed.has("arrowright") || Boolean(gp?.buttons[15]?.pressed)
     };
 
     this.checkJustPressed("interact", newState.interact, interactKeyboard ? "keyboard" : interactGamepad ? "gamepad" : "mouse");
@@ -289,12 +316,23 @@ export class InputManager {
     this.checkJustPressed("settings", newState.settings, settingsKeyboard ? "keyboard" : settingsGamepad ? "gamepad" : "mouse");
     this.checkJustPressed("cancel", newState.cancel, cancelKeyboard ? "keyboard" : cancelGamepad ? "gamepad" : "mouse");
 
+    // Check for justPressed events for directional actions
+    this.checkJustPressed("up", newState.up, this.keyboardPressed.has("arrowup") ? "keyboard" : "gamepad");
+    this.checkJustPressed("down", newState.down, this.keyboardPressed.has("arrowdown") ? "keyboard" : "gamepad");
+    this.checkJustPressed("left", newState.left, this.keyboardPressed.has("arrowleft") ? "keyboard" : "gamepad");
+    this.checkJustPressed("right", newState.right, this.keyboardPressed.has("arrowright") ? "keyboard" : "gamepad");
+
     this.currentState = newState;
     this.prevButtonStates.interact = newState.interact;
     this.prevButtonStates.mainAction1 = newState.mainAction1;
     this.prevButtonStates.mainAction2 = newState.mainAction2;
     this.prevButtonStates.settings = newState.settings;
     this.prevButtonStates.cancel = newState.cancel;
+    // Update prevButtonStates for directional actions
+    this.prevButtonStates.up = newState.up;
+    this.prevButtonStates.down = newState.down;
+    this.prevButtonStates.left = newState.left;
+    this.prevButtonStates.right = newState.right;
   }
 
   private debounceTimers: { [key in InputAction]?: number } = {};

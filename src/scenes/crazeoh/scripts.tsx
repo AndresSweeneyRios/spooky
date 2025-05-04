@@ -131,7 +131,6 @@ const outro = async (simulation: Simulation) => {
   enableLoading()
 
   state.setOutro(true)
-  state.setPicking(false)
 
   setInterval(() => {
     currentPlayerView!.disableControls()

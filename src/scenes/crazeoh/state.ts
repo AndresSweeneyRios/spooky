@@ -126,18 +126,38 @@ export const getVolume = () => {
 
 export let inSettings = false
 
+let caseohModule: typeof import("../../pages/Caseoh") | undefined = undefined
+let playerViewModule: typeof import("../../views/player") | undefined = undefined
+
 export const setInSettings = (value: boolean) => {
   inSettings = value
 
-  document.querySelector("#caseoh-settings")!.setAttribute("is-hidden", value ? "false" : "true")
+  if (caseohModule) {
+    caseohModule.setSettingsVisibility(value)
+  } else {
+    import("../../pages/Caseoh").then((module) => {
+      caseohModule = module
+      module.setSettingsVisibility(value)
+    })
+  }
 
-  import("../../views/player").then(({ currentPlayerView }) => {
+  if (playerViewModule) {
+    const { currentPlayerView } = playerViewModule
     if (inSettings) {
       currentPlayerView!.disableControls()
     } else if (!picking && !inDialogue && gameStarted && !outro) {
       currentPlayerView!.enableControls()
     }
-  })
+  } else {
+    import("../../views/player").then((module) => {
+      playerViewModule = module
+      if (inSettings) {
+        module.currentPlayerView!.disableControls()
+      } else if (!picking && !inDialogue && gameStarted && !outro) {
+        module.currentPlayerView!.enableControls()
+      }
+    })
+  }
 }
 
 export const toggleSettings = () => {
@@ -153,4 +173,5 @@ export const resetRound = () => {
   setTookPicture(false);
   setPicking(false);
   setInDialogue(false);
+  setInSettings(false);
 }

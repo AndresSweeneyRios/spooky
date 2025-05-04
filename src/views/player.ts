@@ -116,6 +116,7 @@ export class PlayerView extends EntityView {
     if (payload.action !== "interact") return;
 
     const availableInteractions = this.getAvailableInteractionsWithinAngle(20);
+    console.log(availableInteractions, this.simulation.SimulationIndex);
     if (availableInteractions.length === 0) return;
 
     let closestInteraction = availableInteractions.reduce((closest, interaction) => {
