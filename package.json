@@ -8,6 +8,7 @@
     "dev-loh": "cross-env ENV=development VITE_PROJECT=loh vite",
     "build-tripshred": "cross-env ENV=production VITE_PROJECT=tripshred vite build",
     "build-crazeoh": "cross-env ENV=production VITE_PROJECT=crazeoh vite build",
+    "watch-crazeoh": "cross-env ENV=development VITE_PROJECT=crazeoh vite build --watch",
     "build-loh": "cross-env ENV=production VITE_PROJECT=loh vite build",
     "preview": "cross-env ENV=development VITE_PROJECT=crazeoh vite preview",
     "test": "vitest",

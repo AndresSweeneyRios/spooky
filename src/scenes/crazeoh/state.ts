@@ -2,14 +2,6 @@ import * as THREE from 'three'
 
 // -----
 
-export let playing = false
-
-export const setPlaying = (value: boolean) => {
-  playing = value
-}
-
-// -----
-
 export let anomaly = false
 
 export const setAnomaly = (value: boolean) => {
@@ -134,12 +126,33 @@ export const getVolume = () => {
 
 export let inSettings = false
 
+let caseohModule: typeof import("../../pages/Caseoh") | undefined = undefined
+
 export const setInSettings = (value: boolean) => {
   inSettings = value
 
-  document.querySelector("#caseoh-settings")!.setAttribute("is-hidden", value ? "false" : "true")
+  if (caseohModule) {
+    caseohModule.setSettingsVisibility(value)
+  } else {
+    import("../../pages/Caseoh").then((module) => {
+      caseohModule = module
+      module.setSettingsVisibility(value)
+    })
+  }
 }
 
 export const toggleSettings = () => {
   setInSettings(!inSettings)
+}
+
+// -----
+
+export const resetRound = () => {
+  setAnomalyPosition(new THREE.Vector3(0, 0, 0));
+  setAnomaly(false);
+  setFoundAnomaly(false);
+  setTookPicture(false);
+  setPicking(false);
+  setInDialogue(false);
+  setInSettings(false);
 }

@@ -7,30 +7,25 @@ export class ViewSync {
   private entityViews = new Map<EntId, EntityView>()
   private auxiliaryViews = new Map<symbol, View>()
 
-  private shouldSortViews = false
-
   private startTime = Date.now()
+  private lastFrameTime = Date.now()
 
   public TimeMS = 0
+  public DeltaTime = 0 // Time in seconds since last frame
 
   public AddEntityView(view: EntityView) {
     this.entityViews.set(view.EntId, view)
-
-    this.shouldSortViews = true
   }
 
   public AddAuxiliaryView(view: View) {
     this.auxiliaryViews.set(view.Symbol, view)
-
-    this.shouldSortViews = true
-  }
-
-  public TriggerSort() {
-    this.shouldSortViews = true
   }
 
   public Draw(simulation: Simulation, lerpFactor: number) {
-    this.TimeMS = Date.now() - this.startTime
+    const currentTime = Date.now()
+    this.TimeMS = currentTime - this.startTime
+    this.DeltaTime = (currentTime - this.lastFrameTime) / 1000 // Convert to seconds
+    this.lastFrameTime = currentTime
 
     for (const view of this.entityViews.values()) {
       view.Draw?.(simulation, lerpFactor)

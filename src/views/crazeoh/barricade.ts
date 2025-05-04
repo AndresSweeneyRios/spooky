@@ -15,7 +15,6 @@ const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
 const IDLE_TIMESCALE = 1
 
 const noiseAudio = loadAudio(noiseOgg, {
-  autoplay: false,
   volume: 1.6,
   loop: true,
   positional: true,
@@ -36,6 +35,8 @@ export class BarricadeView extends View {
     this.barricade.position.set(this.position[0], this.position[1], this.position[2])
     this.barricade.rotation.set(this.rotation[0], this.rotation[1], this.rotation[2])
     this.barricade.scale.set(this.scale[0], this.scale[1], this.scale[2])
+
+    noiseAudio.then(audio => audio.play())
 
     this.barricade.traverse((child) => {
       if (child instanceof THREE.SkinnedMesh) {

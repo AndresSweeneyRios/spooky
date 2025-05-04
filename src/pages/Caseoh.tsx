@@ -7,128 +7,237 @@ import { loadScene, scenes, unloadScene } from "../scenes";
 import TvWebp from "../assets/caseoh/tv.webp";
 import PolaroidPng from "../assets/caseoh/polaroid.webp";
 import * as state from "../scenes/crazeoh/state";
-import { currentAnomalyId, removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
+import { removeCurrentAnomaly } from "../scenes/crazeoh/anomaly";
 import _SVG from 'react-inlinesvg';
 const SVG = _SVG as any;
 import InteractableIconSvg from "../assets/icons/interactable.svg";
 import CameraHintSvg from "../assets/icons/camera_hint.svg";
 import SplashWebp from "../assets/caseoh/splash.webp";
 import { playerInput } from "../input/player";
-import { executeWinScript } from "../scenes/crazeoh/scripts";
-import { ArgumentsType } from "vitest";
 import { getMasterVolumePercentage, setMasterVolumeFromPercentage } from "../audio/volume";
 import TripshredSvg from "../assets/icons/tripshred.svg";
 import TrophySvg from "../assets/icons/trophy.svg";
-import caseohOgg from '../assets/audio/music/caseoh.ogg';
 import errorOgg from '../assets/audio/sfx/error.ogg';
 import coinsOgg from '../assets/audio/sfx/coins.ogg';
+import { loadAudio } from "../graphics/loaders";
+import { requestFullscreen } from "../utils/requestFullscreen";
+import LogOutSvg from "../assets/icons/log-out.svg";
 
 if (!localStorage.sensitivity) {
   localStorage.sensitivity = "0.5";
 }
 
-window.addEventListener("keyup", () => {
-  // if press ESC and in settings, close settings and request pointer lock/fullscreen
+interface InputTreeNode {
+  element: HTMLElement
 
-  if (state.inSettings) {
-    state.setInSettings(false);
+  up?: InputTreeNode | undefined
+  down?: InputTreeNode | undefined
+  left?: InputTreeNode | undefined
+  right?: InputTreeNode | undefined
 
-    const target = document.querySelector(".caseoh-settings-indicator")!;
-    target.setAttribute("in-settings", state.inSettings ? "true" : "false");
+  upAction?: (() => void) | undefined
+  downAction?: (() => void) | undefined
+  leftAction?: (() => void) | undefined
+  rightAction?: (() => void) | undefined
 
-    requestAnimationFrame(() => {
-      if (!document.fullscreenElement) {
-        try {
-          document.body.requestFullscreen();
-        } catch { }
-      }
-      if (!document.pointerLockElement) {
-        try {
-          renderer.domElement.requestPointerLock();
-        } catch { }
-      }
-    })
-  }
-}, {
-  capture: false,
-})
+  mainAction?: (() => void) | undefined
+}
 
-// Lazy–load loaders so we don’t block startup.
-const loaderPromise = import("../graphics/loaders");
+let currentInputTreeNode: InputTreeNode | undefined = undefined
 
 // ─── AUDIO INITIALIZATION & HELPER FUNCTIONS ────────────────────────────────
 
-let stopMusic: () => void = () => {};
-
-/**
- * Loads an audio file with the given options and sets a default volume.
- */
-const loadAudioFile = async (path: string, options: Parameters<Awaited<typeof loaderPromise>["loadAudio"]>[1]) => {
-  const { loadAudio } = await loaderPromise;
-  const audio = await loadAudio(path, options);
-  return audio;
-};
-
-const initializeAudio = async () => {
-  try {
-    // Wait for the first click (if required) to unlock audio.
-    const { firstClick } = await loaderPromise;
-    firstClick.then(() => {
-      document.querySelector("#caseoh-anybutton")!.setAttribute("is-hidden", "true");
-    });
-
-    // Load and play background music.
-    const audio = await loadAudioFile(caseohOgg, { loop: true, volume: 0.05 });
-    audio.play();
-    stopMusic = () => audio.stop();
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const errorAudio = loadAudioFile(errorOgg, { loop: false, volume: 0.05 });
-const coinsAudio = loadAudioFile(coinsOgg, { loop: false, volume: 0.05 });
+const errorAudio = loadAudio(errorOgg, { loop: false, volume: 0.05 });
+const coinsAudio = loadAudio(coinsOgg, { loop: false, volume: 0.05 });
 
 // ─── GAME START & DECISION HANDLERS ─────────────────────────────────────────────
 
-/**
- * Begins the game by stopping music, setting state flags, hiding UI, and ensuring
- * fullscreen/pointer lock. Early returns prevent race conditions.
- */
-const startGame = async () => {
-  try {
-    const anyButton = document.querySelector("#caseoh-anybutton");
-    if (
-      state.gameStarted || state.picking || state.outro || state.inDialogue ||
-      (anyButton && anyButton.getAttribute("is-hidden") === "false")
-    ) {
-      return;
-    }
-    stopMusic();
-    state.setGameStarted(true);
-    document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
-
-    if (!document.fullscreenElement) {
-      try {
-        document.body.requestFullscreen();
-      } catch { /* ignore */ }
-    }
-    if (!document.pointerLockElement) {
-      try {
-        renderer.domElement.requestPointerLock();
-      } catch { /* ignore */ }
-    }
-  } catch (error) {
-    console.error("Error starting game:", error);
-  }
+export const hideMainMenu = async () => {
+  document.querySelector("#caseoh")!.setAttribute("is-hidden", "true");
 };
+
+export const setPickerVisibility = (visible: boolean) => {
+  const decision = document.querySelector("#caseoh-decision")!;
+  decision.setAttribute("is-hidden", visible ? "false" : "true");
+  state.setPicking(visible);
+
+  if (visible) {
+    const yes = document.querySelector("#caseoh-decision .yes button") as HTMLElement;
+    const no = document.querySelector("#caseoh-decision .no button") as HTMLElement;
+    const cancel = document.querySelector("#caseoh-decision .cancel button") as HTMLElement;
+
+    const yesInputNode: InputTreeNode = {
+      element: yes,
+      down: undefined,
+
+      mainAction() {
+        handleDecision(true)
+      },
+    }
+
+    const cancelInputNode: InputTreeNode = {
+      element: cancel,
+      up: undefined,
+
+      mainAction() {
+        cancelDecision()
+      },
+    }
+
+    const noInputNode: InputTreeNode = {
+      element: no,
+      up: yesInputNode,
+      down: cancelInputNode,
+
+      mainAction() {
+        handleDecision(false)
+      },
+    }
+
+    yesInputNode.down = noInputNode;
+    cancelInputNode.up = noInputNode;
+
+    if (state.tookPicture) {
+      currentInputTreeNode = yesInputNode;
+    } else {
+      currentInputTreeNode = noInputNode;
+      noInputNode.up = undefined;
+    }
+  } else {
+    currentInputTreeNode?.element.blur();
+    currentInputTreeNode = undefined;
+  }
+}
+
+export const setSettingsVisibility = (visible: boolean) => {
+  const settingsOverlay = document.querySelector("#caseoh-settings")!;
+  settingsOverlay.setAttribute("is-hidden", visible ? "false" : "true");
+
+  if (visible) {
+    const volumeInput = document.querySelector("#caseoh-settings .volume") as HTMLInputElement;
+    const sensitivityInput = document.querySelector("#caseoh-settings .sensitivity") as HTMLInputElement;
+    const exitButton = document.querySelector("#caseoh-settings .exit") as HTMLButtonElement;
+
+    const volumeInputNode: InputTreeNode = {
+      element: volumeInput,
+      down: undefined,
+
+      leftAction() {
+        const currentVolume = parseFloat(volumeInput.value);
+        if (currentVolume > 0) {
+          volumeInput.value = (currentVolume - 5).toString();
+          setMasterVolumeFromPercentage(currentVolume - 5);
+        }
+      },
+
+      rightAction() {
+        const currentVolume = parseFloat(volumeInput.value);
+        if (currentVolume < 100) {
+          volumeInput.value = (currentVolume + 5).toString();
+          setMasterVolumeFromPercentage(currentVolume + 5);
+        }
+      },
+    }
+
+    const sensitivityInputNode: InputTreeNode = {
+      element: sensitivityInput,
+      up: volumeInputNode,
+
+      leftAction() {
+        const currentSensitivity = parseFloat(sensitivityInput.value);
+        if (currentSensitivity > 0) {
+          sensitivityInput.value = (currentSensitivity - 5).toString();
+          localStorage.setItem('sensitivity', (parseFloat(sensitivityInput.value) / 100).toString());
+        }
+      },
+
+      rightAction() {
+        const currentSensitivity = parseFloat(sensitivityInput.value);
+        if (currentSensitivity < 100) {
+          sensitivityInput.value = (currentSensitivity + 5).toString();
+          localStorage.setItem('sensitivity', (parseFloat(sensitivityInput.value) / 100).toString());
+        }
+      },
+    }
+
+    const exitButtonNode: InputTreeNode = {
+      element: exitButton,
+      up: sensitivityInputNode,
+
+      mainAction() {
+        setAreYouSureVisibility(true);
+      },
+    }
+
+    volumeInputNode.down = sensitivityInputNode;
+    sensitivityInputNode.down = exitButtonNode;
+
+    currentInputTreeNode = volumeInputNode;
+  } else {
+    currentInputTreeNode?.element.blur();
+    currentInputTreeNode = undefined;
+  }
+}
+
+export const setAreYouSureVisibility = (visible: boolean) => {
+  const areYouSure = document.querySelector("#caseoh-settings .are-you-sure")!;
+  areYouSure.setAttribute("is-hidden", visible ? "false" : "true");
+
+  if (visible) {
+    const yesButton = document.querySelector("#caseoh-settings .are-you-sure button:first-child") as HTMLButtonElement;
+    const noButton = document.querySelector("#caseoh-settings .are-you-sure button:last-child") as HTMLButtonElement;
+
+    const yesButtonNode: InputTreeNode = {
+      element: yesButton,
+      right: undefined,
+
+      mainAction() {
+        window.close();
+      },
+    }
+
+    const noButtonNode: InputTreeNode = {
+      element: noButton,
+      left: yesButtonNode,
+
+      mainAction() {
+        setAreYouSureVisibility(false);
+        setSettingsVisibility(true);
+      },
+    }
+
+    yesButtonNode.right = noButtonNode;
+
+    currentInputTreeNode = yesButtonNode;
+  } else {
+    currentInputTreeNode?.element.blur();
+    currentInputTreeNode = undefined;
+  }
+}
+
+window.addEventListener("click", () => {
+  try {
+    if (!state.picking && !state.inSettings && document.pointerLockElement !== renderer.domElement) {
+      requestFullscreen();
+      renderer.domElement.requestPointerLock()
+    }
+  } catch { }
+})
+
+document.addEventListener("pointerlockchange", () => {
+  requestAnimationFrame(() => {
+    if (!state.picking && document.pointerLockElement !== renderer.domElement) {
+      state.setInSettings(true);
+    }
+  })
+})
 
 /**
  * Handles a decision from the user (YES/NO) regarding the anomaly.
  */
 const handleDecision = async (decision: boolean) => {
   try {
-    if (!state.gameStarted || state.playing || state.inDialogue || !state.picking) return;
+    setPickerVisibility(false);
 
     unloadScene();
 
@@ -148,13 +257,9 @@ const handleDecision = async (decision: boolean) => {
       state.decrementWins();
     }
 
-    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
-
-    state.setPicking(false);
-
     if (!document.fullscreenElement) {
       try {
-        document.body.requestFullscreen();
+        requestFullscreen();
       } catch { }
     }
     if (!document.pointerLockElement) {
@@ -179,13 +284,11 @@ const handleDecision = async (decision: boolean) => {
  */
 const cancelDecision = async () => {
   try {
-    document.querySelector("#caseoh-decision")!.setAttribute("is-hidden", "true");
-    state.setPlaying(true);
-    state.setPicking(false);
+    setPickerVisibility(false);
 
     if (!document.fullscreenElement) {
       try {
-        document.body.requestFullscreen();
+        requestFullscreen();
       } catch { }
     }
     if (!document.pointerLockElement) {
@@ -203,31 +306,128 @@ const cancelDecision = async () => {
 // Use a high order so this handler is called last.
 playerInput.emitter.on(
   "justpressed",
-  ({ action, inputSource, consume }) => {
-    if (inputSource !== "gamepad") return;
+  ({ action, consume, inputSource }) => {
+    try {
+      requestFullscreen();
+    } catch { }
 
-    switch (action) {
-      case "mainAction1":
-        startGame();
-        handleDecision(true);
-        consume();
-        break;
-      case "interact":
-        startGame();
-        handleDecision(false);
-        consume();
-        break;
-      case "cancel":
-        cancelDecision();
-        consume();
-        break;
+    if (action === "interact" && state.picking) {
+      setPickerVisibility(false);
+
+      consume()
+
+      // request pointer lock
+      if (document.pointerLockElement !== renderer.domElement) {
+        try {
+          renderer.domElement.requestPointerLock();
+        } catch { }
+      }
+
+      requestFullscreen()
+
+      return
+    }
+
+    if (action === "settings") {
+      if (state.picking) {
+        setPickerVisibility(false);
+
+        consume()
+
+        return
+      }
+
+      setAreYouSureVisibility(false);
+
+      state.toggleSettings();
+      consume()
+  
+      requestFullscreen();
+  
+      return
+    }
+
+    if (action === "cancel") {
+      cancelDecision()
+      state.setInSettings(false)
+
+      consume()
+
+      setAreYouSureVisibility(false);
+      
+      return
+    }
+
+    if (inputSource === "keyboard") {
+      return
+    }
+
+    if (action === "up" || action === "down" || action === "left" || action === "right" || action === "mainAction1") {
+      const hasFocus = currentInputTreeNode?.element === document.activeElement;
+      
+      if (!hasFocus) {
+        currentInputTreeNode?.element.focus();
+
+        return
+      }
+    }
+
+    if (action === "up") {
+      if (currentInputTreeNode?.upAction) {
+        currentInputTreeNode.upAction();
+      } else if (currentInputTreeNode?.up) {
+        currentInputTreeNode = currentInputTreeNode.up;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "down") {
+      if (currentInputTreeNode?.downAction) {
+        currentInputTreeNode.downAction();
+      } else if (currentInputTreeNode?.down) {
+        currentInputTreeNode = currentInputTreeNode.down;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "left") {
+      if (currentInputTreeNode?.leftAction) {
+        currentInputTreeNode.leftAction();
+      } else if (currentInputTreeNode?.left) {
+        currentInputTreeNode = currentInputTreeNode.left;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "right") {
+      if (currentInputTreeNode?.rightAction) {
+        currentInputTreeNode.rightAction();
+      } else if (currentInputTreeNode?.right) {
+        currentInputTreeNode = currentInputTreeNode.right;
+        currentInputTreeNode.element.focus();
+      }
+
+      return
+    }
+
+    if (action === "mainAction1") {
+      if (currentInputTreeNode?.mainAction) {
+        currentInputTreeNode.mainAction();
+      } else if (currentInputTreeNode) {
+        currentInputTreeNode.element.click();
+      }
+
+      return
     }
   },
-  { order: 99999 }
+  { order: -5 }
 );
-
-// Start audio initialization immediately.
-initializeAudio();
 
 // ─── REACT COMPONENT ───────────────────────────────────────────────────────────
 
@@ -252,7 +452,7 @@ export const CrazeOh = () => {
       const wins = document.getElementById("caseoh-wins")!
       const stats = document.getElementById("caseoh-stats")!
       wins.innerText = `${state.wins} / 20 WINS`;
-      stats.setAttribute("is-hidden", state.playing ? "false" : "true");
+      stats.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue) ? "false" : "true");
 
       animationFrame = requestAnimationFrame(handler);
     }
@@ -261,11 +461,6 @@ export const CrazeOh = () => {
 
     return () => cancelAnimationFrame(animationFrame);
   }, [])
-
-  React.useEffect(() => {
-    document.querySelector(".caseoh-settings-indicator")!.setAttribute("is-hidden", pointerLocked ? "true" : "false");
-    document.querySelector(".caseoh-interactable")!.setAttribute("is-hidden", pointerLocked ? "false" : "true");
-  }, [pointerLocked])
 
   // useMemo to memoize the JSX since this layout is static.
   return React.useMemo(() => (
@@ -284,7 +479,7 @@ export const CrazeOh = () => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-            <button onClick={startGame}>Play</button>
+            {/* <button onClick={startGame}>Play</button> */}
             {/* <SVG src={DpadSoloIconSvg} style={{
               width: '4em',
               transform: 'rotate(-90deg)',
@@ -330,18 +525,6 @@ export const CrazeOh = () => {
         <SVG src={InteractableIconSvg} />
       </div>
 
-      <div in-settings={state.inSettings ? "true" : "false"} className="caseoh-settings-indicator" onMouseDownCapture={(e) => {
-        state.toggleSettings();
-
-        e.stopPropagation();
-        e.preventDefault();
-
-        const target = document.querySelector(".caseoh-settings-indicator")!;
-        target.setAttribute("in-settings", state.inSettings ? "true" : "false");
-
-        return false;
-      }}>
-      </div>
 
       {/* Decision screen */}
       <div id="caseoh-decision" is-hidden="true">
@@ -358,13 +541,13 @@ export const CrazeOh = () => {
               </button>
               {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} /> */}
             </div>
-            <div>
+            <div className="no">
               <button onClick={() => handleDecision(false)}>
               <span>✖</span> There is no anomaly
               </button>
               {/* <SVG src={DpadSoloIconSvg} style={{ transform: 'rotate(-90deg)' }} /> */}
             </div>
-            <div>
+            <div className="cancel">
               <button onClick={cancelDecision}>
                 <span className="cancel-arrow">&lt;</span> Cancel
               </button>
@@ -379,27 +562,46 @@ export const CrazeOh = () => {
         <h1>Settings</h1>
         <div className="caseoh-setting">
           <label>VOLUME</label>
-          <input type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
+          <input className="volume" type="range" min="0" max="100" step="1" defaultValue={volume} onChange={(e) => {
             setMasterVolumeFromPercentage(parseFloat(e.target.value));
           }} />
         </div>
         <div className="caseoh-setting">
           <label>SENSITIVITY</label>
-          <input type="range" min="0" max="100" step="1" defaultValue={parseFloat(localStorage.getItem('sensitivity')!) * 100} onChange={(e) => {
+          <input className="sensitivity" type="range" min="0" max="100" step="1" defaultValue={parseFloat(localStorage.getItem('sensitivity')!) * 100} onChange={(e) => {
             localStorage.setItem('sensitivity', (parseFloat(e.target.value) / 100).toString());
           }} />
+        </div>
+        <button className="exit" onClick={() => {
+          setAreYouSureVisibility(true);
+        }}>
+          <SVG src={LogOutSvg} />
+          Exit Game
+        </button>
+        <div className="are-you-sure" is-hidden="true">
+          <h2>Are you sure you want to quit?</h2>
+          <h3>(All progress will be lost.)</h3>
+          <div>
+            <button onClick={() => {
+              window.close();
+            }}>Yes</button>
+            <button onClick={() => {
+              setAreYouSureVisibility(false);
+              setSettingsVisibility(true);
+            }}>No</button>
+          </div>
         </div>
       </div>
 
       {/* "Press Any Button" overlay */}
-      <div id="caseoh-anybutton" is-hidden="false">
+      <div id="caseoh-anybutton" is-hidden="true">
         <h1>Press Any Button</h1>
       </div>
 
       {/* Loading overlay */}
       <div id="caseoh-loading" is-hidden="false">
         <img src={TvWebp} alt="TV Loading" />
-        <h1>Randomizing anomaly...</h1>
+        {/* <h1>Randomizing anomaly...</h1> */}
       </div>
 
       <img src={SplashWebp} alt="Explainer" id="caseoh-explainer" is-hidden="true" />

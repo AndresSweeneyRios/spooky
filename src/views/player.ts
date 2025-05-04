@@ -7,9 +7,12 @@ import { SensorCommand } from "../simulation/repository/SensorCommandRepository"
 import * as math from "../utils/math";
 import { vec3 } from "gl-matrix";
 import * as THREE from "three";
-import { EventEmitter } from "events";
 import { TypedEmitter } from "../utils/emitter";
 import footstepsConcreteOgg from '../assets/audio/sfx/footsteps_concrete.ogg';
+
+export let simulationPlayerViews: Record<number, PlayerView> = {}
+
+  ; (window as any)["simulationPlayerViews"] = simulationPlayerViews;
 
 const MIN_SENSITIVITY = 200;
 const MAX_SENSITIVITY = 300000;
@@ -33,7 +36,7 @@ footstepAudio.then(audio => {
 });
 
 // Define a strongly typed emitter.
-type InteractionChangedPayload = {
+export type InteractionsChangedPayload = {
   command: SensorCommand;
   entId: EntId;
   symbol: symbol;
@@ -54,7 +57,7 @@ export class PlayerView extends EntityView {
   protected lastFootstepTime: number | undefined = undefined;
 
   public interactionEmitter = new TypedEmitter<{
-    interactionsChanged: (interactions: InteractionChangedPayload) => void;
+    interactionsChanged: (interactions: InteractionsChangedPayload) => void;
   }>();
 
   constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3) {
@@ -65,6 +68,8 @@ export class PlayerView extends EntityView {
     this.simulation.Camera.quaternion.setFromEuler(euler);
 
     document.querySelector("#debug")?.appendChild(this.debugElement);
+
+    simulationPlayerViews[simulation.SimulationIndex] = this;
   }
 
   protected updateCamera(dx: number, dy: number): void {
@@ -110,6 +115,7 @@ export class PlayerView extends EntityView {
   }
 
   protected handleJustPressed(payload: JustPressedEvent): void {
+    if (!this.controlsEnabled) return;
     if (payload.action !== "interact") return;
 
     const availableInteractions = this.getAvailableInteractionsWithinAngle(20);
@@ -211,8 +217,12 @@ export class PlayerView extends EntityView {
   }
 
   public Cleanup(): void {
-    this.cleanupEvents();
+    this.cleanupEvents()
 
     this.debugElement.remove();
+
+    this.disableControls()
+
+    delete simulationPlayerViews[this.simulation.SimulationIndex]
   }
 }

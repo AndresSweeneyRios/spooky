@@ -2,7 +2,6 @@ import * as React from "react"
 import * as THREE from "three"
 
 import { RENDERER } from "../../constants"
-import { stopGameLoop } from "../simulation/loop"
 import { loadAppropriateScene, Scene, unloadScene } from "../scenes"
 
 export let canvas: HTMLCanvasElement = null!
