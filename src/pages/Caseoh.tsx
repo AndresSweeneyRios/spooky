@@ -141,6 +141,15 @@ playerInput.emitter.on(
 
       consume()
 
+      // request pointer lock
+      if (document.pointerLockElement !== renderer.domElement) {
+        try {
+          renderer.domElement.requestPointerLock();
+        } catch { }
+      }
+
+      requestFullscreen()
+
       return
     }
 

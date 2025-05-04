@@ -23,8 +23,6 @@ import { hideMainMenu } from "../../pages/Caseoh"
 const loadingEl = document.getElementById("caseoh-loading")
 const splashEl = document.getElementById("splash")
 
-export let currentPlayerView: PlayerView | null = null
-
 export const disableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "true")
   splashEl?.setAttribute("is-hidden", "true")
@@ -76,7 +74,6 @@ export const init = async () => {
   const [playerView] = await Promise.all([
     player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
   ])
-  currentPlayerView = playerView
 
   const cylinder = scene.getObjectByName("Cylinder")
 

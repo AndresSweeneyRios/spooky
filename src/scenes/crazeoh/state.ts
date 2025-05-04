@@ -130,6 +130,14 @@ export const setInSettings = (value: boolean) => {
   inSettings = value
 
   document.querySelector("#caseoh-settings")!.setAttribute("is-hidden", value ? "false" : "true")
+
+  import("../../views/player").then(({ currentPlayerView }) => {
+    if (inSettings) {
+      currentPlayerView!.disableControls()
+    } else if (!picking && !inDialogue && gameStarted && !outro) {
+      currentPlayerView!.enableControls()
+    }
+  })
 }
 
 export const toggleSettings = () => {
