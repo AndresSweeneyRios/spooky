@@ -340,16 +340,6 @@ export const init = async () => {
     }
   }
 
-  const handlePointerLock = () => {
-    if (document.pointerLockElement !== renderer.domElement) {
-      currentPlayerView!.disableControls()
-    } else if (state.gameStarted && !state.picking && !state.inDialogue) {
-      currentPlayerView!.enableControls()
-    }
-  }
-
-  document.addEventListener("pointerlockchange", handlePointerLock)
-
   {
     const object = scene.getObjectByName("Cube003__0001") as THREE.Mesh
     if (object) object.visible = false
@@ -400,16 +390,12 @@ export const init = async () => {
 
   pickRandomAnomaly(simulation)
 
-  currentPlayerView!.enableControls()
-
   teleportPlayer()
 
   let shutterOn = false
 
   const justPressed = (payload: JustPressedEvent) => {
     if (payload.action !== "mainAction1" || state.picking || state.inSettings) return
-
-    currentPlayerView!.enableControls()
 
     if (shutterOn || document.pointerLockElement !== renderer.domElement) return
 
@@ -451,7 +437,6 @@ export const init = async () => {
     enableLoading()
     cleanup()
     playerInput.emitter.off("justpressed", justPressed)
-    document.removeEventListener("pointerlockchange", handlePointerLock)
     stopAllSounds()
   }
 }

@@ -242,20 +242,10 @@ export const init = async () => {
     }
   })
 
-  const handlePointerLock = () => {
-    if (document.pointerLockElement !== renderer.domElement) {
-      playerView.disableControls()
-    } else if (state.gameStarted && !state.picking && !state.inDialogue) {
-      playerView.enableControls()
-    }
-  }
-  document.addEventListener("pointerlockchange", handlePointerLock)
-
   disableLoading()
 
   return () => {
     if (musicAudio) musicAudio.stop()
-    document.removeEventListener("pointerlockchange", handlePointerLock)
     cleanup()
   }
 }

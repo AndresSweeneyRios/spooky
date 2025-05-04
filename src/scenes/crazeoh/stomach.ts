@@ -383,21 +383,10 @@ export const init = async () => {
   state.setGameStarted(true)
   hideMainMenu()
 
-  const handlePointerLock = () => {
-    if (document.pointerLockElement !== renderer.domElement) {
-      playerView.disableControls()
-    } else if (state.gameStarted && !state.picking && !state.inDialogue) {
-      playerView.enableControls()
-    }
-  }
-
-  document.addEventListener("pointerlockchange", handlePointerLock)
-
   disableLoading()
 
   return () => {
     music.then(audio => audio.stop())
-    document.removeEventListener("pointerlockchange", handlePointerLock)
     cleanup()
   }
 }

@@ -123,7 +123,7 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
     scene.add(target)
     flashlight.target = target
 
-    simulation.ViewSync.AddAuxiliaryView(new class extends View {
+    simulation.ViewSync.AddAuxiliaryView(new class FlashlightPositionManager extends View {
       public Draw(): void {
         const tempVec3 = new THREE.Vector3()
         camera.getWorldPosition(tempVec3)
@@ -136,6 +136,16 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
 
     return flashlight
   }
+
+  simulation.ViewSync.AddAuxiliaryView(new class PlayerControlsManager extends View {
+    public Draw(): void {
+      if (state.gameStarted && !state.picking && !state.inDialogue && !state.inSettings && document.pointerLockElement === renderer.domElement) {
+        currentPlayerView!.enableControls()
+      } else {
+        currentPlayerView!.disableControls()
+      }
+    }
+  })
 
   const interactionsChangedHandler = (interactions: InteractionsChangedPayload) => {
     let closestInteraction = null
