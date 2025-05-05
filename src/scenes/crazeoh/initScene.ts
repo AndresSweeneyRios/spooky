@@ -157,15 +157,17 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
     currentOutlinePass?.selectedObjects.push(...selectedObjects)
   }
 
-  until(() => simulationPlayerViews[simulation.SimulationIndex] !== undefined).then(() => {
-    simulationPlayerViews[simulation.SimulationIndex]!.interactionEmitter.on("interactionsChanged", interactionsChangedHandler)
+  const simulationIndex = simulation.SimulationIndex
+
+  until(() => Boolean(simulationPlayerViews[simulationIndex]?.interactionEmitter)).then(() => {
+    simulationPlayerViews[simulationIndex]!.interactionEmitter.on("interactionsChanged", interactionsChangedHandler)
   })
 
   const cleanup = () => {
+    simulationPlayerViews[simulation.SimulationIndex]?.interactionEmitter.off("interactionsChanged", interactionsChangedHandler)
     window.removeEventListener('resize', resize)
     scene.clear()
     effectComposer.dispose()
-    simulationPlayerViews[simulation.SimulationIndex]!.interactionEmitter.off("interactionsChanged", interactionsChangedHandler)
     simulation.ViewSync.Cleanup(simulation)
     simulation.Stop()
     currentOutlinePass = null

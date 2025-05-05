@@ -81,6 +81,8 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
 export const init = async () => {
   enableLoading()
 
+  pizzaEaten = false
+
   const { scene, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
 
   await Promise.all([
