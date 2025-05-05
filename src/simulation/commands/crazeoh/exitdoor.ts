@@ -9,7 +9,6 @@ import { loadAudio } from "../../../graphics/loaders";
 import doorOpenOgg from '../../../assets/audio/sfx/door_open.ogg';
 
 const doorOpenAudio = loadAudio(doorOpenOgg, {
-  autoplay: false,
   volume: 0.7,
   loop: false,
   positional: false,

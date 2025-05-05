@@ -4,6 +4,8 @@ import draco3d from 'draco3dgltf';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 /**
  * Optimize a GLB file by re‑applying Draco compression and converting all textures to WebP,
@@ -101,22 +103,82 @@ async function optimizeGLB(inputPath, outputPath, quality = 75) {
   fs.writeFileSync(outputPath, Buffer.from(outputBuffer));
   console.log(`Optimized GLB saved to ${outputPath}`);
 }
+// Get directory of current module
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Usage: node optimize.js <input-file>
-const inputFile = process.argv[2];
-if (!inputFile) {
-  console.error('Usage: node optimize.js <input-file>');
+// Usage: node optimize.js <input-file> or node optimize.js *
+const inputArg = process.argv[2];
+if (!inputArg) {
+  console.error('Usage: node optimize.js <input-file> or node optimize.js *');
   process.exit(1);
 }
 
-const ext = path.extname(inputFile);
-const baseName = path.basename(inputFile, ext);
-const outputFile = path.join(path.dirname(inputFile), `${baseName}_OPTIMIZED.glb`);
+// Function to process a single file
+async function processFile(inputFile) {
+  const ext = path.extname(inputFile);
+  const baseName = path.basename(inputFile, ext);
+  const outputFile = path.join(path.dirname(inputFile), `${baseName}_OPTIMIZED.glb`);
+  
+  console.log(`Processing: ${inputFile}`);
+  await optimizeGLB(inputFile, outputFile, 50);
+  console.log(`Completed: ${outputFile}`);
+}
 
-optimizeGLB(inputFile, outputFile, 50)
-  .then(() => {
-    console.log('Optimization complete.');
-  })
-  .catch((error) => {
-    console.error('Error during optimization:', error);
-  });
+// Function to recursively find all GLB files
+function findGlbFiles(dir) {
+  let results = [];
+  const files = fs.readdirSync(dir);
+  
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    
+    if (stat.isDirectory()) {
+      results = results.concat(findGlbFiles(filePath));
+    } else if (path.extname(file).toLowerCase() === '.glb') {
+      results.push(filePath);
+    }
+  }
+  
+  return results;
+}
+
+// Main execution
+if (inputArg === '*') {
+  const assetsDir = path.join(__dirname, '..', 'src', 'assets', '3d');
+  console.log(`Searching for GLB files in: ${assetsDir}`);
+  
+  if (!fs.existsSync(assetsDir)) {
+    console.error(`Directory does not exist: ${assetsDir}`);
+    process.exit(1);
+  }
+  
+  const glbFiles = findGlbFiles(assetsDir);
+  console.log(`Found ${glbFiles.length} GLB files to process`);
+  
+  // Process files sequentially to avoid memory issues
+  (async () => {
+    for (const file of glbFiles) {
+      try {
+        if (file.includes('_OPTIMIZED')) {
+          console.log(`Skipping already optimized file: ${file}`);
+          continue;
+        }
+
+        await processFile(file);
+      } catch (error) {
+        console.error(`Error processing ${file}:`, error);
+      }
+    }
+    console.log('All optimizations complete.');
+  })();
+} else {
+  // Process a single file
+  processFile(inputArg)
+    .then(() => {
+      console.log('Optimization complete.');
+    })
+    .catch((error) => {
+      console.error('Error during optimization:', error);
+    });
+}

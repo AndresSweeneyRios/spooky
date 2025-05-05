@@ -47,4 +47,7 @@ directories.forEach(directory => {
   });
 });
 
-writeFileSync(join(__dirname, './_list.json'), JSON.stringify(hierarchy, null, 2));
+const path = join(__dirname, '../../src/assets/3d/animations/_list.json')
+
+console.log(`Writing hierarchy to ${path}`);
+writeFileSync(path, JSON.stringify(hierarchy, null, 2));

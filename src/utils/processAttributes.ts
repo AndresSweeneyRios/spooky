@@ -27,6 +27,7 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
       for (const command of child.children) {
         for (const commandName in commands) {
           if (command.name.replace(/[0-9]+$/g, '') === commandName) {
+            console.log("Command found:", commandName)
             const commandClass = commands[commandName as keyof typeof commands]
 
             const commandInstance = new commandClass()

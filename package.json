@@ -8,12 +8,15 @@
     "dev-loh": "cross-env ENV=development VITE_PROJECT=loh vite",
     "build-tripshred": "cross-env ENV=production VITE_PROJECT=tripshred vite build",
     "build-crazeoh": "cross-env ENV=production VITE_PROJECT=crazeoh vite build",
+    "watch-crazeoh": "cross-env ENV=development VITE_PROJECT=crazeoh vite build --watch",
     "build-loh": "cross-env ENV=production VITE_PROJECT=loh vite build",
     "preview": "cross-env ENV=development VITE_PROJECT=crazeoh vite preview",
     "test": "vitest",
     "engine": "npm run generate-animations && cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node ./engine/index.ts",
-    "generate-animations": "node ./public/3d/animations/_generate.js",
-    "generate-brotli": "node ./tools/generateBrotli.js"
+    "optimize-glb": "node ./tools/optimizeGLB.js *",
+    "generate-animations": "node ./tools/animation/_generate.js",
+    "generate-brotli": "node ./tools/generateBrotli.js",
+    "build": "npm run build-tripshred && npm run build-crazeoh && npm run build-loh"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
@@ -52,10 +55,10 @@
     "rollup-plugin-ignore": "^1.0.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "vite": "^5.0.12",
+    "vite": "^6.3.4",
     "vite-plugin-checker": "^0.6.4",
     "vite-plugin-ejs": "^1.7.0",
     "vite-plugin-wasm": "^3.3.0",
-    "vitest": "^1.6.0"
+    "vitest": "^3.1.2"
   }
 }

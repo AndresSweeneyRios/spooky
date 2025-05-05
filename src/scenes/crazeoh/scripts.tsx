@@ -1,15 +1,15 @@
 import React from "react"
 import { setDialogue, timedDialogue } from "../../components/DialogueBox"
 import * as state from "./state"
-import { JustPressedEvent, playerInput } from "../../input/player"
+import { waitForAction } from "../../input/player"
 import { Simulation } from "../../simulation"
 import { createCaseoh } from "../../entities/crazeoh/caseoh"
-import { carIdling, ceilingFanAudioPromise, currentCrtPass, currentPlayerView, disableLoading, enableLoading, garageScreamAudioPromise, ventAudioPromise, windAudioPromise } from "."
+import { carIdling, ceilingFanAudioPromise, disableLoading, enableLoading, garageScreamAudioPromise, ventAudioPromise, windAudioPromise } from "."
 import { loadAudio, loadTexture } from "../../graphics/loaders"
 import * as THREE from "three"
 import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
-import { clockAudioPromise, DEFAULT_ANOMALIES } from "./anomaly"
-import { loadScene, scenes, unloadScene } from ".."
+import { clockAudioPromise } from "./anomaly"
+import { unloadScene } from ".."
 import { renderer } from "../../components/Viewport"
 
 import voiceOgg from '../../assets/audio/sfx/voice.ogg';
@@ -20,6 +20,8 @@ import screamOgg from '../../assets/audio/sfx/scream.ogg';
 import outroOgg from '../../assets/audio/sfx/outro.ogg';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import caseohLiveWebp from '../../assets/screenshots/caseoh_live.webp';
+import { simulationPlayerViews } from "../../views/player"
+import { currentCrtPass } from "./initScene"
 
 const loaderPromise = import("../../graphics/loaders")
 
@@ -99,40 +101,11 @@ const playDialogueWithVoice = async (texts: React.ReactNode[]) => {
   }
 }
 
-const waitForAction = () => new Promise<void>(resolve => {
-  const handler = (payload: JustPressedEvent) => {
-    if (payload.action !== "mainAction1") {
-      return
-    }
-
-    playerInput.emitter.off("justpressed", handler)
-
-    resolve()
-  }
-
-  playerInput.emitter.on("justpressed", handler)
-})
-
 export const intro = async (simulation: Simulation) => {
-  if (!state.isTutorial) {
-    state.setInDialogue(false)
-
-    return
-  }
-
-  // id caseoh-explainer
   const explainer = document.getElementById("caseoh-explainer")!
   explainer.setAttribute("is-hidden", "false")
 
   const dialogueTexts = [
-    // <>You had a childhood friend nicknamed Craze, an <b>obese</b> kid who dreamed of becoming a famous streamer.</>,
-    // <>He finally made it big — millions of views, sponsors, fans spamming “W” in chat.</>,
-    // <>But then he changed.</>,
-    // <>He stopped replying to messages, his streams grew eerie, and he’d just stare at the screen. Viewers left; mods vanished.</>,
-    // <>One day, his stream cut off mid-broadcast, and he disappeared.</>,
-    // <>As his old friend, you go to check on him.</>,
-    // <>The front door is unlocked, and everything seems normal — <i>for now.</i></>,
-    // <i>[Be alert: <b>objects can change</b>. If you notice anything strange, <b>take a photo</b>. Look around thoroughly, then <b>return to your car</b> to proceed.]</i>,
     <i>[<b>Examine your surroundings</b>, they change each round.]</i>,
     <i>[Then, <b>take a photo</b> of the giant french fries. This is called an <b>anomaly</b>, you will find more later.]</i>,
     <i>[When you're done, <b>return to your car</b> to end the round.]</i>,
@@ -158,18 +131,12 @@ const outro = async (simulation: Simulation) => {
   enableLoading()
 
   state.setOutro(true)
-  state.setPicking(false)
-  state.setInDialogue(true)
-
-  setInterval(() => {
-    currentPlayerView!.disableControls()
-  }, 10)
 
   const view = await createCaseoh(simulation)
   const mesh = await view.meshPromise
   mesh.position.set(1.977, 0, -7.22);
   mesh.rotateY(THREE.MathUtils.degToRad(180))
-  const playerEntId = currentPlayerView!.EntId
+  const playerEntId = simulationPlayerViews[simulation.SimulationIndex]!.EntId
   simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [2, 0.2, -19.4886])
   simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(-180), 0, "YXZ"))
   
@@ -306,8 +273,9 @@ const outro = async (simulation: Simulation) => {
   loadAudio(outroOgg, {
     volume: 0.3,
     loop: false,
-    autoplay: true,
-  })
+  }).then(audio => {
+    audio.play();
+  });
 
   mesh.position.set(endX, -0.5, -5.7)
   mesh.rotation.y = THREE.MathUtils.degToRad(90)
@@ -329,7 +297,8 @@ const outro = async (simulation: Simulation) => {
     volume: 0.3,
     loop: false,
     positional: false,
-    autoplay: true,
+  }).then(audio => {
+    audio.play()
   })
 
   unloadScene()
@@ -341,18 +310,6 @@ const outro = async (simulation: Simulation) => {
   await new Promise(resolve => {})
 
   // location.assign("/spooky")
-}
-
-const basement = async (simulation: Simulation) => {
-  await loadScene(scenes.interloper)
-}
-
-const dropper = async (simulation: Simulation) => {
-  await loadScene(scenes.dropper)
-}
-
-const stomach = async (simulation: Simulation) => {
-  await loadScene(scenes.stomach)
 }
 
 const winScript: Record<number, typeof intro> = {

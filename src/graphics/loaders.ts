@@ -1,6 +1,5 @@
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from "three";
-import { renderer } from '../components/Viewport';
 import * as shaders from './shaders';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
@@ -68,11 +67,11 @@ export const loadGltf = async (path: string, mapBones = false) => {
   return gltf
 }
 
-const pmremGenerator = new THREE.PMREMGenerator(renderer);
-
 const hdriLoader = new RGBELoader();
 
-export const loadPMREM = async (path: string) => {
+export const loadPMREM = async (path: string, renderer: THREE.WebGLRenderer) => {
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+
   const hdr = await hdriLoader.loadAsync(path)
 
   const hdrCubeRenderTarget = pmremGenerator.fromEquirectangular(hdr);
@@ -110,7 +109,8 @@ export const loadVideoTexture = (path: string) => {
 export const loadEquirectangularAsEnvMap = async (
   path: string,
   minFilter: THREE.MinificationTextureFilter = THREE.NearestFilter,
-  magFilter: THREE.MagnificationTextureFilter = THREE.NearestFilter
+  magFilter: THREE.MagnificationTextureFilter = THREE.NearestFilter,
+  renderer: THREE.WebGLRenderer
 ) => {
   const env = await new Promise<THREE.CubeTexture>((resolve) => {
     textureLoader.load(path, (texture) => {
@@ -349,10 +349,17 @@ export const loadTiledJSON = async (path: string) => {
   };
 }
 
+function isElectron() {
+  return navigator.userAgent.toLowerCase().includes("electron") ||
+    navigator.userAgent.toLowerCase().includes("node.js") ||
+    navigator.userAgent.toLowerCase().includes("electron/");
+}
+
+
 let firstClickResolved = false;
 
 export const firstClick = new Promise<void>((resolve) => {
-  if (firstClickResolved) {
+  if (firstClickResolved || isElectron()) {
     resolve();
     return;
   }
@@ -385,7 +392,6 @@ export const loadAudio = async (path: string, {
   detune = 0,
   positional = false,
   pitchRange = 1500, // New parameter to control the range of the random pitch
-  autoplay = false,
   volume = 0.2,
 }) => {
   const audio = positional ? new THREE.PositionalAudio(listener) : new THREE.Audio(listener);
@@ -408,7 +414,7 @@ export const loadAudio = async (path: string, {
     audio.setVolume(volume);
   };
 
-  const play = async () => {
+  const play = async (fadeDuration = 0.02) => {
     // Wait for first click (needed for browser audio policies)
     await firstClick;
 
@@ -441,7 +447,7 @@ export const loadAudio = async (path: string, {
       audio.play();
 
       const fadeSteps = 5;
-      const fadeInterval = 0.02 / fadeSteps;
+      const fadeInterval = fadeDuration / fadeSteps;
 
       return await new Promise<void>(resolve => {
         let step = 0;
@@ -461,14 +467,16 @@ export const loadAudio = async (path: string, {
     }
   };
 
-  const stop = async () => {
+  const stop = async (fadeDuration = 0.02) => {
+    if (!audio.isPlaying) return;
+
     // If we already have an active fade timer, do nothing
     if (activeFadeTimer !== null) return;
 
     // Create a fade out effect over 0.05 seconds to eliminate clicking
     const originalVolume = audio.getVolume();
     const fadeSteps = 5;
-    const fadeInterval = 0.05 / fadeSteps;
+    const fadeInterval = fadeDuration / fadeSteps;
 
     return await new Promise<void>(resolve => {
       let step = 0;
@@ -494,10 +502,6 @@ export const loadAudio = async (path: string, {
 
     return audio as THREE.PositionalAudio;
   };
-
-  if (autoplay) {
-    play();
-  }
 
   return {
     setVolume,

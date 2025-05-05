@@ -23,6 +23,7 @@ import { CollidersDebugger } from "../views/collidersDebugger";
 import skyMirrorWebp from '../assets/3d/env/sky_mirror.webp';
 import stairsGlb from '../assets/3d/scenes/stairs/stairs.glb';
 import dmtPng from '../assets/3d/env/dmt.png';
+import { requestFullscreen } from "../utils/requestFullscreen";
 
 // import "../graphics/injections/cel"
 // import "../graphics/injections/outline"
@@ -87,7 +88,7 @@ export const init = async () => {
   resize()
 
   const [, sceneGltf] = await Promise.all([
-    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter, renderer).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
@@ -126,7 +127,7 @@ export const init = async () => {
     if (object.name === "Plane001" && object.parent!.name === "arc") {
       const plane = object as THREE.Mesh
 
-      loadEquirectangularAsEnvMap(dmtPng).then((envMap) => {
+      loadEquirectangularAsEnvMap(dmtPng, undefined, undefined, renderer).then((envMap) => {
         const parallax = createParallaxWindowMaterial(envMap, camera)
 
         plane.material = parallax.material
@@ -175,10 +176,6 @@ export const init = async () => {
 
       playerInput.update()
     }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
   })
 
   const refocusHandler = () => {
@@ -196,7 +193,7 @@ export const init = async () => {
     }
     try {
       if (document.fullscreenElement !== document.body) {
-        document.body.requestFullscreen();
+        requestFullscreen();
       }
     } catch { }
   }

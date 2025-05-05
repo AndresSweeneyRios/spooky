@@ -1,6 +1,8 @@
 // @ts-ignore
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 // Store the main window reference
 let mainWindow;
@@ -11,7 +13,9 @@ function createWindow() {
     width: 1200,
     height: 800,
     autoHideMenuBar: true, // Hide the menu bar
+    fullscreen: true, // Start in fullscreen mode immediately
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: true,
       enableRemoteModule: true,
@@ -21,10 +25,7 @@ function createWindow() {
   });
 
   // Load the main HTML file
-  // mainWindow.loadFile(path.join(__dirname, './dist/crazeoh/index.html'));
-
-  // load https://tripshred.com/crazeoh/#/crazeoh
-  mainWindow.loadURL('https://tripshred.com/crazeoh/#/crazeoh');
+  mainWindow.loadFile(path.join(__dirname, './dist/index.html'));
 
   // Open DevTools in development mode
   // mainWindow.webContents.openDevTools();
@@ -37,6 +38,10 @@ function createWindow() {
   // Handle window closing
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  ipcMain.on('enable-fullscreen', () => {
+    mainWindow.setFullScreen(true);
   });
 }
 

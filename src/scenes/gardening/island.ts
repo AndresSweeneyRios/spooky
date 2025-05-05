@@ -88,10 +88,6 @@ export const init = async () => {
       // renderer.render(scene, camera)
       effectComposer.render()
     }
-
-    public Cleanup(): void {
-      renderer.dispose()
-    }
   })
 
   const resize = () => {
@@ -106,7 +102,7 @@ export const init = async () => {
   window.addEventListener('resize', resize, false);
 
   const [, island] = await Promise.all([
-    loadEquirectangularAsEnvMap(fantasySkyWebp, THREE.LinearFilter, THREE.LinearFilter).then((texture) => {
+    loadEquirectangularAsEnvMap(fantasySkyWebp, THREE.LinearFilter, THREE.LinearFilter, renderer).then((texture) => {
       scene.background = texture
       scene.backgroundIntensity = 1.0
       scene.environment = texture
