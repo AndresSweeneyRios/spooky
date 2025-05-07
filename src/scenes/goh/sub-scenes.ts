@@ -85,8 +85,8 @@ export function initializeSubScene(loader: () => Awaitable<SubSceneModule>): Ini
       ready.promise.then(async () => {
         if (!scene) throw new Error("Scene failed to load!");
 
-        simulation.Stop();
         cleanup = await scene.show(context);
+        simulation.Stop();
       });
 
       promise.finally(() => {

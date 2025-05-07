@@ -30,10 +30,6 @@ const toggleBattleTrack = (bool: boolean) => {
   document.querySelector("#spooky #battle-track")?.setAttribute("is-hidden", bool ? "false" : "true")
 }
 
-export async function init() {
-  console.log("Initializing the battle scene!")
-}
-
 import * as midi from '../../audio/midi';
 import fastbeatWav from '../../assets/audio/music/fastbeat.wav';
 import fastbeatMidURL from '../../assets/audio/music/fastbeat.mid';
@@ -114,21 +110,20 @@ async function doBeatMap() {
   }
 }
 
-// This will cause lag in this scenario because we are loading a lot of things at once in show.
-// Also the attribute loader makes dynamic calls here. Ideally this needs to all be moved to the init function which is called
-// when initalizeScene is called. The main problem I had when doing that was certain things still didnt initialize since simulation
-// was not started yet. I've left it here for now as POC.
-export async function show(context: SubSceneContext) {
-  console.log("Showing battle scene!");
+let camera: THREE.PerspectiveCamera;
+let simulation: Simulation;
+let scene: THREE.Scene;
+let effectComposer: EffectComposer;
+let crtPass: ShaderPass;
+let sobelPass: ShaderPass;
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
-  const simulation = new Simulation(camera, scene);
+export async function init() {
+  console.log("Initializing the battle scene!")
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
+  simulation = new Simulation(camera, scene);
 
-  toggleStartKey(false)
-  toggleBattleTrack(true)
-
-  const effectComposer = new EffectComposer(renderer);
+  effectComposer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
   effectComposer.addPass(renderPass);
 
@@ -141,10 +136,10 @@ export async function show(context: SubSceneContext) {
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.5, 0.6)
   effectComposer.addPass(bloomPass)
 
-  const sobelPass = new ShaderPass(SobelOperatorShader);
+  sobelPass = new ShaderPass(SobelOperatorShader);
   effectComposer.addPass(sobelPass);
 
-  const crtPass = new ShaderPass(shaders.CRTShader);
+  crtPass = new ShaderPass(shaders.CRTShader);
   crtPass.uniforms.scanlineIntensity.value = 0.5
   effectComposer.addPass(crtPass);
   currentCrtPass = crtPass
@@ -157,24 +152,6 @@ export async function show(context: SubSceneContext) {
 
   const ambientLight = new THREE.AmbientLight(0xff44444, 0.6)
   scene.add(ambientLight)
-
-  const resize = () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
-    effectComposer.setSize(renderer.domElement.width, renderer.domElement.height)
-
-    sobelPass.uniforms.resolution.value.set(
-      window.innerWidth * window.devicePixelRatio,
-      window.innerHeight * window.devicePixelRatio
-    );
-
-    // fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
-  }
-
-  window.addEventListener('resize', resize, false);
-
-  resize()
 
   const [, sceneGltf] = await Promise.all([
     loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter, renderer).then((texture) => {
@@ -266,7 +243,33 @@ export async function show(context: SubSceneContext) {
       // }
     }
   })
+}
 
+// We don't want to load assets in the show function or if we do we want to load them non-blocking then inject them into the scene later
+// If we wait for asset initialization in here then there will be significant lag on scene switch. We want to load all assets in the above init function.
+export async function show(context: SubSceneContext) {
+  console.log("Showing battle scene!");
+
+  toggleStartKey(false)
+  toggleBattleTrack(true)
+
+  const resize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
+    effectComposer.setSize(renderer.domElement.width, renderer.domElement.height)
+
+    sobelPass.uniforms.resolution.value.set(
+      window.innerWidth * window.devicePixelRatio,
+      window.innerHeight * window.devicePixelRatio
+    );
+
+    // fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
+  }
+
+  window.addEventListener('resize', resize, false);
+
+  resize()
 
   simulation.Start();
   doBeatMap().then(() => {
