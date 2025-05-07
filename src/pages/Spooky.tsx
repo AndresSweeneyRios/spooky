@@ -24,6 +24,9 @@ export default function Spooky() {
           <p>Activate Mock Battle</p>
           <SVG src={InteractableIconSvg} />
         </div>
+        <div className="temp-loading" is-hidden="true">
+          <p>Loading...</p>
+        </div>
         <div id="battle-track" is-hidden="true">
           <div id="dpad-container">
             <SVG id="dpad" src={DpadSvg} />

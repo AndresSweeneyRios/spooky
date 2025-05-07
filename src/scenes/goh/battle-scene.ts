@@ -22,10 +22,6 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 export let currentCrtPass: ShaderPass | null = null
 
-const toggleStartKey = (bool: boolean) => {
-  document.querySelector("#spooky .temp-activate")?.setAttribute("is-hidden", bool ? "false" : "true")
-}
-
 const toggleBattleTrack = (bool: boolean) => {
   document.querySelector("#spooky #battle-track")?.setAttribute("is-hidden", bool ? "false" : "true")
 }
@@ -243,6 +239,11 @@ export async function init() {
       // }
     }
   })
+
+  return () => {
+    console.log("Cleaning up battle scene!")
+    simulation.ViewSync.Cleanup(simulation);
+  }
 }
 
 // We don't want to load assets in the show function or if we do we want to load them non-blocking then inject them into the scene later
@@ -250,7 +251,6 @@ export async function init() {
 export async function show(context: SubSceneContext) {
   console.log("Showing battle scene!");
 
-  toggleStartKey(false)
   toggleBattleTrack(true)
 
   const resize = () => {
@@ -280,8 +280,6 @@ export async function show(context: SubSceneContext) {
   return () => {
     window.removeEventListener('resize', resize, false);
     simulation.Stop();
-    simulation.ViewSync.Cleanup(simulation);
-    toggleStartKey(true);
     toggleBattleTrack(false);
   }
 }

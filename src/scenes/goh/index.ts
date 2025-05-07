@@ -10,9 +10,17 @@ import cityscapeWebp from '../../assets/3d/env/cityscape.webp';
 import starterSceneGlb from '../../assets/3d/scenes/startscene/starterscene.glb';
 import { playerInput } from "../../input/player";
 import { PlayerView } from "../../views/player";
-import { initializeSubScene, SubSceneContext } from "./sub-scenes";
+import { initializeSubScene, InitializeSubSceneResult, SubSceneContext } from "./sub-scenes";
 
 const battleScene = initializeSubScene(() => import('./battle-scene'))
+
+const toggleStartKey = (bool: boolean) => {
+  document.querySelector("#spooky .temp-activate")?.setAttribute("is-hidden", bool ? "false" : "true")
+}
+
+const toggleLoading = (bool: boolean) => {
+  document.querySelector("#spooky .temp-loading")?.setAttribute("is-hidden", bool ? "false" : "true")
+}
 
 export const init = async () => {
   const scene = new THREE.Scene()
@@ -140,16 +148,24 @@ export const init = async () => {
 
   simulation.Start()
 
-  // TODO: emitter events should be typed
-  // let active = false;
-
   let subscene: SubSceneContext | null = null
   playerInput.emitter.on("justpressed", async (event) => {
     if (event.action !== "interact") return;
     if (subscene) return;
+    toggleStartKey(false)
+    toggleLoading(true)
 
+    // Shows the scene.
     subscene = battleScene.Show(simulation);
+
+    // Once the scene is shown we can disable the loading state.
+    subscene.shown.then(() => {
+      toggleLoading(false)
+    })
+
+    // Once the scene has hit its cleanup stage we can re-enable the start key.
     subscene.then(() => {
+      toggleStartKey(true)
       subscene = null;
     });
   })
