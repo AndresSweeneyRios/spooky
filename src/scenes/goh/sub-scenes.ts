@@ -24,45 +24,39 @@ export interface InitializeSubSceneResult {
   Cleanup: () => void;
 }
 
+export const afterAwaitable = <T>(value: Awaitable<T>, callback: ((value: T) => void)) => {
+  if (value instanceof Promise) {
+    value.then(callback);
+  } else {
+    callback(value as T);
+  }
+}
+
 export function initializeSubScene(loader: () => Awaitable<SubSceneModule>): InitializeSubSceneResult {
   let loaded = false;
   let scene: SubSceneModule | undefined;
   let sceneCleanup: SubSceneCleanup;
 
-  let sceneReady = defer<void>();
-  sceneReady.promise.then(() => {
-    if (scene?.init) {
-      const result = scene.init();
-      if (result instanceof Promise) {
-        result.then((_cleanup) => {
-          sceneCleanup = _cleanup;
-          ready.resolve();
-        });
-      } else {
-        sceneCleanup = result as SubSceneCleanup;
-        ready.resolve();
-      }
-    } else {
-      ready.resolve();
-    }
-  });
-
+  // Once the scene is ready and init has been called we will set loaded to true.
   let ready = defer<void>()
   ready.promise.then(() => {
     loaded = true;
   });
 
-  // Load the scene module dynamically.
-  const result = loader();
-  if (result instanceof Promise) {
-    result.then((module) => {
-      scene = module;
-      sceneReady.resolve();
+  // Once the module is loaded we will call init if it exists.
+  let moduleLoaded = defer<void>();
+  moduleLoaded.promise.then(() => {
+    afterAwaitable(scene!.init?.(), (result) => {
+      sceneCleanup = result;
+      ready.resolve();
     });
-  } else {
-    scene = result as SubSceneModule;
-    sceneReady.resolve();
-  }
+  });
+
+  // Load the scene module dynamically.
+  afterAwaitable(loader(), (module) => {
+    scene = module;
+    moduleLoaded.resolve();
+  })
 
 
   return {
@@ -70,39 +64,33 @@ export function initializeSubScene(loader: () => Awaitable<SubSceneModule>): Ini
     ready: ready.promise,
     scene,
     Show(simulation: Simulation): SubSceneContext {
-      let resolve!: () => void;
+      const lifecycle = defer<void>();
+      const shown = defer<void>();
       let cleanup: SubSceneCleanup;
-      let shown = defer<void>();
 
-      const promise = new Promise<void>((_resolve) => {
-        resolve = _resolve;
-      });
-
-      const context = Object.assign(promise, {
+      // Create a context appending some helpful methods to the promise.
+      // lifecycle will resolve once the scene is done. Shown will resolve once the scene is shown.
+      const context = Object.assign(lifecycle.promise, {
         End() {
-          if (cleanup) {
-            const result = cleanup();
-            if (result instanceof Promise) {
-              result.then(() => resolve());
-            } else {
-              resolve();
-            }
-          } else {
-            resolve();
-          }
+          afterAwaitable(cleanup?.(), () => {
+            lifecycle.resolve();
+          });
         },
         shown: shown.promise,
       }) as SubSceneContext;
 
+      // Once our scene is ready we can call show.
       ready.promise.then(async () => {
-        if (!scene) throw new Error("Scene failed to load!");
-
-        cleanup = await scene.show(context);
+        // Show can return a lifecycle cleanup function.
+        cleanup = await scene!.show(context);
         shown.resolve();
+
+        // We want to pause the passed simulation so this scene can take over.
         simulation.Stop();
       });
 
-      promise.finally(() => {
+      // Once this scene ends we want to resume the original simulation.
+      lifecycle.promise.finally(() => {
         simulation.Start();
       });
 
