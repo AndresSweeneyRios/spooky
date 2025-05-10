@@ -8,7 +8,7 @@ import { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
 import { vec3 } from "gl-matrix";
 import { renderer } from "../components/Viewport";
-import { currentCrtPass } from "../scenes/gatesOfHeaven";
+import { currentCrtPass } from "../scenes/goh/battle-scene";
 import throneGlb from '../assets/3d/throne.glb';
 import acid1Webp from '../assets/3d/throne/ACID1.webp';
 import acid2Webp from '../assets/3d/throne/ACID2.webp';
@@ -210,8 +210,10 @@ export class ThroneView extends EntityView {
     this.scene = simulation.ThreeScene
     this.init(simulation, entId, startPosition).catch(console.error)
 
-    currentCrtPass!.uniforms.rgbOffset.value = new THREE.Vector2(0.000, 0.000)
-    currentCrtPass!.uniforms.noiseIntensity = { value: 0.6 }
+    if (currentCrtPass) {
+      currentCrtPass.uniforms.rgbOffset.value = new THREE.Vector2(0.000, 0.000)
+      currentCrtPass.uniforms.noiseIntensity = { value: 0.6 }
+    }
     // currentCrtPass!.uniforms.scanlineIntensity = { value: 0.8 }
     // currentCrtPass!.uniforms.curvature.value = 0.2
     // currentCrtPass!.uniforms.edgeScale.value = 0.9

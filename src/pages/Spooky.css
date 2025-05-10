@@ -87,3 +87,81 @@
   stroke: rgba(255, 255, 255, 0.1) !important;
   stroke-width: 2px !important;
 }
+
+*[is-hidden="true"] {
+  display: none !important;
+}
+
+#spooky .temp-activate {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+  transform: scale(1.0);
+  transform-origin: right center;
+  opacity: 1;
+}
+
+#spooky .temp-activate[is-hidden="true"] {
+  display: flex !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(1.15) !important;
+}
+
+@keyframes loading {
+  0% {
+    transform: scale(1.0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.0);
+    opacity: 1;
+  }
+}
+
+#spooky .temp-loading {
+  position: absolute;
+  top: 3.4em;
+  right: 3em;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  animation: loading 2s infinite;
+}
+
+#spooky .temp-loading p {
+  font-size: 1.75em;
+  color: #fff;
+}
+
+#spooky #battle-track {
+  transition: all 0.2s;
+  transform: scale(1.0);
+  opacity: 1;
+}
+
+#spooky #battle-track[is-hidden="true"] {
+  display: flex !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(1.15) !important;
+}
+
+#spooky .temp-activate p {
+  font-size: 1.75em;
+  color: #fff;
+}
+
+#spooky .temp-activate svg {
+  width: 7em
+}

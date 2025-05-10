@@ -80,7 +80,7 @@ if (import.meta.env.VITE_PROJECT === 'crazeoh') {
 }
 
 // @ts-ignore
-if (import.meta.env.VITE_PROJECT === 'spooky') {
+if (import.meta.env.VITE_PROJECT === 'loh') {
   const Spooky = lazy(() => import('./pages/Spooky'));
 
   routes.push({

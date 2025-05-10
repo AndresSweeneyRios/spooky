@@ -5,8 +5,14 @@ import { LogCommand } from "./Log";
 import { SimulationCommand } from "./_command";
 
 export class ThroneTestSequence extends SimulationCommand {
+  private throne: Promise<typeof import("../../views/throne")>;
+  public constructor() {
+    super();
+    this.throne = import("../../views/throne");
+  }
+
   public Execute(simulation: Simulation): void {
-    const entId = createThrone(simulation, this.Position!);
+    const entId = createThrone(this.throne, simulation, this.Position!);
 
     simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
       entId,

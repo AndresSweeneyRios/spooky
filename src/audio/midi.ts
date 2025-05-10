@@ -126,26 +126,27 @@ const loadAudio = async (url: string) => {
   const response = await fetch(url);
   const buffer = await response.arrayBuffer();
   return new Promise<AudioBufferSourceNode>((resolve) => {
-    window.addEventListener("click", () => {
-      const context = new AudioContext();
-      context.decodeAudioData(buffer, (audioBuffer) => {
-        const source = context.createBufferSource();
-        source.buffer = audioBuffer;
+    // This was causing SO MANY ISSUES BRUH
+    // window.addEventListener("click", () => {
+    const context = new AudioContext();
+    context.decodeAudioData(buffer, (audioBuffer) => {
+      const source = context.createBufferSource();
+      source.buffer = audioBuffer;
 
-        // Create a GainNode to control the volume
-        const gainNode = context.createGain();
+      // Create a GainNode to control the volume
+      const gainNode = context.createGain();
 
-        // Set the volume to 50% (0.5)
-        gainNode.gain.value = 0.05; // Change this value to adjust volume
+      // Set the volume to 50% (0.5)
+      gainNode.gain.value = 0.05; // Change this value to adjust volume
 
-        // Connect the source through the gain node to the destination.
-        source.connect(gainNode);
-        gainNode.connect(context.destination);
+      // Connect the source through the gain node to the destination.
+      source.connect(gainNode);
+      gainNode.connect(context.destination);
 
-        // Start playback.
-        resolve(source);
-      });
+      // Start playback.
+      resolve(source);
     });
+    // });
   });
 };
 
@@ -209,7 +210,7 @@ export async function* playNotesWithinInterval(
   notes.sort((a, b) => a.ms - b.ms);
 
   // Set the audio to loop infinitely.
-  source.loop = true;
+  // source.loop = true;
 
   // Compute the total duration (in ms) of the note sequence (for looping).
   // (Assumes that the last note's ms marks the end of the loop.)
@@ -331,10 +332,113 @@ export async function* playNotesWithinInterval(
     });
 
     if (notesToPlay.length > 0) {
-      yield notesToPlay;
+      yield notesToPlay
     }
 
     // Yield control to the event loop.
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 }
+
+// Same function as above just doesn't loop
+export async function* playNotesOnce(
+  audioUrl: string,
+  midiUrl: string,
+  x: number,
+  subdivisionsPerMeasure: number,
+  delayMs: number,
+  actionThresholdMs: number,
+  inputThresholdMs: number
+) {
+  const [source, notes] = await Promise.all([
+    loadAudio(audioUrl),
+    getNotes(midiUrl, subdivisionsPerMeasure),
+  ]);
+
+  notes.sort((a, b) => a.ms - b.ms);
+
+  const totalDuration = notes[notes.length - 1].ms;
+
+  let buttonQueue: ButtonType[] = refillButtonQueue();
+  function getNextButton(): ButtonType {
+    if (buttonQueue.length === 0) {
+      buttonQueue = refillButtonQueue();
+    }
+    return buttonQueue.shift()!;
+  }
+
+  function getActionsForButton(button: ButtonType): Input.Action | Input.Action[] {
+    switch (button) {
+      case ButtonType.Up: return Input.Action.Up;
+      case ButtonType.Left: return Input.Action.Left;
+      case ButtonType.Right: return Input.Action.Right;
+      case ButtonType.Down: return Input.Action.Down;
+      case ButtonType.Middle:
+        return [
+          Input.Action.MajorAttack,
+          Input.Action.MajorBreaker,
+          Input.Action.MinorAttack,
+          Input.Action.MinorBreaker,
+        ];
+      default: return Input.Action.Up;
+    }
+  }
+
+  const realStart = Date.now();
+  let audioStart = 0;
+
+  setTimeout(() => {
+    source.start();
+    audioStart = source.context.currentTime * 1000;
+  }, delayMs);
+
+  const noteButtonMap = new Map<symbol, ButtonType>();
+
+  const endTime = realStart + delayMs + totalDuration;
+
+  while (Date.now() < endTime) {
+    let currentDisplayMs: number;
+    if (audioStart === 0) {
+      currentDisplayMs = (Date.now() - realStart) - delayMs;
+    } else {
+      currentDisplayMs = (source.context.currentTime * 1000) - audioStart;
+    }
+
+    const effectiveWindowEnd = currentDisplayMs + x;
+
+    const windowNotes = notes.filter(note =>
+      note.ms > currentDisplayMs &&
+      note.ms - actionThresholdMs <= effectiveWindowEnd
+    );
+
+    const notesToPlay = windowNotes.map(note => {
+      const delta = note.ms - currentDisplayMs;
+      const percentage = (delta / x) * 100;
+
+      if (!noteButtonMap.has(note.note)) {
+        noteButtonMap.set(note.note, getNextButton());
+      }
+
+      const button = noteButtonMap.get(note.note)!;
+      const actions = getActionsForButton(button);
+
+      let hit = false;
+      if (delta >= -actionThresholdMs && delta <= actionThresholdMs) {
+        hit = Array.isArray(actions)
+          ? actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs))
+          : Input.WasRecentlyPressed(actions, inputThresholdMs);
+      } else if (delta < -actionThresholdMs) {
+        noteButtonMap.delete(note.note);
+      }
+
+      return { ...note, percentage, hit, button };
+    });
+
+    if (notesToPlay.length > 0) {
+      yield notesToPlay;
+    }
+
+    await new Promise(r => setTimeout(r, 0));
+  }
+}
+

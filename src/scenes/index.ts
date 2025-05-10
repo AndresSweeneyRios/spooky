@@ -1,7 +1,7 @@
 import { rapierFinishedLoading } from '../simulation/repository/PhysicsRepository'
 
 export const scenes = Object.freeze({
-  gatesOfHeaven: () => import('./gatesOfHeaven'),
+  gatesOfHeaven: () => import('./goh'),
   // island: () => import('./gardening/island'),
   city: () => import('./city'),
   // animationDebugger: () => import('./gardening/animationDebugger'),
