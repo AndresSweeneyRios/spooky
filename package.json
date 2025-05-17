@@ -13,7 +13,7 @@
     "preview": "cross-env ENV=development VITE_PROJECT=crazeoh vite preview",
     "test": "vitest",
     "engine": "npm run generate-animations && cross-env NODE_OPTIONS=\"--loader ts-node/esm\" ts-node ./engine/index.ts",
-    "optimize-glb": "node ./tools/optimizeGLB.js *",
+    "optimize-glb": "node ./tools/optimizeGLB.js",
     "generate-animations": "node ./tools/animation/_generate.js",
     "generate-brotli": "node ./tools/generateBrotli.js",
     "build": "npm run build-tripshred && npm run build-crazeoh && npm run build-loh"

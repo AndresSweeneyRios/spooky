@@ -26,7 +26,7 @@ interface NoteEvent {
 export const getNotes = async (
   url: string,
   subdivisionsPerMeasure: number = 1
-): Promise<Array<{ note: symbol; ms: number }>> => {
+): Promise<Array<{ note: symbol; ms: number; noteNumber: number }>> => {
   // 1. Fetch and parse the MIDI file.
   const response = await fetch(url);
   const buffer = await response.arrayBuffer();
@@ -37,7 +37,7 @@ export const getNotes = async (
   const ticksPerBeat = parsed.header.ticksPerBeat!;
 
   // 3. Determine BPM (use the first tempo event if available; default to 160 BPM).
-  let bpm = 160;
+  let bpm = 107;
   // Calculate milliseconds per tick:
   // One beat lasts 60000/BPM milliseconds; divide by ticksPerBeat.
   const msPerTick = 60000 / (bpm * ticksPerBeat);
@@ -116,7 +116,7 @@ export const getNotes = async (
     const ms = noteObj.ms * msPerTick;
     // Create a unique symbol with a description that includes the note number and its tick time.
     const uniqueNote = Symbol();
-    return { note: uniqueNote, ms };
+    return { note: uniqueNote, ms, noteNumber: noteObj.note };
   });
 
   return processedNotes;
@@ -137,7 +137,7 @@ const loadAudio = async (url: string) => {
       const gainNode = context.createGain();
 
       // Set the volume to 50% (0.5)
-      gainNode.gain.value = 0.05; // Change this value to adjust volume
+      gainNode.gain.value = 0.4; // Change this value to adjust volume
 
       // Connect the source through the gain node to the destination.
       source.connect(gainNode);
@@ -157,6 +157,38 @@ export enum ButtonType {
   Right = "right",
   Down = "down",
   Middle = "middle",
+}
+
+function getButtonTypeFromNoteNumber(noteNumber: number): ButtonType {
+  // Map MIDI note numbers to ButtonType values.
+  switch (noteNumber) {
+    case 72: return Object.values(ButtonType)[Math.floor(Math.random() * 4)]; // C4
+    case 73: return ButtonType.Middle;   // C#4
+    default: return ButtonType.Up;    // Default to Up for any other note number.
+  }
+}
+
+// Map specific MIDI note numbers to potential actions (breakers or attacks)
+function getActionsForNoteNumber(noteNumber: number): Input.Action | Input.Action[] | undefined {
+  // C4 (MIDI 60) -> directional inputs
+  if (noteNumber === 60) {
+    return [
+      Input.Action.Up,
+      Input.Action.Down,
+      Input.Action.Left,
+      Input.Action.Right
+    ];
+  }
+  // C#4 (MIDI 61) -> major/minor breaker and attack actions
+  if (noteNumber === 61) {
+    return [
+      Input.Action.MajorAttack,
+      Input.Action.MinorAttack,
+      Input.Action.MajorBreaker,
+      Input.Action.MinorBreaker
+    ];
+  }
+  return undefined;
 }
 
 // A simple Fisher–Yates shuffle.
@@ -184,6 +216,7 @@ function refillButtonQueue(): ButtonType[] {
 
 export interface Note {
   note: symbol; // unique symbol (set by getNotes)
+  noteNumber: number; // MIDI note number
   ms: number;   // noteOn time in milliseconds
   percentage: number; // percentage of the current interval
   hit: boolean;
@@ -215,15 +248,6 @@ export async function* playNotesWithinInterval(
   // Compute the total duration (in ms) of the note sequence (for looping).
   // (Assumes that the last note's ms marks the end of the loop.)
   const totalDuration = notes[notes.length - 1].ms;
-
-  // Setup a button queue (using 3 copies of each ButtonType, shuffled).
-  let buttonQueue: ButtonType[] = refillButtonQueue();
-  function getNextButton(): ButtonType {
-    if (buttonQueue.length === 0) {
-      buttonQueue = refillButtonQueue();
-    }
-    return buttonQueue.shift()!;
-  }
 
   // Map a ButtonType to an Action (or set of Actions).
   function getActionsForButton(button: ButtonType): Input.Action | Input.Action[] {
@@ -306,29 +330,25 @@ export async function* playNotesWithinInterval(
       // Determine if the note is within the input detection threshold:
       // i.e. its percentage is between -actionThreshold and actionThreshold.
       let hit = false;
-
+      // Determine actions based on MIDI note number mapping (C4 -> breakers, D4 -> attacks)
+      const mappedActions = getActionsForNoteNumber(note.noteNumber);
+      // Assign a ButtonType for UI fallback
       if (!noteButtonMap.has(note.note)) {
-        const button = getNextButton();
-        noteButtonMap.set(note.note, button);
+        noteButtonMap.set(note.note, getButtonTypeFromNoteNumber(note.noteNumber) as ButtonType);
       }
-
       const button = noteButtonMap.get(note.note)!;
+      // Choose actions: mappedActions if defined, otherwise based on button
+      const actions = mappedActions ?? getActionsForButton(button);
       if (deltaTime >= -actionThresholdMs && deltaTime <= actionThresholdMs) {
-        // Assign a ButtonType for this note.
-        const actions = getActionsForButton(button);
         if (Array.isArray(actions)) {
           hit = actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs));
         } else {
           hit = Input.WasRecentlyPressed(actions, inputThresholdMs);
         }
-        return { ...note, percentage, hit, button };
-      } else {
-        if (deltaTime < -actionThresholdMs) {
-          noteButtonMap.delete(note.note);
-        }
-
-        return { ...note, percentage, hit, button };
+      } else if (deltaTime < -actionThresholdMs) {
+        noteButtonMap.delete(note.note);
       }
+      return { ...note, percentage, hit, button };
     });
 
     if (notesToPlay.length > 0) {
@@ -358,14 +378,6 @@ export async function* playNotesOnce(
   notes.sort((a, b) => a.ms - b.ms);
 
   const totalDuration = notes[notes.length - 1].ms;
-
-  let buttonQueue: ButtonType[] = refillButtonQueue();
-  function getNextButton(): ButtonType {
-    if (buttonQueue.length === 0) {
-      buttonQueue = refillButtonQueue();
-    }
-    return buttonQueue.shift()!;
-  }
 
   function getActionsForButton(button: ButtonType): Input.Action | Input.Action[] {
     switch (button) {
@@ -414,23 +426,25 @@ export async function* playNotesOnce(
     const notesToPlay = windowNotes.map(note => {
       const delta = note.ms - currentDisplayMs;
       const percentage = (delta / x) * 100;
-
+      // Determine actions based on MIDI note number mapping (C4 -> breakers, D4 -> attacks)
+      const mappedActions = getActionsForNoteNumber(note.noteNumber);
+      // Assign a ButtonType for fallback UI interactions
       if (!noteButtonMap.has(note.note)) {
-        noteButtonMap.set(note.note, getNextButton());
+        noteButtonMap.set(note.note, getButtonTypeFromNoteNumber(note.noteNumber));
       }
-
       const button = noteButtonMap.get(note.note)!;
-      const actions = getActionsForButton(button);
-
+      // Use mapped actions if available, otherwise fall back to button mapping
+      const actions = mappedActions ?? getActionsForButton(button);
       let hit = false;
       if (delta >= -actionThresholdMs && delta <= actionThresholdMs) {
-        hit = Array.isArray(actions)
-          ? actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs))
-          : Input.WasRecentlyPressed(actions, inputThresholdMs);
+        if (Array.isArray(actions)) {
+          hit = actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs));
+        } else {
+          hit = Input.WasRecentlyPressed(actions, inputThresholdMs);
+        }
       } else if (delta < -actionThresholdMs) {
         noteButtonMap.delete(note.note);
       }
-
       return { ...note, percentage, hit, button };
     });
 

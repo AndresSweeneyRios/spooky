@@ -106,10 +106,11 @@ async function optimizeGLB(inputPath, outputPath, quality = 75) {
 // Get directory of current module
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Usage: node optimize.js <input-file> or node optimize.js *
+// Usage: node optimizeGlb.js <regex>
+// The script now accepts a regex pattern to match files under assets/3d
 const inputArg = process.argv[2];
 if (!inputArg) {
-  console.error('Usage: node optimize.js <input-file> or node optimize.js *');
+  console.error('Usage: node optimizeGlb.js <regex>');
   process.exit(1);
 }
 
@@ -120,7 +121,7 @@ async function processFile(inputFile) {
   const outputFile = path.join(path.dirname(inputFile), `${baseName}_OPTIMIZED.glb`);
   
   console.log(`Processing: ${inputFile}`);
-  await optimizeGLB(inputFile, outputFile, 50);
+  await optimizeGLB(inputFile, outputFile, 90);
   console.log(`Completed: ${outputFile}`);
 }
 
@@ -143,42 +144,37 @@ function findGlbFiles(dir) {
   return results;
 }
 
-// Main execution
-if (inputArg === '*') {
+// Main execution: recursive search under assets/3d, filter by provided regex
+;(async () => {
   const assetsDir = path.join(__dirname, '..', 'src', 'assets', '3d');
   console.log(`Searching for GLB files in: ${assetsDir}`);
-  
   if (!fs.existsSync(assetsDir)) {
     console.error(`Directory does not exist: ${assetsDir}`);
     process.exit(1);
   }
-  
-  const glbFiles = findGlbFiles(assetsDir);
-  console.log(`Found ${glbFiles.length} GLB files to process`);
-  
-  // Process files sequentially to avoid memory issues
-  (async () => {
-    for (const file of glbFiles) {
-      try {
-        if (file.includes('_OPTIMIZED')) {
-          console.log(`Skipping already optimized file: ${file}`);
-          continue;
-        }
 
-        await processFile(file);
-      } catch (error) {
-        console.error(`Error processing ${file}:`, error);
-      }
+  // Compile regex from argument
+  let fileRegex;
+  try {
+    fileRegex = new RegExp(inputArg);
+  } catch (err) {
+    console.error(`Invalid regex pattern: ${inputArg}`);
+    process.exit(1);
+  }
+
+  // Find all .glb files
+  const allGlbFiles = findGlbFiles(assetsDir);
+  // Filter by regex and skip already optimized
+  const glbFiles = allGlbFiles.filter(f => fileRegex.test(path.basename(f)) && !f.includes('_OPTIMIZED'));
+  console.log(`Found ${glbFiles.length} matching GLB files`);
+
+  for (const file of glbFiles) {
+    try {
+      console.log(`Processing: ${file}`);
+      await processFile(file);
+    } catch (error) {
+      console.error(`Error processing ${file}:`, error);
     }
-    console.log('All optimizations complete.');
-  })();
-} else {
-  // Process a single file
-  processFile(inputArg)
-    .then(() => {
-      console.log('Optimization complete.');
-    })
-    .catch((error) => {
-      console.error('Error during optimization:', error);
-    });
-}
+  }
+  console.log('All matching optimizations complete.');
+})();

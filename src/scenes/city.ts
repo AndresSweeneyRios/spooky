@@ -9,11 +9,41 @@ import { CollidersDebugger } from '../views/collidersDebugger';
 import { traverse } from '../utils/traverse';
 import cityscapeWebp from '../assets/3d/env/cityscape.webp';
 import starterSceneGlb from '../assets/3d/scenes/startscene/starterscene.glb';
+import { ToneMappingShader } from "../graphics/toneMappingShader";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { SobelOperatorShader } from "three/examples/jsm/shaders/SobelOperatorShader.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 export const init = async () => {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
   const simulation = new Simulation(camera, scene)
+
+  const effectComposer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  effectComposer.addPass(renderPass);
+
+  ToneMappingShader.uniforms.contrast = { value: 1.07 }
+  ToneMappingShader.uniforms.saturation = { value: 0.95 }
+  ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 }
+  const toneMappingPass = new ShaderPass(ToneMappingShader);
+  effectComposer.addPass(toneMappingPass);
+
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.5, 0.6)
+  effectComposer.addPass(bloomPass)
+
+  const sobelPass = new ShaderPass(SobelOperatorShader);
+  effectComposer.addPass(sobelPass);
+
+  const crtPass = new ShaderPass(shaders.CRTShader);
+  crtPass.uniforms.scanlineIntensity.value = 0.5
+  effectComposer.addPass(crtPass);
+
+  const outputPass = new OutputPass()
+  effectComposer.addPass(outputPass)
 
   const sceneEntId = simulation.EntityRegistry.Create()
   simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
@@ -47,7 +77,7 @@ export const init = async () => {
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
     public Draw(): void {
-      renderer.render(scene, camera)
+      effectComposer.render()
     }
   })
 
