@@ -64,7 +64,7 @@ export const initScene = async (map: Promise<THREE.Object3D>) => {
 
       crtPass.uniforms.time.value = (Date.now() / 1000) % 1.0
       crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
-      if (!state.gameStarted || state.inDialogue) camera.rotateY(-0.1 * simulation.ViewSync.DeltaTime)
+      if (!state.gameStarted || (state.inDialogue && !state.outro)) camera.rotateY(-0.1 * simulation.ViewSync.DeltaTime)
       effectComposer.render()
     }
   })
