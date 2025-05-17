@@ -437,6 +437,7 @@ export const init = async () => {
   playerInput.emitter.on("justpressed", justPressed)
 
   return () => {
+    disableAllAnomalies(simulation)
     enableLoading()
     cleanup()
     playerInput.emitter.off("justpressed", justPressed)
