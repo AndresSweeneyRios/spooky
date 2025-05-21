@@ -27,8 +27,8 @@ const toggleBattleTrack = (bool: boolean) => {
 }
 
 import * as midi from '../../audio/midi';
-import fastbeatWav from '../../assets/audio/music/fastbeat.wav';
-import fastbeatMidURL from '../../assets/audio/music/fastbeat.mid';
+import fastbeatWav from '../../assets/audio/music/dracbattle.wav';
+import fastbeatMidURL from '../../assets/audio/music/dracbattle.mid';
 import { SubSceneContext } from "./sub-scenes";
 
 async function doBeatMap() {
@@ -42,7 +42,7 @@ async function doBeatMap() {
 
   // Ideally in the future this should be in the in the simulation loop or pausable.
   // Also this should probably be inspected. The hitboxes feel super off.
-  for await (const notes of midi.playNotesOnce(fastbeatWav, fastbeatMidURL, 4000, 2, 2000, 300, 200)) {
+  for await (const notes of midi.playNotesOnce(fastbeatWav, fastbeatMidURL, 2000, 999, 2000, 300, 200)) {
     for (const note of notes) {
       noteMap.set(note.note, note);
 
