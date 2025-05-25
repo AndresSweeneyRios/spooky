@@ -19,7 +19,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { SobelOperatorShader } from "../../graphics/sobelOberatorShader";
 
-const battleScene = initializeSubScene(() => import('./battle-scene'))
+const battleScene = initializeSubScene(() => import('../lordOfHosts/dracBattle'));
 
 const SHADOW_BIAS = -0.0009
 
