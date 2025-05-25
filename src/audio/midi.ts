@@ -368,7 +368,8 @@ export async function* playNotesOnce(
   subdivisionsPerMeasure: number,
   delayMs: number,
   actionThresholdMs: number,
-  inputThresholdMs: number
+  inputThresholdMs: number,
+  onNoteTime?: (note: Note) => void
 ) {
   const [source, notes] = await Promise.all([
     loadAudio(audioUrl),
@@ -403,6 +404,28 @@ export async function* playNotesOnce(
     source.start();
     audioStart = source.context.currentTime * 1000;
   }, delayMs);
+
+  // If a callback is provided, schedule it to run exactly at each note's ms
+  if (typeof onNoteTime === 'function') {
+    // Schedule all note callbacks in advance
+    for (const note of notes) {
+      const msUntilNote = delayMs + note.ms - (Date.now() - realStart);
+      if (msUntilNote >= 0) {
+        setTimeout(() => {
+          // Assign a button for the note (same logic as below)
+          let button: ButtonType;
+          if (!noteButtonMap.has(note.note)) {
+            button = getButtonTypeFromNoteNumber(note.noteNumber);
+            noteButtonMap.set(note.note, button);
+          } else {
+            button = noteButtonMap.get(note.note)!;
+          }
+          const noteObj = { ...note, percentage: 0, hit: false, button };
+          onNoteTime(noteObj);
+        }, msUntilNote);
+      }
+    }
+  }
 
   const noteButtonMap = new Map<symbol, ButtonType>();
 
@@ -445,7 +468,8 @@ export async function* playNotesOnce(
       } else if (delta < -actionThresholdMs) {
         noteButtonMap.delete(note.note);
       }
-      return { ...note, percentage, hit, button };
+      const noteObj = { ...note, percentage, hit, button };
+      return noteObj;
     });
 
     if (notesToPlay.length > 0) {

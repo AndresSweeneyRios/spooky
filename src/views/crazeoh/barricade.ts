@@ -11,9 +11,6 @@ import * as shaders from "../../graphics/shaders";
 import barricadeGlb from '../../assets/3d/scenes/island/barricade_OPTIMIZED.glb';
 import noiseOgg from '../../assets/audio/sfx/noise.ogg';
 
-const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
-const IDLE_TIMESCALE = 1
-
 const noiseAudio = loadAudio(noiseOgg, {
   volume: 1.6,
   loop: true,
@@ -41,8 +38,8 @@ export class BarricadeView extends View {
     this.barricade.traverse((child) => {
       if (child instanceof THREE.SkinnedMesh) {
         child.frustumCulled = false;
-        const clip = getAnimation(IDLE_ANIMATION)
-        playAnimation(child, clip, IDLE_TIMESCALE)
+        // const clip = getAnimation(IDLE_ANIMATION)
+        // playAnimation(child, clip, IDLE_TIMESCALE)
         this.skinnedMeshes.push(child);
       }
     })

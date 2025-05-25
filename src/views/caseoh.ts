@@ -17,9 +17,7 @@ const gltfPromise = loadGltf(caseohGlb, true)
 
 const ROTATION_SPEED = 3; // Adjust this value to control speed
 
-const IDLE_ANIMATION: AnimationKey = 'humanoid/Idle (4).glb - mixamo.com'
-const WALK_ANIMATION: AnimationKey = 'humanoid/Walking.glb - mixamo.com'
-const RUN_ANIMATION: AnimationKey = 'humanoid/Slow Run.glb - mixamo.com'
+const IDLE_ANIMATION: AnimationKey = 'humanoid/Drunk Idle Variation.glb - mixamo.com'
 const IDLE_TIMESCALE = 1
 const WALK_TIMESCALE = 1.7
 const RUN_TIMESCALE = 1.3

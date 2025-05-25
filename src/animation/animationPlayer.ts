@@ -6,14 +6,14 @@ const activeAction = new Map<string, THREE.AnimationAction>()
 
 const CROSSFADE_DURATION = 0.15
 
-export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.AnimationClip, timeScale = 1) => {
+export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.AnimationClip, timeScale = 1, crossfadeDuration = CROSSFADE_DURATION) => {
   try {
     if (!mixerMap.has(model.uuid)) {
       mixerMap.set(model.uuid, new THREE.AnimationMixer(model))
     }
-  
+
     const mixer = mixerMap.get(model.uuid)!
-  
+
     const action = mixer.clipAction(clip)
     action.timeScale = timeScale
 
@@ -23,10 +23,10 @@ export const playAnimation = async (model: THREE.SkinnedMesh, clip: THREE.Animat
 
     if (activeAction.has(model.uuid)) {
       const previousAction = activeAction.get(model.uuid)!
-      previousAction.crossFadeTo(action, CROSSFADE_DURATION, false)
+      previousAction.crossFadeTo(action, crossfadeDuration, false)
       mixer.update(0)
     }
-  
+
     activeAction.set(model.uuid, action)
   } catch (error) {
     console.error(error)
@@ -41,7 +41,7 @@ const loop = (time: DOMHighResTimeStamp) => {
 
   deltaTime = (time - previousTime) / 1000
 
-  if(deltaTime > MAX_ALLOWED_PAUSE) {
+  if (deltaTime > MAX_ALLOWED_PAUSE) {
     deltaTime = 0
     previousTime = time
   }
@@ -53,7 +53,7 @@ const loop = (time: DOMHighResTimeStamp) => {
   } catch (error) {
     console.error(error)
   }
-  
+
   previousTime = time
 };
 
