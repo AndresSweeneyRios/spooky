@@ -9,7 +9,7 @@ import { processAttributes } from "../../utils/processAttributes";
 import { animationsPromise, getAnimation, playAnimation } from "../../animation";
 import { AnimationKey } from "../../assets/3d/animations";
 import { EntityView } from "../../simulation/EntityView";
-import dracGlb from '../../assets/3d/entities/drac.glb';
+import dracGlb from '../../assets/3d/entities/drac_OPTIMIZED.glb';
 
 const gltfPromise = loadGltf(dracGlb, true)
 
@@ -39,18 +39,37 @@ const DEFAULT_ANIMATIONS = Object.freeze([
   "humanoid/Walk Backward.glb - mixamo.com"
 ] as AnimationKey[])
 
-
 export class DracView extends EntityView {
   public mesh: THREE.Object3D | null = null;
   rootBone: THREE.Bone | null = null;
   armature: THREE.Object3D | null = null;
-  meshOffset: vec3 = vec3.fromValues(0, -0.25, 0);
+  meshOffset: vec3 = vec3.fromValues(0, 0, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
   public meshPromise = this.init().catch(console.error) as Promise<THREE.Object3D>;
 
   private animationQueue: AnimationKey[] = [];
   private lastAnimation: AnimationKey | null = null;
+
+  // For rotation shuffling
+  private static readonly ROTATION_DIRECTIONS = [0, Math.PI / 2, -Math.PI / 2];
+  private rotationQueue: number[] = [];
+  private lastRotation: number | null = null;
+
+  private shuffleRotations(): number[] {
+    // Fisher-Yates shuffle
+    const array = [...DracView.ROTATION_DIRECTIONS];
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    // If lastRotation is set and would repeat at boundary, swap first
+    if (this.lastRotation !== null && array[0] === this.lastRotation && array.length > 1) {
+      const swapIdx = 1 + Math.floor(Math.random() * (array.length - 1));
+      [array[0], array[swapIdx]] = [array[swapIdx], array[0]];
+    }
+    return array;
+  }
 
   private shuffleAnimations(): AnimationKey[] {
     // Fisher-Yates shuffle
@@ -74,8 +93,6 @@ export class DracView extends EntityView {
     const gltf = await gltfPromise;
 
     this.mesh = SkeletonUtils.clone(gltf.scene);
-
-    this.mesh.scale.set(1.5, 1.5, 1.5)
 
     const bones: THREE.Bone[] = [];
 
@@ -105,7 +122,20 @@ export class DracView extends EntityView {
 
     // Fill the animation queue initially
     this.animationQueue = this.shuffleAnimations();
-    this.StrikePose();
+    // Fill the rotation queue initially
+    this.rotationQueue = this.shuffleRotations();
+
+    // Set initial animation to T-Pose
+    const tPoseKey: AnimationKey = "humanoid/T-Pose.glb - mixamo.com";
+    const tPoseClip = getAnimation(tPoseKey);
+    if (tPoseClip) {
+      for (const skinnedMesh of this.skinnedMeshes) {
+        playAnimation(skinnedMesh, tPoseClip, 1.0, 0);
+      }
+      this.lastAnimation = tPoseKey;
+    } else {
+      console.warn("T-Pose animation not found");
+    }
 
     return this.mesh;
   }
@@ -115,12 +145,15 @@ export class DracView extends EntityView {
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
-    // Levitating bob and slow rotation
+    // Levitating bob and slow rotation, with meshOffset
     if (this.mesh) {
       // Bob up and down on a sine wave
       const t = performance.now() / 1000;
-      const bobHeight = 0.25 * Math.sin(t * 1.2); // amplitude and speed
-      this.mesh.position.y = bobHeight;
+      const bobHeight = 0.1 * Math.sin(t * 1.2); // amplitude and speed
+      // Apply meshOffset to all axes
+      this.mesh.position.x = this.meshOffset[0];
+      this.mesh.position.y = this.meshOffset[1] + bobHeight;
+      this.mesh.position.z = this.meshOffset[2];
     }
   }
 
@@ -145,5 +178,6 @@ export class DracView extends EntityView {
     } else {
       console.warn(`Animation ${animationName} not found`);
     }
+    // (Rotation code removed)
   }
 }

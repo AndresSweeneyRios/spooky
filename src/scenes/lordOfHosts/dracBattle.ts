@@ -12,10 +12,9 @@ import { SobelOperatorShader } from "../../graphics/sobelOberatorShader";
 import skyMirrorWebp from '../../assets/3d/env/sky_mirror.webp';
 import stairsGlb from '../../assets/3d/scenes/stairs/stairs.glb';
 import dmtPng from '../../assets/3d/env/dmt.png';
-import wornShutterPng from '../../assets/3d/textures/worn_shutter_diff_1k.png';
-import wiringsPng from '../../assets/3d/textures/wirings.png';
-import squogPng from '../../assets/3d/textures/squog.png';
-import trashJpg from '../../assets/3d/textures/ultra-realistic-textures-trash-set-pbr-3d-model-max-obj-fbx-blend-tbscene-2617076592.jpg';
+import acid1Webp from '../../assets/3d/throne/ACID1.webp';
+import acid2Webp from '../../assets/3d/throne/ACID2.webp';
+import acid3Webp from '../../assets/3d/throne/ACID3.webp';
 import { getRGBBits } from "../../graphics/quantize";
 import { createParallaxWindowMaterial } from "../../graphics/parallaxWindow";
 import { NoiseMaterial } from '../../graphics/noise';
@@ -118,6 +117,7 @@ let effectComposer: EffectComposer;
 let crtPass: ShaderPass;
 let sobelPass: ShaderPass;
 
+export let triplanarMaterial: THREE.ShaderMaterial;
 let drac: Awaited<ReturnType<typeof createDrac>> | null = null;
 
 export async function init() {
@@ -127,32 +127,34 @@ export async function init() {
   simulation = new Simulation(camera, scene);
 
   // --- Triplanar Sphere Setup ---
+
   const textureLoader = new THREE.TextureLoader();
-  const [texGrunge, texBio, texPsy, texTrash] = await Promise.all([
-    textureLoader.loadAsync(wornShutterPng),
-    textureLoader.loadAsync(wiringsPng),
-    textureLoader.loadAsync(squogPng),
-    textureLoader.loadAsync(trashJpg)
+
+  // Load throne acid textures (prefer webp)
+  const [
+    texAcid1,
+    texAcid2,
+    texAcid3
+  ] = await Promise.all([
+    textureLoader.loadAsync(acid1Webp),
+    textureLoader.loadAsync(acid2Webp),
+    textureLoader.loadAsync(acid3Webp)
   ]);
 
-  texGrunge.wrapS = texGrunge.wrapT = THREE.RepeatWrapping;
-  texBio.wrapS = texBio.wrapT = THREE.RepeatWrapping;
-  texPsy.wrapS = texPsy.wrapT = THREE.RepeatWrapping;
-  texTrash.wrapS = texTrash.wrapT = THREE.RepeatWrapping;
-  texGrunge.repeat.set(6, 6);
-  texBio.repeat.set(6, 6);
-  texPsy.repeat.set(6, 6);
-  texTrash.repeat.set(6, 6);
+  for (const tex of [texAcid1, texAcid2, texAcid3]) {
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(6, 6);
+  }
 
-  const triplanarMaterial = new THREE.ShaderMaterial({
+  triplanarMaterial = new THREE.ShaderMaterial({
     uniforms: {
-      tGrunge: { value: texGrunge },
-      tBio: { value: texBio },
-      tPsy: { value: texPsy },
-      tTrash: { value: texTrash },
+      tAcid1: { value: texAcid1 },
+      tAcid2: { value: texAcid2 },
+      tAcid3: { value: texAcid3 },
       scale: { value: 1.5 },
       time: { value: 0 },
-      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      poseHue: { value: 0.0 }
     },
     vertexShader: /*glsl*/`
       varying vec3 vPosition;
@@ -164,16 +166,17 @@ export async function init() {
     fragmentShader: /*glsl*/`
       uniform float scale;
       uniform float time;
+      uniform float poseHue;
       uniform vec2 resolution;
+      uniform sampler2D tAcid1;
+      uniform sampler2D tAcid2;
+      uniform sampler2D tAcid3;
       varying vec3 vPosition;
 
-      // Hash and noise helpers
+      // Simple 2D value noise
       float hash(vec2 p) {
-        p = fract(p * vec2(123.34, 456.21));
-        p += dot(p, p + 45.32);
-        return fract(sin(p.x * 41.23 + p.y * 17.17) * 43758.5453);
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
       }
-
       float noise(vec2 p) {
         vec2 i = floor(p);
         vec2 f = fract(p);
@@ -182,14 +185,13 @@ export async function init() {
         float c = hash(i + vec2(0.0, 1.0));
         float d = hash(i + vec2(1.0, 1.0));
         vec2 u = f * f * (3.0 - 2.0 * f);
-        return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
       }
-
-      // Fractal Brownian Motion for clouds
+      // Fewer octaves for performance
       float fbm(vec2 p) {
         float v = 0.0;
         float a = 0.5;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 3; i++) {
           v += a * noise(p);
           p *= 2.0;
           a *= 0.5;
@@ -198,46 +200,66 @@ export async function init() {
       }
 
       void main() {
-        // Use screen space for stars
-        vec2 screenUv = gl_FragCoord.xy / resolution.xy - time * 0.3;
+        vec2 screenUv = gl_FragCoord.xy / resolution.xy;
         float aspect = resolution.x / resolution.y;
         float t = time * 0.12;
 
-        // --- Nebula/gas clouds with parallax (multiple layers) ---
-        // Layer 1: closest, strong parallax
-        vec2 uv1 = (gl_FragCoord.xy / resolution * 10.0) + vPosition.xy * 0.12 + time * 0.1;
-        uv1.y /= aspect;
-        float cloud1 = fbm(uv1 * 2.5 + t * 0.7);
+        // --- Simplified and optimized cloud/gas and blending ---
+        // Standard UVs, no poseSeed
+        vec2 uv = (gl_FragCoord.xy / resolution * 6.0) + vPosition.xy * 0.08 + time * 0.08;
+        uv.y /= aspect;
+        float cloud = fbm(uv * 2.0 + t * 0.5);
 
-        // Layer 2: mid, moderate parallax
-        vec2 uv2 = (gl_FragCoord.xy / resolution * 7.0) + vPosition.xy * 0.06 - time * 0.05;
-        uv2.y /= aspect;
-        float cloud2 = fbm(uv2 * 4.0 - t * 0.4 + 10.0);
+        // Use a single set of UVs for all textures, with slight offsets
+        vec2 acid1Uv = uv * 0.32 + time * 0.03;
+        vec2 acid2Uv = uv * 0.73 - time * 0.02 + 0.1;
+        vec2 acid3Uv = uv * 0.24 + time * 0.01 - 0.2;
 
-        // Layer 3: far, subtle parallax
-        vec2 uv3 = (gl_FragCoord.xy / resolution * 4.0) + vPosition.xy * 0.02 - time * 0.02;
-        uv3.y /= aspect;
-        float cloud3 = fbm(uv3 * 1.2 + t * 0.2 - 20.0);
+        vec3 acid1Col = texture2D(tAcid1, acid1Uv).rgb;
+        vec3 acid2Col = texture2D(tAcid2, acid2Uv).rgb;
+        vec3 acid3Col = texture2D(tAcid3, acid3Uv).rgb;
 
-        float nebula = pow(cloud1, 1.7) * 0.7 + pow(cloud2, 2.2) * 0.5 + pow(cloud3, 1.1) * 0.6;
-        nebula = clamp(nebula, 0.0, 1.0);
+        // Blend textures simply
+        vec3 texBlend = acid1Col * (cloud * 0.7) + acid2Col * (cloud * 0.5) + acid3Col * (cloud * 0.4);
+        texBlend /= (cloud * 0.7 + cloud * 0.5 + cloud * 0.4 + 0.0001);
 
-        // Colorful nebula palette
-        vec3 col1 = vec3(0.7, 0.2, 0.5) * 0.8; // purple
-        vec3 col2 = vec3(0.1, 0.4, 0.7) * 0.1; // blue
-        vec3 col3 = vec3(0.9, 0.5, 0.3) * 0.8; // pink
-        vec3 col4 = vec3(0.8, 0.2, 0.6) * 0.3; // pale yellow
-        vec3 nebulaColor = mix(col1, col2, cloud1);
-        nebulaColor = mix(nebulaColor, col3, cloud2 * 0.7);
-        nebulaColor = mix(nebulaColor, col4, cloud3 * 0.5);
-        nebulaColor *= 0.7 + 0.5 * nebula;
+        // --- Rotate hue in HSV, do not colorize ---
+        // Convert texBlend to HSV
+        float cmax = max(texBlend.r, max(texBlend.g, texBlend.b));
+        float cmin = min(texBlend.r, min(texBlend.g, texBlend.b));
+        float delta = cmax - cmin;
+        float h = 0.0;
+        if (delta > 0.00001) {
+          if (cmax == texBlend.r) {
+            h = mod((texBlend.g - texBlend.b) / delta, 6.0);
+          } else if (cmax == texBlend.g) {
+            h = ((texBlend.b - texBlend.r) / delta) + 2.0;
+          } else {
+            h = ((texBlend.r - texBlend.g) / delta) + 4.0;
+          }
+          h /= 6.0;
+          if (h < 0.0) h += 1.0;
+        }
+        float s = (cmax <= 0.0) ? 0.0 : (delta / cmax);
+        float v = cmax;
+        // Rotate hue, add poseHue for drastic change
+        h = mod(h + time * 0.03 + poseHue, 1.0);
+        // Convert back to RGB
+        float c = v * s;
+        float x = c * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
+        float m = v - c;
+        vec3 rgb;
+        if (0.0 <= h && h < 1.0/6.0)      rgb = vec3(c, x, 0.0);
+        else if (1.0/6.0 <= h && h < 2.0/6.0) rgb = vec3(x, c, 0.0);
+        else if (2.0/6.0 <= h && h < 3.0/6.0) rgb = vec3(0.0, c, x);
+        else if (3.0/6.0 <= h && h < 4.0/6.0) rgb = vec3(0.0, x, c);
+        else if (4.0/6.0 <= h && h < 5.0/6.0) rgb = vec3(x, 0.0, c);
+        else                                rgb = vec3(c, 0.0, x);
+        rgb += m;
 
-        // --- Compose background ---
-        vec3 bg = nebulaColor;
-
-        // Gamma correction
-        bg = pow(clamp(bg, 0.0, 1.0), vec3(2.2));
-        gl_FragColor = vec4(bg, 1.0);
+        // Gamma correction only
+        rgb = pow(clamp(rgb, 0.0, 1.0), vec3(2.2));
+        gl_FragColor = vec4(rgb, 1.0);
       }
     `,
     side: THREE.DoubleSide,
@@ -300,8 +322,9 @@ export async function init() {
   drac = _drac;
 
   drac.meshPromise.then((mesh) => {
-    mesh.position.set(0, 0, -4);
-    mesh.rotation.set(Math.PI / -2, 0, 0)
+    mesh.rotation.set(Math.PI / -2 + 0.5, 0, 0.5)
+    drac!.meshOffset[2] = -2;
+    drac!.meshOffset[1] = 0.3;
   })
 
   simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
@@ -348,8 +371,20 @@ export async function show(context: SubSceneContext) {
   resize()
 
   simulation.Start();
+
+  // Local poseHue for shader, self-contained
+  let poseHue = 0.0;
+  if (triplanarMaterial && triplanarMaterial.uniforms.poseHue) {
+    triplanarMaterial.uniforms.poseHue.value = poseHue;
+  }
+
   doBeatMap(() => {
     drac?.StrikePose();
+    // Drastically change the shader hue on StrikePose
+    poseHue = Math.random();
+    if (triplanarMaterial && triplanarMaterial.uniforms.poseHue) {
+      triplanarMaterial.uniforms.poseHue.value = poseHue;
+    }
   }).then(() => {
     console.log("Beatmap done!")
     context.End();
