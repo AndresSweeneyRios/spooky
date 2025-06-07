@@ -6,12 +6,16 @@ import * as THREE from "three";
 import * as shaders from "../../graphics/shaders";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { processAttributes } from "../../utils/processAttributes";
-import { animationsPromise, getAnimation, playAnimation } from "../../animation";
+import {
+  animationsPromise,
+  getAnimation,
+  playAnimation,
+} from "../../animation";
 import { AnimationKey } from "../../assets/3d/animations";
 import { EntityView } from "../../simulation/EntityView";
-import dracGlb from '../../assets/3d/entities/drac_OPTIMIZED.glb';
+import dracGlb from "../../assets/3d/entities/drac_OPTIMIZED.glb";
 
-const gltfPromise = loadGltf(dracGlb, true)
+const gltfPromise = loadGltf(dracGlb, true);
 
 const DEFAULT_ANIMATIONS = Object.freeze([
   "humanoid/Breakdance 1990.glb - mixamo.com",
@@ -36,8 +40,8 @@ const DEFAULT_ANIMATIONS = Object.freeze([
   "humanoid/Standing Idle Looking Ver. 2.glb - mixamo.com",
   "humanoid/T-Pose.glb - mixamo.com",
   "humanoid/Tut Hip Hop Dance.glb - mixamo.com",
-  "humanoid/Walk Backward.glb - mixamo.com"
-] as AnimationKey[])
+  "humanoid/Walk Backward.glb - mixamo.com",
+] as AnimationKey[]);
 
 export class DracView extends EntityView {
   public mesh: THREE.Object3D | null = null;
@@ -46,7 +50,9 @@ export class DracView extends EntityView {
   meshOffset: vec3 = vec3.fromValues(0, 0, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
-  public meshPromise = this.init().catch(console.error) as Promise<THREE.Object3D>;
+  public meshPromise = this.init().catch(
+    console.error
+  ) as Promise<THREE.Object3D>;
 
   private animationQueue: AnimationKey[] = [];
   private lastAnimation: AnimationKey | null = null;
@@ -64,7 +70,11 @@ export class DracView extends EntityView {
       [array[i], array[j]] = [array[j], array[i]];
     }
     // If lastRotation is set and would repeat at boundary, swap first
-    if (this.lastRotation !== null && array[0] === this.lastRotation && array.length > 1) {
+    if (
+      this.lastRotation !== null &&
+      array[0] === this.lastRotation &&
+      array.length > 1
+    ) {
       const swapIdx = 1 + Math.floor(Math.random() * (array.length - 1));
       [array[0], array[swapIdx]] = [array[swapIdx], array[0]];
     }
@@ -79,7 +89,11 @@ export class DracView extends EntityView {
       [array[i], array[j]] = [array[j], array[i]];
     }
     // If lastAnimation is set and would repeat at boundary, swap first
-    if (this.lastAnimation && array[0] === this.lastAnimation && array.length > 1) {
+    if (
+      this.lastAnimation &&
+      array[0] === this.lastAnimation &&
+      array.length > 1
+    ) {
       // Swap with a random other element (not 0)
       const swapIdx = 1 + Math.floor(Math.random() * (array.length - 1));
       [array[0], array[swapIdx]] = [array[swapIdx], array[0]];
@@ -88,7 +102,7 @@ export class DracView extends EntityView {
   }
 
   async init() {
-    await animationsPromise
+    await animationsPromise;
 
     const gltf = await gltfPromise;
 
@@ -111,14 +125,13 @@ export class DracView extends EntityView {
         child.frustumCulled = false;
         this.skinnedMeshes.push(child);
       }
-    })
+    });
 
     processAttributes(this.mesh, this.simulation, this.entId, false);
 
     shaders.applyInjectedMaterials(this.mesh);
 
     this.simulation.ThreeScene.add(this.mesh);
-
 
     // Fill the animation queue initially
     this.animationQueue = this.shuffleAnimations();
@@ -140,7 +153,10 @@ export class DracView extends EntityView {
     return this.mesh;
   }
 
-  constructor(public entId: EntId, public simulation: Simulation) {
+  constructor(
+    public entId: EntId,
+    public simulation: Simulation
+  ) {
     super(entId);
   }
 

@@ -24,7 +24,7 @@ function gameLoop(simulation: Simulation) {
   if (!simulation.IsRunning) return;
 
   const currentTime = Date.now();
-  let deltaTime = (currentTime - simulation.LastFrameTime);
+  let deltaTime = currentTime - simulation.LastFrameTime;
 
   // If the pause is too long, reset the accumulated time
   if (deltaTime > MAX_ALLOWED_PAUSE) {

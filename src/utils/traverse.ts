@@ -1,18 +1,20 @@
-import type * as THREE from "three"
+import type * as THREE from "three";
 
-export function *traverse(object: THREE.Object3D): Generator<THREE.Object3D> {
-  yield object
+export function* traverse(object: THREE.Object3D): Generator<THREE.Object3D> {
+  yield object;
 
   for (const child of object.children) {
-    yield* traverse(child)
+    yield* traverse(child);
   }
 }
 
-export function *traverseParents(object: THREE.Object3D): Generator<THREE.Object3D> {
-  let parent = object.parent
+export function* traverseParents(
+  object: THREE.Object3D
+): Generator<THREE.Object3D> {
+  let parent = object.parent;
 
   while (parent) {
-    yield parent
-    parent = parent.parent
+    yield parent;
+    parent = parent.parent;
   }
 }

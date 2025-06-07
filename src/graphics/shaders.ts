@@ -1,6 +1,6 @@
-import { RENDERER } from "../../constants"
-import { getRGBBits } from "./quantize"
-import * as THREE from "three"
+import { RENDERER } from "../../constants";
+import { getRGBBits } from "./quantize";
+import * as THREE from "three";
 
 export const genericVert = /* glsl */ `
 uniform float vertexBits; // Number of bits to quantize vertex positions
@@ -24,9 +24,9 @@ void main() {
 
   gl_Position = projectionMatrix * viewPosition; // Project the position
 }
-`
+`;
 
-const bits = getRGBBits(RENDERER.colorBits)
+const bits = getRGBBits(RENDERER.colorBits);
 
 export const genericFrag = /* glsl */ `
 varying vec2 vUv;
@@ -46,19 +46,18 @@ void main() {
   
   gl_FragColor = vec4(r, g, b, texColor.a); // Output quantized texture color
 }
-`
+`;
 
-export const genericMaterial = (
-  texture?: THREE.Texture,
-) => new THREE.ShaderMaterial({
-  uniforms: {
-    uTexture: { value: texture }, // Pass the loaded texture to the shader
-    vertexBits: { value: RENDERER.vertexBits }, // Number of bits for vertex quantization
-  },
+export const genericMaterial = (texture?: THREE.Texture) =>
+  new THREE.ShaderMaterial({
+    uniforms: {
+      uTexture: { value: texture }, // Pass the loaded texture to the shader
+      vertexBits: { value: RENDERER.vertexBits }, // Number of bits for vertex quantization
+    },
 
-  vertexShader: genericVert,
-  fragmentShader: genericFrag,
-});
+    vertexShader: genericVert,
+    fragmentShader: genericFrag,
+  });
 
 export const particleVert = /* glsl */ `
 attribute float instanceAlpha;
@@ -71,7 +70,7 @@ void main() {
   vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
   gl_Position = projectionMatrix * mvPosition;
 }
-`
+`;
 
 export const particleFrag = /* glsl */ `
 uniform sampler2D uTexture;
@@ -82,18 +81,17 @@ void main() {
   vec4 texColor = texture2D(uTexture, vUv);
   gl_FragColor = vec4(texColor.rgb * vec3(0.95, 0.85, 0.8), texColor.a * vAlpha);
 }
-`
+`;
 
-export const particleMaterial = (
-  texture?: THREE.Texture,
-) => new THREE.ShaderMaterial({
-  uniforms: {
-    uTexture: { value: texture },
-  },
-  vertexShader: particleVert,
-  fragmentShader: particleFrag,
-  transparent: true,
-})
+export const particleMaterial = (texture?: THREE.Texture) =>
+  new THREE.ShaderMaterial({
+    uniforms: {
+      uTexture: { value: texture },
+    },
+    vertexShader: particleVert,
+    fragmentShader: particleFrag,
+    transparent: true,
+  });
 
 export enum VERTEX_MARKER {
   UNIFORM = "@@@UNIFORM@@@",
@@ -110,101 +108,110 @@ export enum FRAGMENT_MARKER {
 }
 
 export interface Injection {
-  uuidFilter?: string[]
+  uuidFilter?: string[];
 
   vertex?: {
-    raw?: (shader: THREE.WebGLProgramParametersWithUniforms) => void
-    marker?: VERTEX_MARKER
-    value?: string
-  }[]
+    raw?: (shader: THREE.WebGLProgramParametersWithUniforms) => void;
+    marker?: VERTEX_MARKER;
+    value?: string;
+  }[];
 
   fragment?: {
-    raw?: (shader: THREE.WebGLProgramParametersWithUniforms) => void
-    marker?: FRAGMENT_MARKER
-    value?: string
-  }[]
+    raw?: (shader: THREE.WebGLProgramParametersWithUniforms) => void;
+    marker?: FRAGMENT_MARKER;
+    value?: string;
+  }[];
 
   uniforms?: {
-    [key: string]: THREE.IUniform
-  }
+    [key: string]: THREE.IUniform;
+  };
 }
 
-export const getShader = (mesh: THREE.Mesh) => (mesh as any).shader as THREE.WebGLProgramParametersWithUniforms
+export const getShader = (mesh: THREE.Mesh) =>
+  (mesh as any).shader as THREE.WebGLProgramParametersWithUniforms;
 
-export const waitForShader = (mesh: THREE.Mesh) => new Promise<THREE.WebGLProgramParametersWithUniforms>((resolve) => {
-  const check = () => {
-    const shader = getShader(mesh)
+export const waitForShader = (mesh: THREE.Mesh) =>
+  new Promise<THREE.WebGLProgramParametersWithUniforms>((resolve) => {
+    const check = () => {
+      const shader = getShader(mesh);
 
-    if (shader) {
-      resolve(shader)
-    } else {
-      requestAnimationFrame(check)
-    }
-  }
+      if (shader) {
+        resolve(shader);
+      } else {
+        requestAnimationFrame(check);
+      }
+    };
 
-  check()
-})
+    check();
+  });
 
-export const recursivelyManipulateMaterial = (mesh: THREE.Mesh, callback: (material: THREE.Material) => THREE.Material | void) => {
+export const recursivelyManipulateMaterial = (
+  mesh: THREE.Mesh,
+  callback: (material: THREE.Material) => THREE.Material | void
+) => {
   if (!mesh.material) {
-    return
+    return;
   }
 
-  let materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+  let materials = Array.isArray(mesh.material)
+    ? mesh.material
+    : [mesh.material];
 
   for (let i = 0; i < materials.length; i++) {
-    const material = callback(materials[i])
+    const material = callback(materials[i]);
 
     if (!material) {
-      continue
+      continue;
     }
 
-    materials[i] = material
+    materials[i] = material;
   }
-}
+};
 
-const onBeforeCompile = (
-  mesh: THREE.Mesh
-) => (shader: THREE.WebGLProgramParametersWithUniforms) => {
-  const uuid = mesh.uuid
+const onBeforeCompile =
+  (mesh: THREE.Mesh) => (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    const uuid = mesh.uuid;
 
-    ; (mesh as any).shader = shader
+    (mesh as any).shader = shader;
 
-  shader.uniforms.vertexBits = { value: RENDERER.vertexBits }
+    shader.uniforms.vertexBits = { value: RENDERER.vertexBits };
 
-  const bits = getRGBBits(RENDERER.colorBits)
+    const bits = getRGBBits(RENDERER.colorBits);
 
-  shader.uniforms.colorBitsR = { value: bits.r }
-  shader.uniforms.colorBitsG = { value: bits.g }
-  shader.uniforms.colorBitsB = { value: bits.b }
-  shader.uniforms.cutoutTexture = { value: false }
-  shader.uniforms.disableShadows = { value: false }
+    shader.uniforms.colorBitsR = { value: bits.r };
+    shader.uniforms.colorBitsG = { value: bits.g };
+    shader.uniforms.colorBitsB = { value: bits.b };
+    shader.uniforms.cutoutTexture = { value: false };
+    shader.uniforms.disableShadows = { value: false };
 
-  const resize = () => {
-    if (!shader?.uniforms) {
-      return
-    }
+    const resize = () => {
+      if (!shader?.uniforms) {
+        return;
+      }
 
-    shader.uniforms.resolution = { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
-  }
+      shader.uniforms.resolution = {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      };
+    };
 
-  resize()
+    resize();
 
-  window.addEventListener('resize', resize)
+    window.addEventListener("resize", resize);
 
-  let newVertexShader = String(shader.vertexShader).replace(
-    /*glsl*/`void main`,
-    /*glsl*/`
+    let newVertexShader = String(shader.vertexShader).replace(
+      /*glsl*/ `void main`,
+      /*glsl*/ `
 uniform float vertexBits;
 ${VERTEX_MARKER.UNIFORM}
 
 ${VERTEX_MARKER.CONSTANT}
 
-void main`)
+void main`
+    );
 
-  newVertexShader = newVertexShader.replace(
-  /*glsl*/`#include <project_vertex>`,
-  /*glsl*/`#include <project_vertex>
+    newVertexShader = newVertexShader.replace(
+      /*glsl*/ `#include <project_vertex>`,
+      /*glsl*/ `#include <project_vertex>
 ${VERTEX_MARKER.PRE_QUANTIZATION}
 float quantizationFactor = pow(2.0, vertexBits);
 
@@ -212,11 +219,12 @@ mvPosition.xyz = round(mvPosition.xyz * quantizationFactor) / quantizationFactor
 
 gl_Position = projectionMatrix * mvPosition;
 ${VERTEX_MARKER.POST_QUANTIZATION}
-`)
+`
+    );
 
-  let newFragmentShader = String(shader.fragmentShader).replace(
-    /*glsl*/`void main`,
-    /*glsl*/`
+    let newFragmentShader = String(shader.fragmentShader).replace(
+      /*glsl*/ `void main`,
+      /*glsl*/ `
 uniform float colorBitsR;
 uniform float colorBitsG;
 uniform float colorBitsB;
@@ -234,21 +242,23 @@ return floor(value * (pow(2.0, bits) - 1.0)) / (pow(2.0, bits) - 1.0);
 
 ${FRAGMENT_MARKER.CONSTANT}
 
-void main`)
+void main`
+    );
 
-  newFragmentShader = newFragmentShader.replace(
-    /*glsl*/`#include <opaque_fragment>`,
-    /*glsl*/`
+    newFragmentShader = newFragmentShader.replace(
+      /*glsl*/ `#include <opaque_fragment>`,
+      /*glsl*/ `
 if (disableShadows) {
 outgoingLight = diffuseColor.rgb;
 }
 
 #include <opaque_fragment>
-`)
+`
+    );
 
-  newFragmentShader = newFragmentShader.replace(
-    /*glsl*/`#include <map_fragment>`,
-    /*glsl*/`#include <map_fragment>
+    newFragmentShader = newFragmentShader.replace(
+      /*glsl*/ `#include <map_fragment>`,
+      /*glsl*/ `#include <map_fragment>
 #ifdef USE_MAP
 if (cutoutTexture) {
   vec2 screenSpaceCoords = gl_FragCoord.xy / resolution.xy;
@@ -263,11 +273,12 @@ if (cutoutTexture) {
 	diffuseColor = sampledDiffuseColor;
 }
 #endif
-`)
+`
+    );
 
-  newFragmentShader = newFragmentShader.replace(
-    /}\s*$/,
-    /*glsl*/`
+    newFragmentShader = newFragmentShader.replace(
+      /}\s*$/,
+      /*glsl*/ `
 ${FRAGMENT_MARKER.PRE_QUANTIZATION}
 float r = quantize(gl_FragColor.r, colorBitsR);
 float g = quantize(gl_FragColor.g, colorBitsG);
@@ -276,88 +287,97 @@ float b = quantize(gl_FragColor.b, colorBitsB);
 gl_FragColor = vec4(r, g, b, gl_FragColor.a); 
 
 ${FRAGMENT_MARKER.POST_QUANTIZATION}
-` + `}`)
+` + `}`
+    );
 
-  for (const injection of injections) {
-    if (injection.uuidFilter && !injection.uuidFilter.includes(uuid)) {
-      continue
-    }
+    for (const injection of injections) {
+      if (injection.uuidFilter && !injection.uuidFilter.includes(uuid)) {
+        continue;
+      }
 
-    if (injection.uniforms) {
-      for (const [key, value] of Object.entries(injection.uniforms)) {
-        shader.uniforms[key] = value
+      if (injection.uniforms) {
+        for (const [key, value] of Object.entries(injection.uniforms)) {
+          shader.uniforms[key] = value;
+        }
+      }
+
+      if (injection.vertex) {
+        for (const step of injection.vertex) {
+          if (step.raw) {
+            step.raw(shader);
+          }
+
+          if (step.marker && step.value) {
+            newVertexShader = newVertexShader.replace(
+              step.marker,
+              step.value.toString() + "\n" + step.marker
+            );
+          }
+        }
+      }
+
+      if (injection.fragment) {
+        for (const step of injection.fragment) {
+          if (step.raw) {
+            step.raw(shader);
+          }
+
+          if (step.marker && step.value) {
+            newFragmentShader = newFragmentShader.replace(
+              step.marker,
+              step.value.toString() + "\n" + step.marker
+            );
+          }
+        }
       }
     }
 
-    if (injection.vertex) {
-      for (const step of injection.vertex) {
-        if (step.raw) {
-          step.raw(shader)
-        }
-
-        if (step.marker && step.value) {
-          newVertexShader = newVertexShader.replace(step.marker, step.value.toString() + '\n' + step.marker)
-        }
-      }
+    for (const marker of Object.values(VERTEX_MARKER)) {
+      newVertexShader = newVertexShader.replace(marker, "");
     }
 
-    if (injection.fragment) {
-      for (const step of injection.fragment) {
-        if (step.raw) {
-          step.raw(shader)
-        }
-
-        if (step.marker && step.value) {
-          newFragmentShader = newFragmentShader.replace(step.marker, step.value.toString() + '\n' + step.marker)
-        }
-      }
+    for (const marker of Object.values(FRAGMENT_MARKER)) {
+      newFragmentShader = newFragmentShader.replace(marker, "");
     }
-  }
 
-  for (const marker of Object.values(VERTEX_MARKER)) {
-    newVertexShader = newVertexShader.replace(marker, "")
-  }
+    shader.vertexShader = newVertexShader;
+    shader.fragmentShader = newFragmentShader;
+  };
 
-  for (const marker of Object.values(FRAGMENT_MARKER)) {
-    newFragmentShader = newFragmentShader.replace(marker, "")
-  }
-
-  shader.vertexShader = newVertexShader
-  shader.fragmentShader = newFragmentShader
-}
-
-const injections: Injection[] = []
+const injections: Injection[] = [];
 
 export const inject = (injection: Injection) => {
-  injections.push(injection)
-}
+  injections.push(injection);
+};
 
 export const applyInjectedMaterials = (object: THREE.Object3D) => {
   object.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) {
-      return
+      return;
     }
 
-    const mesh = child as THREE.Mesh
-    mesh.castShadow = true
-    mesh.receiveShadow = true
+    const mesh = child as THREE.Mesh;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
 
     if (!mesh.material) {
-      return
+      return;
     }
 
-    let materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    let materials = Array.isArray(mesh.material)
+      ? mesh.material
+      : [mesh.material];
 
     materials.forEach((material) => {
-      material.onBeforeCompile = onBeforeCompile(mesh)
+      material.onBeforeCompile = onBeforeCompile(mesh);
 
-      material.shadowSide = THREE.DoubleSide
-      material.depthWrite = true
+      material.shadowSide = THREE.DoubleSide;
+      material.depthWrite = true;
 
-      return material
-    })
-  })
-}
+      return material;
+    });
+  });
+};
 
 export const CRTShader = {
   uniforms: {
@@ -370,7 +390,7 @@ export const CRTShader = {
     noiseIntensity: { value: 0.3 },
     rgbOffset: { value: new THREE.Vector2(0.0014, 0.0014) },
     // New uniform to optionally scale the UV coordinates after distortion.
-    edgeScale: { value: 0.8 } // 1.0 = no scaling, >1.0 scales up to hide edge stretching
+    edgeScale: { value: 0.8 }, // 1.0 = no scaling, >1.0 scales up to hide edge stretching
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -458,5 +478,5 @@ export const CRTShader = {
       
       gl_FragColor = color;
     }
-  `
+  `,
 };

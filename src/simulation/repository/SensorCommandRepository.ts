@@ -1,10 +1,7 @@
-import { EntId } from "../EntityRegistry"
-import { SimulationCommand } from "../commands/_command"
-import {
-  SimulationRepository,
-  SimulationComponent,
-} from "./_repository"
-import * as THREE from "three"
+import { EntId } from "../EntityRegistry";
+import { SimulationCommand } from "../commands/_command";
+import { SimulationRepository, SimulationComponent } from "./_repository";
+import * as THREE from "three";
 
 export enum ExecutionMode {
   Immediate = 0,
@@ -12,22 +9,22 @@ export enum ExecutionMode {
 }
 
 export interface SensorCommand {
-  Command: SimulationCommand
-  ExecutionMode: ExecutionMode
-  Sensors: symbol[] | undefined
-  Once: boolean
-  Enabled: boolean
-  Owner?: THREE.Object3D
+  Command: SimulationCommand;
+  ExecutionMode: ExecutionMode;
+  Sensors: symbol[] | undefined;
+  Once: boolean;
+  Enabled: boolean;
+  Owner?: THREE.Object3D;
 }
 
 class SensorCommandComponent extends SimulationComponent {
-  public Commands: symbol[] = []
-  public AvailableInteractions: symbol[] = []
+  public Commands: symbol[] = [];
+  public AvailableInteractions: symbol[] = [];
 }
 
 export class SensorCommandRepository extends SimulationRepository<SensorCommandComponent> {
-  public SensorCommandMap = new Map<symbol, SensorCommand>()
-  public SymbolEntIdMap = new Map<symbol, EntId>()
+  public SensorCommandMap = new Map<symbol, SensorCommand>();
+  public SymbolEntIdMap = new Map<symbol, EntId>();
 
   public AddSensorCommand({
     entId,
@@ -37,16 +34,16 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
     once = false,
     owner = undefined,
   }: {
-    entId: EntId
-    command: SimulationCommand
-    executionMode: ExecutionMode
-    sensors?: symbol[]
-    once?: boolean
-    owner?: THREE.Object3D
+    entId: EntId;
+    command: SimulationCommand;
+    executionMode: ExecutionMode;
+    sensors?: symbol[];
+    once?: boolean;
+    owner?: THREE.Object3D;
   }) {
-    const component = this.entities.get(entId)!
+    const component = this.entities.get(entId)!;
 
-    const symbol = Symbol()
+    const symbol = Symbol();
 
     this.SensorCommandMap.set(symbol, {
       Command: command,
@@ -55,87 +52,87 @@ export class SensorCommandRepository extends SimulationRepository<SensorCommandC
       Once: once,
       Enabled: true,
       Owner: owner,
-    })
+    });
 
-    this.SymbolEntIdMap.set(symbol, entId)
+    this.SymbolEntIdMap.set(symbol, entId);
 
-    component.Commands.push(symbol)
+    component.Commands.push(symbol);
 
-    return symbol
+    return symbol;
   }
 
   public SetCommandEnabled(symbol: symbol, enabled: boolean) {
-    const command = this.SensorCommandMap.get(symbol)
+    const command = this.SensorCommandMap.get(symbol);
 
     if (command === undefined) {
-      return
+      return;
     }
 
-    command.Enabled = enabled
+    command.Enabled = enabled;
   }
-
 
   public DeleteSensorCommand(entId: EntId, symbol: symbol) {
-    const component = this.entities.get(entId)!
+    const component = this.entities.get(entId)!;
 
-    this.SensorCommandMap.delete(symbol)
+    this.SensorCommandMap.delete(symbol);
 
-    component.Commands = component.Commands.filter((s) => s !== symbol)
+    component.Commands = component.Commands.filter((s) => s !== symbol);
   }
 
-  public GetCommandsForSensor(entId: EntId, sensor: symbol): { symbol: symbol, command: Readonly<SensorCommand> }[] {
-    const component = this.entities.get(entId)!
-    const result: { symbol: symbol, command: Readonly<SensorCommand> }[] = []
+  public GetCommandsForSensor(
+    entId: EntId,
+    sensor: symbol
+  ): { symbol: symbol; command: Readonly<SensorCommand> }[] {
+    const component = this.entities.get(entId)!;
+    const result: { symbol: symbol; command: Readonly<SensorCommand> }[] = [];
 
     for (const symbol of component.Commands) {
-      const command = this.SensorCommandMap.get(symbol)!
+      const command = this.SensorCommandMap.get(symbol)!;
 
       if (command.Sensors === undefined || command.Sensors.includes(sensor)) {
         result.push({
           symbol,
           command,
-        })
+        });
       }
     }
 
-    return result
+    return result;
   }
 
   public GetAvailableInteractions(entId: EntId) {
-    const component = this.entities.get(entId)!
+    const component = this.entities.get(entId)!;
 
-    return component.AvailableInteractions
-      .map((symbol) => {
-        const command = this.SensorCommandMap.get(symbol)!
+    return component.AvailableInteractions.map((symbol) => {
+      const command = this.SensorCommandMap.get(symbol)!;
 
-        if (!command.Enabled) {
-          return undefined
-        }
+      if (!command.Enabled) {
+        return undefined;
+      }
 
-        const entId = this.SymbolEntIdMap.get(symbol)!
+      const entId = this.SymbolEntIdMap.get(symbol)!;
 
-        return {
-          command,
-          entId,
-          symbol,
-        }
-      })
-      .filter((item) => item !== undefined)
+      return {
+        command,
+        entId,
+        symbol,
+      };
+    }).filter((item) => item !== undefined);
   }
 
   public PushAvailableInteractions(entId: EntId, commands: symbol[]) {
-    const component = this.entities.get(entId)!
+    const component = this.entities.get(entId)!;
 
-    component.AvailableInteractions.push(...commands)
+    component.AvailableInteractions.push(...commands);
   }
 
   public ClearAvailableInteractions(entId: EntId) {
-    const component = this.entities.get(entId)!
+    const component = this.entities.get(entId)!;
 
-    component.AvailableInteractions = []
+    component.AvailableInteractions = [];
   }
 
   public static Factory() {
-    return new SensorCommandRepository(new SensorCommandComponent())
+    return new SensorCommandRepository(new SensorCommandComponent());
   }
 }

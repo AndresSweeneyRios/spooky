@@ -1,4 +1,6 @@
-export class TypedEmitter<Events extends Record<string, (...args: any[]) => void>> {
+export class TypedEmitter<
+  Events extends Record<string, (...args: any[]) => void>,
+> {
   private listeners: { [K in keyof Events]?: Events[K][] } = {};
 
   on<K extends keyof Events>(eventName: K, listener: Events[K]): void {
@@ -10,11 +12,16 @@ export class TypedEmitter<Events extends Record<string, (...args: any[]) => void
 
   off<K extends keyof Events>(eventName: K, listener: Events[K]): void {
     if (!this.listeners[eventName]) return;
-    this.listeners[eventName] = this.listeners[eventName]!.filter(l => l !== listener);
+    this.listeners[eventName] = this.listeners[eventName]!.filter(
+      (l) => l !== listener
+    );
   }
 
-  emit<K extends keyof Events>(eventName: K, ...args: Parameters<Events[K]>): void {
-    this.listeners[eventName]?.forEach(listener => listener(...args));
+  emit<K extends keyof Events>(
+    eventName: K,
+    ...args: Parameters<Events[K]>
+  ): void {
+    this.listeners[eventName]?.forEach((listener) => listener(...args));
   }
 }
 

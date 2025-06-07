@@ -1,8 +1,5 @@
-import { EntId } from "../EntityRegistry"
-import {
-  SimulationRepository,
-  SimulationComponent,
-} from "./_repository"
+import { EntId } from "../EntityRegistry";
+import { SimulationRepository, SimulationComponent } from "./_repository";
 
 export enum StatType {
   SPEED = 0,
@@ -14,62 +11,62 @@ export enum ModifierType {
 }
 
 export type Modifier = Readonly<{
-  type: ModifierType
-  stat: StatType
-  value: number
-}>
+  type: ModifierType;
+  stat: StatType;
+  value: number;
+}>;
 
 class StatComponent extends SimulationComponent {
-  public stats: Map<StatType, number> = new Map()
-  public statModifiers: Map<symbol, Modifier> = new Map()
-  public statusEffects: Map<symbol, symbol[]> = new Map()
+  public stats: Map<StatType, number> = new Map();
+  public statModifiers: Map<symbol, Modifier> = new Map();
+  public statusEffects: Map<symbol, symbol[]> = new Map();
 }
 
 export class StatRepository extends SimulationRepository<StatComponent> {
   public SetStatBaseValue(entId: EntId, type: StatType, value: number) {
-    this.entities.get(entId)!.stats.set(type, value)
+    this.entities.get(entId)!.stats.set(type, value);
   }
 
   public GetStatBaseValue(entId: EntId, type: StatType) {
-    return this.entities.get(entId)!.stats.get(type) || 0
+    return this.entities.get(entId)!.stats.get(type) || 0;
   }
 
   public CreateStatusEffect(entId: EntId, modifiers: Modifier) {
-    const id = Symbol()
-    this.entities.get(entId)!.statModifiers.set(id, modifiers)
+    const id = Symbol();
+    this.entities.get(entId)!.statModifiers.set(id, modifiers);
 
-    return id
+    return id;
   }
 
   public RemoveStatusEffect(entId: EntId, id: symbol) {
-    this.entities.get(entId)!.statModifiers.delete(id)
+    this.entities.get(entId)!.statModifiers.delete(id);
   }
 
   public GetStatComputedValue(entId: EntId, type: StatType) {
-    const component = this.entities.get(entId)!
+    const component = this.entities.get(entId)!;
 
-    const baseValue = this.GetStatBaseValue(entId, type)
+    const baseValue = this.GetStatBaseValue(entId, type);
 
-    const modifiers = component.statModifiers.values()
+    const modifiers = component.statModifiers.values();
 
-    let value = baseValue
+    let value = baseValue;
 
     for (const modifier of modifiers) {
       if (modifier.stat !== type) {
-        continue
+        continue;
       }
 
       if (modifier.type === ModifierType.ADD) {
-        value += modifier.value
+        value += modifier.value;
       } else if (modifier.type === ModifierType.MULTIPLY) {
-        value *= modifier.value
+        value *= modifier.value;
       }
     }
 
-    return value
-  } 
+    return value;
+  }
 
   public static Factory() {
-    return new StatRepository(new StatComponent())
+    return new StatRepository(new StatComponent());
   }
 }

@@ -1,5 +1,5 @@
-import * as midiManager from 'midi-file';
-import * as Input from "../input/spookyBattle"
+import * as midiManager from "midi-file";
+import * as Input from "../input/spookyBattle";
 
 interface NoteEvent {
   note: number;
@@ -48,7 +48,7 @@ export const getNotes = async (
     let absoluteTime = 0;
     for (const event of track) {
       absoluteTime += event.deltaTime;
-      if (event.type === 'noteOn' && event.velocity && event.velocity > 0) {
+      if (event.type === "noteOn" && event.velocity && event.velocity > 0) {
         noteEvents.push({ note: event.noteNumber, time: absoluteTime });
       }
     }
@@ -112,7 +112,7 @@ export const getNotes = async (
   }
 
   // 8. Convert the tick times to milliseconds and ensure unique note IDs by creating Symbols.
-  const processedNotes = outputNotes.map(noteObj => {
+  const processedNotes = outputNotes.map((noteObj) => {
     const ms = noteObj.ms * msPerTick;
     // Create a unique symbol with a description that includes the note number and its tick time.
     const uniqueNote = Symbol();
@@ -162,21 +162,26 @@ export enum ButtonType {
 function getButtonTypeFromNoteNumber(noteNumber: number): ButtonType {
   // Map MIDI note numbers to ButtonType values.
   switch (noteNumber) {
-    case 72: return Object.values(ButtonType)[Math.floor(Math.random() * 4)]; // C4
-    case 73: return ButtonType.Middle;   // C#4
-    default: return ButtonType.Up;    // Default to Up for any other note number.
+    case 72:
+      return Object.values(ButtonType)[Math.floor(Math.random() * 4)]; // C4
+    case 73:
+      return ButtonType.Middle; // C#4
+    default:
+      return ButtonType.Up; // Default to Up for any other note number.
   }
 }
 
 // Map specific MIDI note numbers to potential actions (breakers or attacks)
-function getActionsForNoteNumber(noteNumber: number): Input.Action | Input.Action[] | undefined {
+function getActionsForNoteNumber(
+  noteNumber: number
+): Input.Action | Input.Action[] | undefined {
   // C4 (MIDI 60) -> directional inputs
   if (noteNumber === 60) {
     return [
       Input.Action.Up,
       Input.Action.Down,
       Input.Action.Left,
-      Input.Action.Right
+      Input.Action.Right,
     ];
   }
   // C#4 (MIDI 61) -> major/minor breaker and attack actions
@@ -185,7 +190,7 @@ function getActionsForNoteNumber(noteNumber: number): Input.Action | Input.Actio
       Input.Action.MajorAttack,
       Input.Action.MinorAttack,
       Input.Action.MajorBreaker,
-      Input.Action.MinorBreaker
+      Input.Action.MinorBreaker,
     ];
   }
   return undefined;
@@ -193,12 +198,16 @@ function getActionsForNoteNumber(noteNumber: number): Input.Action | Input.Actio
 
 // A simple Fisher–Yates shuffle.
 function shuffle<T>(array: T[]): T[] {
-  let currentIndex = array.length, randomIndex: number;
+  let currentIndex = array.length,
+    randomIndex: number;
   while (currentIndex !== 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
     // Swap element at currentIndex with randomIndex.
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
   }
   return array;
 }
@@ -217,7 +226,7 @@ function refillButtonQueue(): ButtonType[] {
 export interface Note {
   note: symbol; // unique symbol (set by getNotes)
   noteNumber: number; // MIDI note number
-  ms: number;   // noteOn time in milliseconds
+  ms: number; // noteOn time in milliseconds
   percentage: number; // percentage of the current interval
   hit: boolean;
   button: ButtonType;
@@ -229,7 +238,7 @@ export async function* playNotesWithinInterval(
   midiUrl: string,
   x: number, // window length in milliseconds
   subdivisionsPerMeasure: number,
-  delayMs: number,         // delay before audio starts (in ms)
+  delayMs: number, // delay before audio starts (in ms)
   actionThresholdMs: number, // allowed percentage threshold (e.g. 5 means ±5%)
   inputThresholdMs: number // input threshold in ms for WasRecentlyPressed
 ) {
@@ -250,7 +259,9 @@ export async function* playNotesWithinInterval(
   const totalDuration = notes[notes.length - 1].ms;
 
   // Map a ButtonType to an Action (or set of Actions).
-  function getActionsForButton(button: ButtonType): Input.Action | Input.Action[] {
+  function getActionsForButton(
+    button: ButtonType
+  ): Input.Action | Input.Action[] {
     switch (button) {
       case ButtonType.Up:
         return Input.Action.Up;
@@ -266,7 +277,7 @@ export async function* playNotesWithinInterval(
           Input.Action.MajorAttack,
           Input.Action.MajorBreaker,
           Input.Action.MinorAttack,
-          Input.Action.MinorBreaker
+          Input.Action.MinorBreaker,
         ];
       default:
         return Input.Action.Up;
@@ -292,10 +303,10 @@ export async function* playNotesWithinInterval(
     let currentDisplayMs: number;
     if (audioStart === 0) {
       // Audio hasn't started yet; use wall-clock time.
-      currentDisplayMs = (Date.now() - realStart) - delayMs;
+      currentDisplayMs = Date.now() - realStart - delayMs;
     } else {
       // Audio has started; use the audio context's time (in ms) offset so that at audio start, display time equals 0.
-      currentDisplayMs = (source.context.currentTime * 1000) - audioStart;
+      currentDisplayMs = source.context.currentTime * 1000 - audioStart;
     }
 
     // For looping, compute effective display time modulo totalDuration.
@@ -305,15 +316,22 @@ export async function* playNotesWithinInterval(
     // Filter notes within the current window.
     let windowNotes: typeof notes;
     if (effectiveWindowEnd <= totalDuration) {
-      windowNotes = notes.filter(note => note.ms > effectiveDisplayMs && note.ms - actionThresholdMs <= effectiveWindowEnd);
+      windowNotes = notes.filter(
+        (note) =>
+          note.ms > effectiveDisplayMs &&
+          note.ms - actionThresholdMs <= effectiveWindowEnd
+      );
     } else {
       // If the window wraps around, combine notes from the end and beginning.
-      windowNotes = notes.filter(note => note.ms > effectiveDisplayMs)
-        .concat(notes.filter(note => note.ms <= (effectiveWindowEnd - totalDuration)));
+      windowNotes = notes
+        .filter((note) => note.ms > effectiveDisplayMs)
+        .concat(
+          notes.filter((note) => note.ms <= effectiveWindowEnd - totalDuration)
+        );
     }
 
     // Process each note in the current window.
-    const notesToPlay = windowNotes.map(note => {
+    const notesToPlay = windowNotes.map((note) => {
       // Compute a signed time difference (delta) on a circle.
       let delta = note.ms - effectiveDisplayMs;
       // Adjust for wrap-around to get the minimal difference.
@@ -334,14 +352,19 @@ export async function* playNotesWithinInterval(
       const mappedActions = getActionsForNoteNumber(note.noteNumber);
       // Assign a ButtonType for UI fallback
       if (!noteButtonMap.has(note.note)) {
-        noteButtonMap.set(note.note, getButtonTypeFromNoteNumber(note.noteNumber) as ButtonType);
+        noteButtonMap.set(
+          note.note,
+          getButtonTypeFromNoteNumber(note.noteNumber) as ButtonType
+        );
       }
       const button = noteButtonMap.get(note.note)!;
       // Choose actions: mappedActions if defined, otherwise based on button
       const actions = mappedActions ?? getActionsForButton(button);
       if (deltaTime >= -actionThresholdMs && deltaTime <= actionThresholdMs) {
         if (Array.isArray(actions)) {
-          hit = actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs));
+          hit = actions.some((a) =>
+            Input.WasRecentlyPressed(a, inputThresholdMs)
+          );
         } else {
           hit = Input.WasRecentlyPressed(actions, inputThresholdMs);
         }
@@ -352,7 +375,7 @@ export async function* playNotesWithinInterval(
     });
 
     if (notesToPlay.length > 0) {
-      yield notesToPlay
+      yield notesToPlay;
     }
 
     // Yield control to the event loop.
@@ -380,12 +403,18 @@ export async function* playNotesOnce(
 
   const totalDuration = notes[notes.length - 1].ms;
 
-  function getActionsForButton(button: ButtonType): Input.Action | Input.Action[] {
+  function getActionsForButton(
+    button: ButtonType
+  ): Input.Action | Input.Action[] {
     switch (button) {
-      case ButtonType.Up: return Input.Action.Up;
-      case ButtonType.Left: return Input.Action.Left;
-      case ButtonType.Right: return Input.Action.Right;
-      case ButtonType.Down: return Input.Action.Down;
+      case ButtonType.Up:
+        return Input.Action.Up;
+      case ButtonType.Left:
+        return Input.Action.Left;
+      case ButtonType.Right:
+        return Input.Action.Right;
+      case ButtonType.Down:
+        return Input.Action.Down;
       case ButtonType.Middle:
         return [
           Input.Action.MajorAttack,
@@ -393,7 +422,8 @@ export async function* playNotesOnce(
           Input.Action.MinorAttack,
           Input.Action.MinorBreaker,
         ];
-      default: return Input.Action.Up;
+      default:
+        return Input.Action.Up;
     }
   }
 
@@ -406,7 +436,7 @@ export async function* playNotesOnce(
   }, delayMs);
 
   // If a callback is provided, schedule it to run exactly at each note's ms
-  if (typeof onNoteTime === 'function') {
+  if (typeof onNoteTime === "function") {
     // Schedule all note callbacks in advance
     for (const note of notes) {
       const msUntilNote = delayMs + note.ms - (Date.now() - realStart);
@@ -434,26 +464,30 @@ export async function* playNotesOnce(
   while (Date.now() < endTime) {
     let currentDisplayMs: number;
     if (audioStart === 0) {
-      currentDisplayMs = (Date.now() - realStart) - delayMs;
+      currentDisplayMs = Date.now() - realStart - delayMs;
     } else {
-      currentDisplayMs = (source.context.currentTime * 1000) - audioStart;
+      currentDisplayMs = source.context.currentTime * 1000 - audioStart;
     }
 
     const effectiveWindowEnd = currentDisplayMs + x;
 
-    const windowNotes = notes.filter(note =>
-      note.ms > currentDisplayMs &&
-      note.ms - actionThresholdMs <= effectiveWindowEnd
+    const windowNotes = notes.filter(
+      (note) =>
+        note.ms > currentDisplayMs &&
+        note.ms - actionThresholdMs <= effectiveWindowEnd
     );
 
-    const notesToPlay = windowNotes.map(note => {
+    const notesToPlay = windowNotes.map((note) => {
       const delta = note.ms - currentDisplayMs;
       const percentage = (delta / x) * 100;
       // Determine actions based on MIDI note number mapping (C4 -> breakers, D4 -> attacks)
       const mappedActions = getActionsForNoteNumber(note.noteNumber);
       // Assign a ButtonType for fallback UI interactions
       if (!noteButtonMap.has(note.note)) {
-        noteButtonMap.set(note.note, getButtonTypeFromNoteNumber(note.noteNumber));
+        noteButtonMap.set(
+          note.note,
+          getButtonTypeFromNoteNumber(note.noteNumber)
+        );
       }
       const button = noteButtonMap.get(note.note)!;
       // Use mapped actions if available, otherwise fall back to button mapping
@@ -461,7 +495,9 @@ export async function* playNotesOnce(
       let hit = false;
       if (delta >= -actionThresholdMs && delta <= actionThresholdMs) {
         if (Array.isArray(actions)) {
-          hit = actions.some(a => Input.WasRecentlyPressed(a, inputThresholdMs));
+          hit = actions.some((a) =>
+            Input.WasRecentlyPressed(a, inputThresholdMs)
+          );
         } else {
           hit = Input.WasRecentlyPressed(actions, inputThresholdMs);
         }
@@ -476,7 +512,6 @@ export async function* playNotesOnce(
       yield notesToPlay;
     }
 
-    await new Promise(r => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0));
   }
 }
-

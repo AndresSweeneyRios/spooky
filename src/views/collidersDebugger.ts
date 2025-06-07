@@ -1,33 +1,37 @@
 import { Simulation } from "../simulation";
 import { View } from "../simulation/View";
 import * as THREE from "three";
-import RAPIER from "@dimforge/rapier3d-compat"
-import type { Capsule, TriMesh, Ball, Cuboid } from "@dimforge/rapier3d-compat"
+import RAPIER from "@dimforge/rapier3d-compat";
+import type { Capsule, TriMesh, Ball, Cuboid } from "@dimforge/rapier3d-compat";
 
 export class CollidersDebugger extends View {
-  meshMap: Map<symbol, THREE.Mesh> = new Map()
-  previousTranslation: Map<symbol, THREE.Vector3> = new Map()
+  meshMap: Map<symbol, THREE.Mesh> = new Map();
+  previousTranslation: Map<symbol, THREE.Vector3> = new Map();
 
   constructor() {
-    super()
+    super();
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
-    const physics = simulation.SimulationState.PhysicsRepository
+    const physics = simulation.SimulationState.PhysicsRepository;
 
-    const confirmedColliders: symbol[] = []
+    const confirmedColliders: symbol[] = [];
 
     for (const { symbol, collider, entId } of physics.GetAllColliders()) {
-      confirmedColliders.push(symbol)
+      confirmedColliders.push(symbol);
 
       if (!this.meshMap.has(symbol)) {
-        const shape = collider.shape
-        let geometry: THREE.BufferGeometry
+        const shape = collider.shape;
+        let geometry: THREE.BufferGeometry;
 
         switch (shape.type) {
           case RAPIER.ShapeType.Cuboid: {
             const halfExtents = (shape as Cuboid).halfExtents; // Example for a cuboid
-            geometry = new THREE.BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
+            geometry = new THREE.BoxGeometry(
+              halfExtents.x * 2,
+              halfExtents.y * 2,
+              halfExtents.z * 2
+            );
 
             break;
           }
@@ -54,54 +58,61 @@ export class CollidersDebugger extends View {
             const indices = trimesh.indices;
 
             geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute(
+              "position",
+              new THREE.Float32BufferAttribute(vertices, 3)
+            );
             geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
             break;
           }
 
-          default: continue;
+          default:
+            continue;
         }
 
-        const isSensor = collider.isSensor()
-        const color = isSensor ? 0xff0000 : 0xffff00
+        const isSensor = collider.isSensor();
+        const color = isSensor ? 0xff0000 : 0xffff00;
 
-        const material = new THREE.MeshBasicMaterial({ color, wireframe: true })
-        const newMesh = new THREE.Mesh(geometry, material)
-        this.meshMap.set(symbol, newMesh)
-        simulation.ThreeScene.add(newMesh)
+        const material = new THREE.MeshBasicMaterial({
+          color,
+          wireframe: true,
+        });
+        const newMesh = new THREE.Mesh(geometry, material);
+        this.meshMap.set(symbol, newMesh);
+        simulation.ThreeScene.add(newMesh);
       }
 
-      const colliderTranslation = collider.translation()
+      const colliderTranslation = collider.translation();
 
       const position = new THREE.Vector3(
         colliderTranslation.x,
         colliderTranslation.y,
         colliderTranslation.z
-      )
+      );
 
       if (!this.previousTranslation.has(symbol)) {
-        this.previousTranslation.set(symbol, position)
+        this.previousTranslation.set(symbol, position);
       }
 
-      const previousPosition = this.previousTranslation.get(symbol)!
+      const previousPosition = this.previousTranslation.get(symbol)!;
 
-      const mesh = this.meshMap.get(symbol)!
+      const mesh = this.meshMap.get(symbol)!;
 
       // lerp between previous position and current position
-      const lerpedPosition = new THREE.Vector3()
-      lerpedPosition.lerpVectors(previousPosition, position, lerpFactor)
+      const lerpedPosition = new THREE.Vector3();
+      lerpedPosition.lerpVectors(previousPosition, position, lerpFactor);
 
-      mesh.position.set(lerpedPosition.x, lerpedPosition.y, lerpedPosition.z)
+      mesh.position.set(lerpedPosition.x, lerpedPosition.y, lerpedPosition.z);
 
-      this.previousTranslation.set(symbol, position)
+      this.previousTranslation.set(symbol, position);
     }
 
     for (const [symbol, mesh] of this.meshMap) {
       if (!confirmedColliders.includes(symbol)) {
-        simulation.ThreeScene.remove(mesh)
-        this.meshMap.delete(symbol)
-        this.previousTranslation.delete(symbol)
+        simulation.ThreeScene.remove(mesh);
+        this.meshMap.delete(symbol);
+        this.previousTranslation.delete(symbol);
       }
     }
   }
@@ -110,7 +121,7 @@ export class CollidersDebugger extends View {
     for (const [symbol, mesh] of this.meshMap) {
       mesh.geometry.dispose();
       if (Array.isArray(mesh.material)) {
-        mesh.material.forEach(mat => mat.dispose());
+        mesh.material.forEach((mat) => mat.dispose());
       } else {
         mesh.material.dispose();
       }

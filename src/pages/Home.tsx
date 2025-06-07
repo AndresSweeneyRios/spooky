@@ -1,35 +1,35 @@
 import "./Home.css";
-import React, { Fragment } from 'react';
-import _SVG from 'react-inlinesvg';
-import TripshredSvg from '../assets/icons/tripshred.svg';
-import crazeohScreenshot from '../assets/screenshots/crazeoh.webp';
-import acid1Webp from '../assets/3d/throne/ACID1.webp';
-import smptePng from '../assets/3d/throne/smpte.png';
+import React, { Fragment } from "react";
+import _SVG from "react-inlinesvg";
+import TripshredSvg from "../assets/icons/tripshred.svg";
+import crazeohScreenshot from "../assets/screenshots/crazeoh.webp";
+import acid1Webp from "../assets/3d/throne/ACID1.webp";
+import smptePng from "../assets/3d/throne/smpte.png";
 
 const SVG = _SVG as any;
 
-const splash = document.getElementById('splash');
+const splash = document.getElementById("splash");
 if (splash) {
-  splash.setAttribute('is-hidden', 'true');
+  splash.setAttribute("is-hidden", "true");
 }
 
 function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
   if (!parentElement) {
-    console.error('Parent element is null');
+    console.error("Parent element is null");
     return;
   }
 
   // Create and style the canvas, then append it to the parent element.
-  const canvas: HTMLCanvasElement = document.createElement('canvas');
-  canvas.style.display = 'block';
-  canvas.style.width = '100%';
-  canvas.style.height = '100%';
+  const canvas: HTMLCanvasElement = document.createElement("canvas");
+  canvas.style.display = "block";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
   parentElement.appendChild(canvas);
 
   // Initialize WebGL.
-  const gl = canvas.getContext('webgl2')!;
+  const gl = canvas.getContext("webgl2")!;
   if (!gl) {
-    console.error('WebGL not supported');
+    console.error("WebGL not supported");
     return;
   }
 
@@ -39,22 +39,22 @@ function createInfiniteLoopingNeonFractal(parentElement: HTMLElement) {
     canvas.height = parentElement.clientHeight;
     gl.viewport(0, 0, canvas.width, canvas.height);
   }
-  window.addEventListener('resize', resize);
+  window.addEventListener("resize", resize);
   resize();
 
   const acid1 = new Image();
-  acid1.src = acid1Webp
+  acid1.src = acid1Webp;
   const acid2 = new Image();
-  acid2.src = smptePng
+  acid2.src = smptePng;
 
   const texturePromiseAll = Promise.all<HTMLImageElement>([
     new Promise((resolve) => {
-      acid1.onload = () => resolve(acid1)
+      acid1.onload = () => resolve(acid1);
     }),
     new Promise((resolve) => {
-      acid2.onload = () => resolve(acid2)
+      acid2.onload = () => resolve(acid2);
     }),
-  ])
+  ]);
 
   // Vertex shader: renders a full-screen quad.
   const vertexShaderSource: string = /* glsl */ `
@@ -111,13 +111,13 @@ void main() {
   function compileShader(type: number, source: string): WebGLShader | null {
     const shader: WebGLShader | null = gl.createShader(type);
     if (!shader) {
-      console.error('Failed to create shader');
+      console.error("Failed to create shader");
       return null;
     }
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+      console.error("Shader compile error:", gl.getShaderInfoLog(shader));
       gl.deleteShader(shader);
       return null;
     }
@@ -125,17 +125,23 @@ void main() {
   }
 
   // Compile and link shaders.
-  const vertexShader: WebGLShader | null = compileShader(gl.VERTEX_SHADER, vertexShaderSource);
-  const fragmentShader: WebGLShader | null = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+  const vertexShader: WebGLShader | null = compileShader(
+    gl.VERTEX_SHADER,
+    vertexShaderSource
+  );
+  const fragmentShader: WebGLShader | null = compileShader(
+    gl.FRAGMENT_SHADER,
+    fragmentShaderSource
+  );
 
   if (!vertexShader || !fragmentShader) {
-    console.error('Failed to compile shaders');
+    console.error("Failed to compile shaders");
     return;
   }
 
   const program: WebGLProgram | null = gl.createProgram();
   if (!program) {
-    console.error('Failed to create program');
+    console.error("Failed to create program");
     return;
   }
 
@@ -143,19 +149,14 @@ void main() {
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error('Program link error:', gl.getProgramInfoLog(program));
+    console.error("Program link error:", gl.getProgramInfoLog(program));
     return;
   }
   gl.useProgram(program);
 
   // Define a full-screen quad (two triangles).
   const vertices: Float32Array = new Float32Array([
-    -1.0, -1.0,
-     1.0, -1.0,
-    -1.0,  1.0,
-    -1.0,  1.0,
-     1.0, -1.0,
-     1.0,  1.0,
+    -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
   ]);
   const vertexBuffer: WebGLBuffer | null = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -167,10 +168,14 @@ void main() {
   gl.vertexAttribPointer(aPositionLocation, 2, gl.FLOAT, false, 0, 0);
 
   // Get uniform locations.
-  const uTimeLocation: WebGLUniformLocation | null = gl.getUniformLocation(program, "uTime");
-  const uResolutionLocation: WebGLUniformLocation | null = gl.getUniformLocation(program, "uResolution");
-  const acid1TextureLocation = gl.getUniformLocation(program, "acid1Texture")
-  const acid2TextureLocation = gl.getUniformLocation(program, "acid2Texture")
+  const uTimeLocation: WebGLUniformLocation | null = gl.getUniformLocation(
+    program,
+    "uTime"
+  );
+  const uResolutionLocation: WebGLUniformLocation | null =
+    gl.getUniformLocation(program, "uResolution");
+  const acid1TextureLocation = gl.getUniformLocation(program, "acid1Texture");
+  const acid2TextureLocation = gl.getUniformLocation(program, "acid2Texture");
 
   // Set uniform values.
   if (uTimeLocation) {
@@ -203,7 +208,7 @@ void main() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.uniform1i(acid2TextureLocation, 1);
-  })
+  });
 
   // Animation loop.
   let startTime: number = Date.now();
@@ -223,12 +228,12 @@ void main() {
 
 export default function Home() {
   React.useEffect(() => {
-    const homeBackground = document.getElementById('home-background');
+    const homeBackground = document.getElementById("home-background");
 
     if (homeBackground) {
       createInfiniteLoopingNeonFractal(homeBackground);
     }
-  }, [])
+  }, []);
 
   return (
     <Fragment>
@@ -237,22 +242,25 @@ export default function Home() {
           <div className="landing">
             <SVG src={TripshredSvg} />
           </div>
-          <div style={{ flexDirection: 'row' }}>
-            <div className="screenshot" >
+          <div style={{ flexDirection: "row" }}>
+            <div className="screenshot">
               <img src={crazeohScreenshot} alt="A CrazeOh screenshot" />
             </div>
             <div className="separator"></div>
-            <div style={{ alignItems: 'flex-start' }}>
+            <div style={{ alignItems: "flex-start" }}>
               <h1>CrazeOh</h1>
               <p>Home is where the heart is.</p>
             </div>
           </div>
-          <div style={{ flexDirection: 'row-reverse' }}>
-            <div className="screenshot" >
+          <div style={{ flexDirection: "row-reverse" }}>
+            <div className="screenshot">
               <img src={crazeohScreenshot} alt="A CrazeOh screenshot" />
             </div>
             <div className="separator"></div>
-            <div style={{ alignItems: 'flex-end' }} className="mobile-align-start">
+            <div
+              style={{ alignItems: "flex-end" }}
+              className="mobile-align-start"
+            >
               <h1>CrazeOh</h1>
               <p>Home is where the heart is.</p>
             </div>
@@ -265,32 +273,25 @@ export default function Home() {
                 </a>
               </li>
               <li>
-                <a href="#">
-                  Patreon
-                </a>
+                <a href="#">Patreon</a>
               </li>
               <li>
-                <a href="#">
-                  Steam
-                </a>
+                <a href="#">Steam</a>
               </li>
               <li>
-                <a href="#">
-                  Instagram
-                </a>
+                <a href="#">Instagram</a>
               </li>
               <li>
-                <a href="#">
-                  Discord
-                </a>
+                <a href="#">Discord</a>
               </li>
               <li>
-                <a href="#">
-                  Bluesky
-                </a>
+                <a href="#">Bluesky</a>
               </li>
               <li>
-                <a style={{ fontWeight: 600, color: "white" }} href="mailto:contact@tripshred.com">
+                <a
+                  style={{ fontWeight: 600, color: "white" }}
+                  href="mailto:contact@tripshred.com"
+                >
                   contact@tripshred.com
                 </a>
               </li>
@@ -298,9 +299,9 @@ export default function Home() {
           </footer>
         </div>
         {React.useMemo(() => {
-          return <div id="home-background"></div>
+          return <div id="home-background"></div>;
         }, [])}
       </div>
     </Fragment>
-  )
+  );
 }

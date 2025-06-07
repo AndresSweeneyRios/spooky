@@ -1,19 +1,19 @@
 import "./Spooky.css";
 
-import React, { Fragment } from 'react';
-import { Viewport } from '../components/Viewport';
-import { DialogueBox } from '../components/DialogueBox';
+import React, { Fragment } from "react";
+import { Viewport } from "../components/Viewport";
+import { DialogueBox } from "../components/DialogueBox";
 import { scenes } from "../scenes";
-import * as Input from "../input/spookyBattle"
+import * as Input from "../input/spookyBattle";
 import InteractableIconSvg from "../assets/icons/interactable.svg";
 
-import _SVG from 'react-inlinesvg';
+import _SVG from "react-inlinesvg";
 
 const SVG = _SVG as any;
 
-import DpadSvg from '../assets/spooky/dpad.svg';
+import DpadSvg from "../assets/spooky/dpad.svg";
 
-Input.listenForEvents()
+Input.listenForEvents();
 
 export default function Spooky() {
   return (
@@ -35,5 +35,5 @@ export default function Spooky() {
       </div>
       <DialogueBox />
     </Fragment>
-  )
+  );
 }

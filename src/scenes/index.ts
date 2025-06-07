@@ -1,56 +1,55 @@
-import { rapierFinishedLoading } from '../simulation/repository/PhysicsRepository'
+import { rapierFinishedLoading } from "../simulation/repository/PhysicsRepository";
 
 export const scenes = Object.freeze({
-  gatesOfHeaven: () => import('./goh'),
+  gatesOfHeaven: () => import("./goh"),
   // island: () => import('./gardening/island'),
-  city: () => import('./city'),
+  city: () => import("./city"),
   // animationDebugger: () => import('./gardening/animationDebugger'),
-  crazeoh: () => import('./crazeoh'),
-  interloper: () => import('./crazeoh/interloper'),
-  dropper: () => import('./crazeoh/dropper'),
-  stomach: () => import('./crazeoh/stomach'),
-})
+  crazeoh: () => import("./crazeoh"),
+  interloper: () => import("./crazeoh/interloper"),
+  dropper: () => import("./crazeoh/dropper"),
+  stomach: () => import("./crazeoh/stomach"),
+});
 
-const DEFAULT_SCENE = scenes.city
+const DEFAULT_SCENE = scenes.city;
 
-export type Scene = typeof DEFAULT_SCENE
+export type Scene = typeof DEFAULT_SCENE;
 
-let sceneCleanup: (() => void) | null = null
+let sceneCleanup: (() => void) | null = null;
 
 export const loadScene = async (scene: typeof DEFAULT_SCENE) => {
   try {
-    await rapierFinishedLoading
+    await rapierFinishedLoading;
 
-    unloadScene()
+    unloadScene();
 
-    const sceneModule = await scene()
+    const sceneModule = await scene();
 
-    sceneCleanup = await sceneModule.init()
-
+    sceneCleanup = await sceneModule.init();
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
-}
+};
 
 export const unloadScene = () => {
   if (sceneCleanup) {
-    sceneCleanup()
-    sceneCleanup = null
+    sceneCleanup();
+    sceneCleanup = null;
   }
-}
+};
 
 export const loadAppropriateScene = (defaultScene?: Scene) => {
-  const url = new URL(window.location.href)
-  const scene = url.searchParams.get('scene')
+  const url = new URL(window.location.href);
+  const scene = url.searchParams.get("scene");
 
   if (scene) {
-    const sceneFn = scenes[scene as keyof typeof scenes]
+    const sceneFn = scenes[scene as keyof typeof scenes];
 
     if (sceneFn) {
-      loadScene(sceneFn)
-      return
+      loadScene(sceneFn);
+      return;
     }
   }
 
-  void loadScene(defaultScene || DEFAULT_SCENE)
-}
+  void loadScene(defaultScene || DEFAULT_SCENE);
+};

@@ -7,29 +7,30 @@ import * as THREE from "three";
 import * as math from "../utils/math";
 import * as shaders from "../graphics/shaders";
 
-// import skeletonutils 
+// import skeletonutils
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { processAttributes } from "../utils/processAttributes";
 import { animationsPromise, getAnimation, playAnimation } from "../animation";
 import { AnimationKey } from "../assets/3d/animations";
 import normalizeWheel from "../input/normalizeWheel";
-import fungiGlb from '../assets/3d/entities/fungi.glb';
+import fungiGlb from "../assets/3d/entities/fungi.glb";
 
-const gltfPromise = loadGltf(fungiGlb)
+const gltfPromise = loadGltf(fungiGlb);
 
 const ROTATION_SPEED = 3; // Adjust this value to control speed
 
-const IDLE_ANIMATION: AnimationKey = 'humanoid/Drunk Idle Variation.glb - mixamo.com'
-const WALK_ANIMATION: AnimationKey = 'humanoid/Drunk Walk.glb - mixamo.com'
-const RUN_ANIMATION: AnimationKey = 'humanoid/Walk Backward.glb - mixamo.com'
-const IDLE_TIMESCALE = 1
-const WALK_TIMESCALE = 1.7
-const RUN_TIMESCALE = 1.3
-const MIN_CAMERA_DISTANCE = 1.5
-const MAX_CAMERA_DISTANCE = 10
-const DEFAULT_CAMERA_DISTANCE = 4
-const CAMERA_ZOOM_SENSITIVITY = 0.002
-const CAMERA_ZOOM_SMOOTHING = 4
+const IDLE_ANIMATION: AnimationKey =
+  "humanoid/Drunk Idle Variation.glb - mixamo.com";
+const WALK_ANIMATION: AnimationKey = "humanoid/Drunk Walk.glb - mixamo.com";
+const RUN_ANIMATION: AnimationKey = "humanoid/Walk Backward.glb - mixamo.com";
+const IDLE_TIMESCALE = 1;
+const WALK_TIMESCALE = 1.7;
+const RUN_TIMESCALE = 1.3;
+const MIN_CAMERA_DISTANCE = 1.5;
+const MAX_CAMERA_DISTANCE = 10;
+const DEFAULT_CAMERA_DISTANCE = 4;
+const CAMERA_ZOOM_SENSITIVITY = 0.002;
+const CAMERA_ZOOM_SMOOTHING = 4;
 
 export class ThirdPersonPlayerView extends PlayerView {
   mesh: THREE.Object3D | null = null;
@@ -51,11 +52,14 @@ export class ThirdPersonPlayerView extends PlayerView {
 
     const zoomFactor = Math.exp(pixelY * CAMERA_ZOOM_SENSITIVITY);
     this.targetCameraZoom *= zoomFactor;
-    this.targetCameraZoom = Math.max(MIN_CAMERA_DISTANCE, Math.min(MAX_CAMERA_DISTANCE, this.targetCameraZoom));
+    this.targetCameraZoom = Math.max(
+      MIN_CAMERA_DISTANCE,
+      Math.min(MAX_CAMERA_DISTANCE, this.targetCameraZoom)
+    );
   }
 
   async init() {
-    await animationsPromise
+    await animationsPromise;
 
     const gltf = await gltfPromise;
 
@@ -76,11 +80,11 @@ export class ThirdPersonPlayerView extends PlayerView {
 
       if (child instanceof THREE.SkinnedMesh) {
         child.frustumCulled = false;
-        const clip = getAnimation(IDLE_ANIMATION)
-        playAnimation(child, clip, IDLE_TIMESCALE)
+        const clip = getAnimation(IDLE_ANIMATION);
+        playAnimation(child, clip, IDLE_TIMESCALE);
         this.skinnedMeshes.push(child);
       }
-    })
+    });
 
     processAttributes(this.mesh, this.simulation, this.EntId, false);
 
@@ -102,72 +106,89 @@ export class ThirdPersonPlayerView extends PlayerView {
     // bind event to this
     const wheelHandler = this.WheelHandler.bind(this);
 
-    window.addEventListener('wheel', wheelHandler);
+    window.addEventListener("wheel", wheelHandler);
 
     this.runSpeedModifier = 1.5;
 
     this.cleanupEventsThirdPerson = () => {
-      window.removeEventListener('wheel', wheelHandler);
-    }
+      window.removeEventListener("wheel", wheelHandler);
+    };
   }
 
   public Draw(simulation: Simulation, lerpFactor: number): void {
     // inch camera towards target zoom
-    this.cameraOffset[2] = math.lerp(this.cameraOffset[2], this.targetCameraZoom, CAMERA_ZOOM_SMOOTHING * simulation.SimulationState.DeltaTime);
+    this.cameraOffset[2] = math.lerp(
+      this.cameraOffset[2],
+      this.targetCameraZoom,
+      CAMERA_ZOOM_SMOOTHING * simulation.SimulationState.DeltaTime
+    );
 
     super.Draw(simulation, lerpFactor);
 
     const state = simulation.SimulationState;
 
     const position = state.PhysicsRepository.GetPosition(this.EntId);
-    const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
-    const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
+    const previousPosition = state.PhysicsRepository.GetPreviousPosition(
+      this.EntId
+    );
+    const lerpedPosition = math.lerpVec3(
+      previousPosition,
+      position,
+      lerpFactor
+    );
 
     lerpedPosition[0] += this.meshOffset[0];
     lerpedPosition[1] += this.meshOffset[1];
     lerpedPosition[2] += this.meshOffset[2];
 
     // Calculate movement direction
-    const direction = simulation.SimulationState.MovementRepository.GetDirection(this.EntId);
-    const previousDirection = simulation.SimulationState.MovementRepository.GetPreviousDirection(this.EntId);
+    const direction =
+      simulation.SimulationState.MovementRepository.GetDirection(this.EntId);
+    const previousDirection =
+      simulation.SimulationState.MovementRepository.GetPreviousDirection(
+        this.EntId
+      );
 
     if (this.mesh) {
-      this.mesh.position.set(lerpedPosition[0], lerpedPosition[1], lerpedPosition[2]);
+      this.mesh.position.set(
+        lerpedPosition[0],
+        lerpedPosition[1],
+        lerpedPosition[2]
+      );
 
       if (vec3.length(direction) > 0 && vec3.length(previousDirection) === 0) {
         if (this.isRunning) {
-          const clip = getAnimation(RUN_ANIMATION)
+          const clip = getAnimation(RUN_ANIMATION);
 
           for (const skinnedMesh of this.skinnedMeshes) {
-            playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
+            playAnimation(skinnedMesh, clip, RUN_TIMESCALE);
           }
         } else {
-          const clip = getAnimation(WALK_ANIMATION)
+          const clip = getAnimation(WALK_ANIMATION);
 
           for (const skinnedMesh of this.skinnedMeshes) {
-            playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
+            playAnimation(skinnedMesh, clip, WALK_TIMESCALE);
           }
         }
-      } else if (vec3.length(direction) === 0 && vec3.length(previousDirection) > 0) {
-        const clip = getAnimation(IDLE_ANIMATION)
+      } else if (
+        vec3.length(direction) === 0 &&
+        vec3.length(previousDirection) > 0
+      ) {
+        const clip = getAnimation(IDLE_ANIMATION);
 
         for (const skinnedMesh of this.skinnedMeshes) {
-          playAnimation(skinnedMesh, clip, IDLE_TIMESCALE)
+          playAnimation(skinnedMesh, clip, IDLE_TIMESCALE);
         }
       } else if (vec3.length(direction) > 0) {
         // if (this.keysDown.has("ShiftLeft") && !this.isRunning) {
         //   this.isRunning = true;
-
         //   const clip = getAnimation(RUN_ANIMATION)
-
         //   for (const skinnedMesh of this.skinnedMeshes) {
         //     playAnimation(skinnedMesh, clip, RUN_TIMESCALE)
         //   }
         // } else if (!this.keysDown.has("ShiftLeft") && this.isRunning) {
         //   this.isRunning = false;
-
         //   const clip = getAnimation(WALK_ANIMATION)
-
         //   for (const skinnedMesh of this.skinnedMeshes) {
         //     playAnimation(skinnedMesh, clip, WALK_TIMESCALE)
         //   }
@@ -186,10 +207,14 @@ export class ThirdPersonPlayerView extends PlayerView {
         let angleDifference = desiredAngle - currentAngle;
 
         // Normalize angle difference to be between -PI and PI
-        const newAngle = Math.atan2(Math.sin(angleDifference), Math.cos(angleDifference));
+        const newAngle = Math.atan2(
+          Math.sin(angleDifference),
+          Math.cos(angleDifference)
+        );
 
         // Rotate player in direction by rotationSpeed
-        this.mesh.rotation.y += newAngle * ROTATION_SPEED * this.simulation.SimulationState.DeltaTime;
+        this.mesh.rotation.y +=
+          newAngle * ROTATION_SPEED * this.simulation.SimulationState.DeltaTime;
       }
     }
   }

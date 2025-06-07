@@ -1,79 +1,111 @@
 import { EntId } from "../EntityRegistry";
 import { SimulationState } from "../SimulationState";
 import { SimulationCommandWithTarget } from "../commands/_command";
-import { ExecutionMode, SensorCommand } from "../repository/SensorCommandRepository";
+import {
+  ExecutionMode,
+  SensorCommand,
+} from "../repository/SensorCommandRepository";
 
 export const sensorSystem = (state: SimulationState) => {
   for (const entId of state.SensorCommandRepository.Entities) {
-    state.SensorCommandRepository.ClearAvailableInteractions(entId)
+    state.SensorCommandRepository.ClearAvailableInteractions(entId);
   }
 
   for (const entId of state.SensorCommandRepository.Entities) {
-    const sensors = state.PhysicsRepository.GetSensors(entId)
+    const sensors = state.PhysicsRepository.GetSensors(entId);
 
-    const immediateCommandMap = new Map<symbol, Readonly<[symbol, SensorCommand]>[]>()
-    const interactionCommandMap = new Map<symbol, Readonly<[symbol, SensorCommand]>[]>()
+    const immediateCommandMap = new Map<
+      symbol,
+      Readonly<[symbol, SensorCommand]>[]
+    >();
+    const interactionCommandMap = new Map<
+      symbol,
+      Readonly<[symbol, SensorCommand]>[]
+    >();
 
     for (const sensor of sensors) {
-      for (const { symbol, command } of state.SensorCommandRepository.GetCommandsForSensor(entId, sensor)) {
+      for (const {
+        symbol,
+        command,
+      } of state.SensorCommandRepository.GetCommandsForSensor(entId, sensor)) {
         if (command.ExecutionMode === ExecutionMode.Immediate) {
           if (!immediateCommandMap.has(sensor)) {
-            immediateCommandMap.set(sensor, [])
+            immediateCommandMap.set(sensor, []);
           }
 
-          immediateCommandMap.get(sensor)!.push([symbol, command])
+          immediateCommandMap.get(sensor)!.push([symbol, command]);
         } else if (command.ExecutionMode === ExecutionMode.Interaction) {
           if (!interactionCommandMap.has(sensor)) {
-            interactionCommandMap.set(sensor, [])
+            interactionCommandMap.set(sensor, []);
           }
 
-          interactionCommandMap.get(sensor)!.push([symbol, command])
+          interactionCommandMap.get(sensor)!.push([symbol, command]);
         }
       }
     }
 
     for (const sensor of sensors) {
-      if (!immediateCommandMap.has(sensor) && !interactionCommandMap.has(sensor)) {
-        continue
+      if (
+        !immediateCommandMap.has(sensor) &&
+        !interactionCommandMap.has(sensor)
+      ) {
+        continue;
       }
 
-      let touchingTarget = false
-      let targetEntId: EntId | null = null
+      let touchingTarget = false;
+      let targetEntId: EntId | null = null;
 
       for (const target of state.SensorTargetRepository.Entities) {
-        if (state.PhysicsRepository.GetIsSensorCollidingWithTarget(entId, sensor, target)) {
-          touchingTarget = true
-          targetEntId = target
+        if (
+          state.PhysicsRepository.GetIsSensorCollidingWithTarget(
+            entId,
+            sensor,
+            target
+          )
+        ) {
+          touchingTarget = true;
+          targetEntId = target;
         }
       }
 
       if (!touchingTarget || !targetEntId) {
-        continue
+        continue;
       }
 
       if (immediateCommandMap.has(sensor)) {
-        for (const [commandSymbol, { Command, Once }] of immediateCommandMap.get(sensor)!) {
+        for (const [
+          commandSymbol,
+          { Command, Once },
+        ] of immediateCommandMap.get(sensor)!) {
           if (Command instanceof SimulationCommandWithTarget) {
-            Command.TargetEntId = targetEntId
+            Command.TargetEntId = targetEntId;
           }
 
-          state.Commands.push(Command)
+          state.Commands.push(Command);
 
           if (Once) {
-            state.SensorCommandRepository.DeleteSensorCommand(entId, commandSymbol)
+            state.SensorCommandRepository.DeleteSensorCommand(
+              entId,
+              commandSymbol
+            );
           }
         }
       }
 
       if (interactionCommandMap.has(sensor)) {
-        for (const [commandSymbol, { Command, Once }] of interactionCommandMap.get(sensor)!) {
+        for (const [
+          commandSymbol,
+          { Command, Once },
+        ] of interactionCommandMap.get(sensor)!) {
           if (Command instanceof SimulationCommandWithTarget) {
-            Command.TargetEntId = targetEntId
+            Command.TargetEntId = targetEntId;
           }
 
-          state.SensorCommandRepository.PushAvailableInteractions(targetEntId, [commandSymbol])
+          state.SensorCommandRepository.PushAvailableInteractions(targetEntId, [
+            commandSymbol,
+          ]);
         }
       }
     }
   }
-}
+};

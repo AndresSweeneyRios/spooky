@@ -3,10 +3,10 @@ import { SimulationCommand } from "./_command";
 
 export class LogCommand extends SimulationCommand {
   constructor(public log: string) {
-    super()
+    super();
   }
 
   public Execute(simulation: Simulation): void {
-    console.log(this.log)
+    console.log(this.log);
   }
 }

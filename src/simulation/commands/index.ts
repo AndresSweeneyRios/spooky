@@ -10,4 +10,4 @@ export const commands = Object.freeze({
   ThroneTestSequence,
   barricadespawner,
   exitdoor,
-})
+});

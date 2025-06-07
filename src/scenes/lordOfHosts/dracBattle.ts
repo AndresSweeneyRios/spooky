@@ -1,41 +1,43 @@
-import * as THREE from 'three'
-import { renderer } from '../../components/Viewport';
-import { Simulation } from '../../simulation';
-import { View } from '../../simulation/View';
-import { loadEquirectangularAsEnvMap, loadGltf } from '../../graphics/loaders';
-import * as shaders from '../../graphics/shaders';
-import { processAttributes } from '../../utils/processAttributes';
+import * as THREE from "three";
+import { renderer } from "../../components/Viewport";
+import { Simulation } from "../../simulation";
+import { View } from "../../simulation/View";
+import { loadEquirectangularAsEnvMap, loadGltf } from "../../graphics/loaders";
+import * as shaders from "../../graphics/shaders";
+import { processAttributes } from "../../utils/processAttributes";
 import { EffectComposer } from "three/examples/jsm/Addons.js";
 import { playerInput } from "../../input/player";
 import { ToneMappingShader } from "../../graphics/toneMappingShader";
 import { SobelOperatorShader } from "../../graphics/sobelOberatorShader";
-import skyMirrorWebp from '../../assets/3d/env/sky_mirror.webp';
-import stairsGlb from '../../assets/3d/scenes/stairs/stairs.glb';
-import dmtPng from '../../assets/3d/env/dmt.png';
-import acid1Webp from '../../assets/3d/throne/ACID1.webp';
-import acid2Webp from '../../assets/3d/throne/ACID2.webp';
-import acid3Webp from '../../assets/3d/throne/ACID3.webp';
+import skyMirrorWebp from "../../assets/3d/env/sky_mirror.webp";
+import stairsGlb from "../../assets/3d/scenes/stairs/stairs.glb";
+import dmtPng from "../../assets/3d/env/dmt.png";
+import acid1Webp from "../../assets/3d/throne/ACID1.webp";
+import acid2Webp from "../../assets/3d/throne/ACID2.webp";
+import acid3Webp from "../../assets/3d/throne/ACID3.webp";
 import { getRGBBits } from "../../graphics/quantize";
 import { createParallaxWindowMaterial } from "../../graphics/parallaxWindow";
-import { NoiseMaterial } from '../../graphics/noise';
+import { NoiseMaterial } from "../../graphics/noise";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
-export let currentCrtPass: ShaderPass | null = null
+export let currentCrtPass: ShaderPass | null = null;
 
 const toggleBattleTrack = (bool: boolean) => {
-  document.querySelector("#spooky #battle-track")?.setAttribute("is-hidden", bool ? "false" : "true")
-}
+  document
+    .querySelector("#spooky #battle-track")
+    ?.setAttribute("is-hidden", bool ? "false" : "true");
+};
 
-import * as midi from '../../audio/midi';
-import fastbeatWav from '../../assets/audio/music/dracbattle.wav';
-import fastbeatMidURL from '../../assets/audio/music/dracbattle.mid';
+import * as midi from "../../audio/midi";
+import fastbeatWav from "../../assets/audio/music/dracbattle.wav";
+import fastbeatMidURL from "../../assets/audio/music/dracbattle.mid";
 import { SubSceneContext } from "../goh/sub-scenes";
 import { createDrac } from "../../entities/lordOfHosts/drac";
 
-async function doBeatMap(onNoteTime: (note: midi.Note) => void = () => { }) {
+async function doBeatMap(onNoteTime: (note: midi.Note) => void = () => {}) {
   const noteElementMap = new Map<symbol, HTMLElement>();
   const noteMap = new Map<symbol, midi.Note>();
 
@@ -46,7 +48,16 @@ async function doBeatMap(onNoteTime: (note: midi.Note) => void = () => { }) {
 
   // Ideally in the future this should be in the in the simulation loop or pausable.
   // Also this should probably be inspected. The hitboxes feel super off.
-  for await (const notes of midi.playNotesOnce(fastbeatWav, fastbeatMidURL, 2000, 999, 2000, 300, 200, onNoteTime)) {
+  for await (const notes of midi.playNotesOnce(
+    fastbeatWav,
+    fastbeatMidURL,
+    2000,
+    999,
+    2000,
+    300,
+    200,
+    onNoteTime
+  )) {
     for (const note of notes) {
       noteMap.set(note.note, note);
 
@@ -76,8 +87,8 @@ async function doBeatMap(onNoteTime: (note: midi.Note) => void = () => { }) {
 
         const button = buttonTypeMap[note.button];
 
-        button.style.fill = "white"
-        button.style.fillOpacity = "1"
+        button.style.fill = "white";
+        button.style.fillOpacity = "1";
       }
 
       const noteElement = noteElementMap.get(note.note)!;
@@ -87,7 +98,7 @@ async function doBeatMap(onNoteTime: (note: midi.Note) => void = () => { }) {
 
     // Cleanup
     for (const [note, noteElement] of noteElementMap) {
-      if (notes.every(n => n.note !== note)) {
+      if (notes.every((n) => n.note !== note)) {
         noteElementMap.delete(note);
 
         if (!noteMap.has(note)) {
@@ -121,9 +132,14 @@ export let triplanarMaterial: THREE.ShaderMaterial;
 let drac: Awaited<ReturnType<typeof createDrac>> | null = null;
 
 export async function init() {
-  console.log("Initializing the battle scene!")
+  console.log("Initializing the battle scene!");
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
+  camera = new THREE.PerspectiveCamera(
+    90,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    10000
+  );
   simulation = new Simulation(camera, scene);
 
   // --- Triplanar Sphere Setup ---
@@ -131,14 +147,10 @@ export async function init() {
   const textureLoader = new THREE.TextureLoader();
 
   // Load throne acid textures (prefer webp)
-  const [
-    texAcid1,
-    texAcid2,
-    texAcid3
-  ] = await Promise.all([
+  const [texAcid1, texAcid2, texAcid3] = await Promise.all([
     textureLoader.loadAsync(acid1Webp),
     textureLoader.loadAsync(acid2Webp),
-    textureLoader.loadAsync(acid3Webp)
+    textureLoader.loadAsync(acid3Webp),
   ]);
 
   for (const tex of [texAcid1, texAcid2, texAcid3]) {
@@ -153,17 +165,19 @@ export async function init() {
       tAcid3: { value: texAcid3 },
       scale: { value: 1.5 },
       time: { value: 0 },
-      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-      poseHue: { value: 0.0 }
+      resolution: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      },
+      poseHue: { value: 0.0 },
     },
-    vertexShader: /*glsl*/`
+    vertexShader: /*glsl*/ `
       varying vec3 vPosition;
       void main() {
         vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
-    fragmentShader: /*glsl*/`
+    fragmentShader: /*glsl*/ `
       uniform float scale;
       uniform float time;
       uniform float poseHue;
@@ -263,7 +277,7 @@ export async function init() {
       }
     `,
     side: THREE.DoubleSide,
-    transparent: false
+    transparent: false,
   });
 
   const sphere = new THREE.Mesh(
@@ -276,73 +290,84 @@ export async function init() {
   // Animate shader uniforms
   function updateTriplanarUniforms() {
     triplanarMaterial.uniforms.time.value = performance.now() * 0.001;
-    triplanarMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+    triplanarMaterial.uniforms.resolution.value.set(
+      window.innerWidth,
+      window.innerHeight
+    );
     requestAnimationFrame(updateTriplanarUniforms);
   }
   requestAnimationFrame(updateTriplanarUniforms);
 
-  window.addEventListener('resize', () => {
-    triplanarMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+  window.addEventListener("resize", () => {
+    triplanarMaterial.uniforms.resolution.value.set(
+      window.innerWidth,
+      window.innerHeight
+    );
   });
 
   effectComposer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
   effectComposer.addPass(renderPass);
 
-  ToneMappingShader.uniforms.contrast = { value: 1.07 }
-  ToneMappingShader.uniforms.saturation = { value: 0.95 }
-  ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 }
+  ToneMappingShader.uniforms.contrast = { value: 1.07 };
+  ToneMappingShader.uniforms.saturation = { value: 0.95 };
+  ToneMappingShader.uniforms.toneMappingExposure = { value: 0.9 };
   const toneMappingPass = new ShaderPass(ToneMappingShader);
   effectComposer.addPass(toneMappingPass);
 
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.5, 0.6)
-  effectComposer.addPass(bloomPass)
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.1,
+    0.5,
+    0.6
+  );
+  effectComposer.addPass(bloomPass);
 
   sobelPass = new ShaderPass(SobelOperatorShader);
   effectComposer.addPass(sobelPass);
 
   crtPass = new ShaderPass(shaders.CRTShader);
-  crtPass.uniforms.scanlineIntensity.value = 0.5
+  crtPass.uniforms.scanlineIntensity.value = 0.5;
   effectComposer.addPass(crtPass);
-  currentCrtPass = crtPass
+  currentCrtPass = crtPass;
 
-  const outputPass = new OutputPass()
-  effectComposer.addPass(outputPass)
+  const outputPass = new OutputPass();
+  effectComposer.addPass(outputPass);
 
-  const sceneEntId = simulation.EntityRegistry.Create()
-  simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
+  const sceneEntId = simulation.EntityRegistry.Create();
+  simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1)
-  scene.add(ambientLight)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+  scene.add(ambientLight);
 
-  const [_drac] = await Promise.all([
-    createDrac(simulation)
-  ])
+  const [_drac] = await Promise.all([createDrac(simulation)]);
 
   drac = _drac;
 
   drac.meshPromise.then((mesh) => {
-    mesh.rotation.set(Math.PI / -2 + 0.5, 0, 0.5)
+    mesh.rotation.set(Math.PI / -2 + 0.5, 0, 0.5);
     drac!.meshOffset[2] = -2;
     drac!.meshOffset[1] = 0.3;
-  })
+  });
 
-  simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
-    public Draw(): void {
-      scene.environmentRotation.y += 0.0002
-      scene.backgroundRotation.y += 0.0002
+  simulation.ViewSync.AddAuxiliaryView(
+    new (class ThreeJSRenderer extends View {
+      public Draw(): void {
+        scene.environmentRotation.y += 0.0002;
+        scene.backgroundRotation.y += 0.0002;
 
-      crtPass.uniforms.time.value = Date.now() / 1000.0 % 1.0;
+        crtPass.uniforms.time.value = (Date.now() / 1000.0) % 1.0;
 
-      effectComposer.render();
-      playerInput.update();
-    }
-  })
+        effectComposer.render();
+        playerInput.update();
+      }
+    })()
+  );
 
   return () => {
-    console.log("Cleaning up battle scene!")
+    console.log("Cleaning up battle scene!");
     simulation.ViewSync.Cleanup(simulation);
-  }
+  };
 }
 
 // We don't want to load assets in the show function or if we do we want to load them non-blocking then inject them into the scene later
@@ -350,13 +375,19 @@ export async function init() {
 export async function show(context: SubSceneContext) {
   console.log("Showing battle scene!");
 
-  toggleBattleTrack(true)
+  toggleBattleTrack(true);
 
   const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    crtPass.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height)
-    effectComposer.setSize(renderer.domElement.width, renderer.domElement.height)
+    crtPass.uniforms.resolution.value.set(
+      renderer.domElement.width,
+      renderer.domElement.height
+    );
+    effectComposer.setSize(
+      renderer.domElement.width,
+      renderer.domElement.height
+    );
 
     sobelPass.uniforms.resolution.value.set(
       window.innerWidth * window.devicePixelRatio,
@@ -364,11 +395,11 @@ export async function show(context: SubSceneContext) {
     );
 
     // fxaaPass.material.uniforms['resolution'].value.set(1 / renderer.domElement.width, 1 / renderer.domElement.height)
-  }
+  };
 
-  window.addEventListener('resize', resize, false);
+  window.addEventListener("resize", resize, false);
 
-  resize()
+  resize();
 
   simulation.Start();
 
@@ -386,13 +417,13 @@ export async function show(context: SubSceneContext) {
       triplanarMaterial.uniforms.poseHue.value = poseHue;
     }
   }).then(() => {
-    console.log("Beatmap done!")
+    console.log("Beatmap done!");
     context.End();
-  })
+  });
 
   return () => {
-    window.removeEventListener('resize', resize, false);
+    window.removeEventListener("resize", resize, false);
     simulation.Stop();
     toggleBattleTrack(false);
-  }
+  };
 }

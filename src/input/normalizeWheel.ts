@@ -10,14 +10,25 @@ interface NormalizedWheelEvent {
 }
 
 function normalizeWheel(event: any): NormalizedWheelEvent {
-  let sX = 0, sY = 0, pX = 0, pY = 0;
+  let sX = 0,
+    sY = 0,
+    pX = 0,
+    pY = 0;
 
-  if ('detail' in event) { sY = event.detail; }
-  if ('wheelDelta' in event) { sY = -event.wheelDelta / 120; }
-  if ('wheelDeltaY' in event) { sY = -event.wheelDeltaY / 120; }
-  if ('wheelDeltaX' in event) { sX = -event.wheelDeltaX / 120; }
+  if ("detail" in event) {
+    sY = event.detail;
+  }
+  if ("wheelDelta" in event) {
+    sY = -event.wheelDelta / 120;
+  }
+  if ("wheelDeltaY" in event) {
+    sY = -event.wheelDeltaY / 120;
+  }
+  if ("wheelDeltaX" in event) {
+    sX = -event.wheelDeltaX / 120;
+  }
 
-  if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
+  if ("axis" in event && event.axis === event.HORIZONTAL_AXIS) {
     sX = sY;
     sY = 0;
   }
@@ -25,8 +36,12 @@ function normalizeWheel(event: any): NormalizedWheelEvent {
   pX = sX * PIXEL_STEP;
   pY = sY * PIXEL_STEP;
 
-  if ('deltaY' in event) { pY = event.deltaY; }
-  if ('deltaX' in event) { pX = event.deltaX; }
+  if ("deltaY" in event) {
+    pY = event.deltaY;
+  }
+  if ("deltaX" in event) {
+    pX = event.deltaX;
+  }
 
   if ((pX || pY) && event.deltaMode) {
     if (event.deltaMode == 1) {
@@ -38,14 +53,18 @@ function normalizeWheel(event: any): NormalizedWheelEvent {
     }
   }
 
-  if (pX && !sX) { sX = (pX < 1) ? -1 : 1; }
-  if (pY && !sY) { sY = (pY < 1) ? -1 : 1; }
+  if (pX && !sX) {
+    sX = pX < 1 ? -1 : 1;
+  }
+  if (pY && !sY) {
+    sY = pY < 1 ? -1 : 1;
+  }
 
   return {
     spinX: sX,
     spinY: sY,
     pixelX: pX,
-    pixelY: pY
+    pixelY: pY,
   };
 }
 

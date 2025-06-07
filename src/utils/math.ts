@@ -1,21 +1,21 @@
-import { vec3 } from "gl-matrix"
-import * as THREE from "three"
+import { vec3 } from "gl-matrix";
+import * as THREE from "three";
 
 export const lerp = (a: number, b: number, t: number) => {
-  return a + (b - a) * t
-}
+  return a + (b - a) * t;
+};
 
 export const lerpVec3 = (a: vec3, b: vec3, t: number) => {
   return vec3.fromValues(
     lerp(a[0], b[0], t),
     lerp(a[1], b[1], t),
-    lerp(a[2], b[2], t),
-  )
-}
+    lerp(a[2], b[2], t)
+  );
+};
 
 export const vec3ToThree = (v: vec3) => {
-  return new THREE.Vector3(v[0], v[1], v[2])
-}
+  return new THREE.Vector3(v[0], v[1], v[2]);
+};
 
 export function getAngle(
   object: THREE.Vector3,
@@ -23,7 +23,9 @@ export function getAngle(
   camera: THREE.Camera
 ): number {
   // Compute the normalized vector from the player's position to the object's position.
-  const playerToObj = new THREE.Vector3().subVectors(object, player).normalize();
+  const playerToObj = new THREE.Vector3()
+    .subVectors(object, player)
+    .normalize();
 
   // Get the camera's forward direction.
   const camDir = new THREE.Vector3();

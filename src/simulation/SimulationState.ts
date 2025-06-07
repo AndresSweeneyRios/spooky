@@ -7,14 +7,14 @@ import { SensorTargetRepository } from "./repository/SensorTargetRepository";
 import { StatRepository } from "./repository/StatRepository";
 
 export class SimulationState {
-  public DeltaTime: number = 0
+  public DeltaTime: number = 0;
 
-  PhysicsRepository = PhysicsRepository.Factory()
-  MovementRepository = MovementRepository.Factory()
-  SensorTargetRepository = SensorTargetRepository.Factory()
-  SensorCommandRepository = SensorCommandRepository.Factory()
-  StatRepository = StatRepository.Factory()
+  PhysicsRepository = PhysicsRepository.Factory();
+  MovementRepository = MovementRepository.Factory();
+  SensorTargetRepository = SensorTargetRepository.Factory();
+  SensorCommandRepository = SensorCommandRepository.Factory();
+  StatRepository = StatRepository.Factory();
 
-  public Commands: SimulationCommand[] = []
-  public Events: SimulationEvent[] = []
+  public Commands: SimulationCommand[] = [];
+  public Events: SimulationEvent[] = [];
 }

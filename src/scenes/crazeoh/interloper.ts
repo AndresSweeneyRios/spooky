@@ -1,61 +1,67 @@
-import * as THREE from 'three'
-import { Simulation } from '../../simulation'
-import { loadAudio, loadGltf } from '../../graphics/loaders'
-import * as player from '../../entities/player'
-import * as state from "./state"
-import { SimulationCommand } from "../../simulation/commands/_command"
-import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository"
-import { initScene } from "./initScene"
-import interloperGlb from '../../assets/3d/scenes/island/interloper_OPTIMIZED.glb'
-import aveMarisStellaMp3 from '../../assets/audio/music/AveMarisStella.mp3'
-import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg'
-import { hideMainMenu } from "../../pages/Caseoh"
+import * as THREE from "three";
+import { Simulation } from "../../simulation";
+import { loadAudio, loadGltf } from "../../graphics/loaders";
+import * as player from "../../entities/player";
+import * as state from "./state";
+import { SimulationCommand } from "../../simulation/commands/_command";
+import { ExecutionMode } from "../../simulation/repository/SensorCommandRepository";
+import { initScene } from "./initScene";
+import interloperGlb from "../../assets/3d/scenes/island/interloper_OPTIMIZED.glb";
+import aveMarisStellaMp3 from "../../assets/audio/music/AveMarisStella.mp3";
+import eatChipOgg from "../../assets/audio/sfx/eat_chip.ogg";
+import { hideMainMenu } from "../../pages/Caseoh";
 
-const loadingEl = document.getElementById("caseoh-loading")
-const splashEl = document.getElementById("splash")
+const loadingEl = document.getElementById("caseoh-loading");
+const splashEl = document.getElementById("splash");
 
 export const disableLoading = (): void => {
-  loadingEl?.setAttribute("is-hidden", "true")
-  splashEl?.setAttribute("is-hidden", "true")
-}
+  loadingEl?.setAttribute("is-hidden", "true");
+  splashEl?.setAttribute("is-hidden", "true");
+};
 
 export const enableLoading = (): void => {
-  loadingEl?.setAttribute("is-hidden", "false")
-}
+  loadingEl?.setAttribute("is-hidden", "false");
+};
 
-const mapLoader = loadGltf(interloperGlb).then(gltf => gltf.scene)
+const mapLoader = loadGltf(interloperGlb).then((gltf) => gltf.scene);
 
 const music = loadAudio(aveMarisStellaMp3, {
   loop: true,
   positional: false,
   volume: 0.0,
-})
+});
 
-const tempVec3 = new THREE.Vector3()
+const tempVec3 = new THREE.Vector3();
 
-export let pizzaEaten = false
+export let pizzaEaten = false;
 
 const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
-  const foodObject = scene.getObjectByName(food) as THREE.Mesh
+  const foodObject = scene.getObjectByName(food) as THREE.Mesh;
   if (!foodObject) {
-    console.warn(`Food object "${food}" not found in scene`)
-    return
+    console.warn(`Food object "${food}" not found in scene`);
+    return;
   }
 
-  const entId = simulation.EntityRegistry.Create()
-  simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
-  foodObject.getWorldPosition(tempVec3)
-  simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [2, 2, 2], [tempVec3.x, tempVec3.y, tempVec3.z], undefined, true)
-  simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
+  const entId = simulation.EntityRegistry.Create();
+  simulation.SimulationState.PhysicsRepository.CreateComponent(entId);
+  foodObject.getWorldPosition(tempVec3);
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(
+    entId,
+    [2, 2, 2],
+    [tempVec3.x, tempVec3.y, tempVec3.z],
+    undefined,
+    true
+  );
+  simulation.SimulationState.SensorCommandRepository.CreateComponent(entId);
 
-  const command = new class extends SimulationCommand {
-    public Owner: THREE.Object3D = foodObject
+  const command = new (class extends SimulationCommand {
+    public Owner: THREE.Object3D = foodObject;
 
     public Execute(): void {
-      foodObject.visible = false
+      foodObject.visible = false;
 
       if (food === "pizza") {
-        pizzaEaten = true
+        pizzaEaten = true;
       }
 
       loadAudio(eatChipOgg, {
@@ -63,11 +69,11 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
         randomPitch: true,
         pitchRange: 400,
         volume: 0.1,
-      }).then(audio => audio.play())
+      }).then((audio) => audio.play());
 
-      music.then(audio => audio.stop())
+      music.then((audio) => audio.stop());
     }
-  }
+  })();
 
   simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
     entId: entId,
@@ -75,52 +81,51 @@ const eat = (food: string, simulation: Simulation, scene: THREE.Scene) => {
     once: true,
     command: command,
     owner: foodObject,
-  })
-}
+  });
+};
 
 export const init = async () => {
-  enableLoading()
+  enableLoading();
 
-  pizzaEaten = false
+  pizzaEaten = false;
 
-  const { scene, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
+  const { scene, simulation, cleanup, createFlashlight } =
+    await initScene(mapLoader);
 
-  await Promise.all([
-    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
-  ])
+  await Promise.all([player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])]);
 
   // Delay music start by 2 seconds
   setTimeout(() => {
-    music.then(audio => audio.play())
+    music.then((audio) => audio.play());
 
     // ease volume up to 0.2 over 2 seconds
-    const fadeInDuration = 30000
-    const fadeInInterval = 50
-    const fadeInStep = 0.05 / (fadeInDuration / fadeInInterval)
-    let currentVolume = 0.0
+    const fadeInDuration = 30000;
+    const fadeInInterval = 50;
+    const fadeInStep = 0.05 / (fadeInDuration / fadeInInterval);
+    let currentVolume = 0.0;
     const fadeInIntervalId = setInterval(() => {
-      currentVolume += fadeInStep
+      currentVolume += fadeInStep;
       if (currentVolume >= 0.05) {
-        currentVolume = 0.05
-        clearInterval(fadeInIntervalId)
+        currentVolume = 0.05;
+        clearInterval(fadeInIntervalId);
       }
-      music.then(audio => audio.setVolume(currentVolume))
-    }, fadeInInterval)
-  }, 2000)
+      music.then((audio) => audio.setVolume(currentVolume));
+    }, fadeInInterval);
+  }, 2000);
 
-  eat("pizza", simulation, scene)
+  eat("pizza", simulation, scene);
 
-  createFlashlight()
+  createFlashlight();
 
-  simulation.Start()
+  simulation.Start();
 
-  state.setGameStarted(true)
-  hideMainMenu()
+  state.setGameStarted(true);
+  hideMainMenu();
 
-  disableLoading()
+  disableLoading();
 
   return () => {
-    if (music.then) music.then(audio => audio.stop())
-    cleanup()
-  }
-}
+    if (music.then) music.then((audio) => audio.stop());
+    cleanup();
+  };
+};

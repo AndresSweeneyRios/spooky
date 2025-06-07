@@ -1,12 +1,12 @@
-import type { EntId } from "./EntityRegistry"
-import { View } from "./View"
+import type { EntId } from "./EntityRegistry";
+import { View } from "./View";
 
 export abstract class EntityView extends View {
-  public EntId: EntId
+  public EntId: EntId;
 
   constructor(entId: EntId) {
-    super()
+    super();
 
-    this.EntId = entId
+    this.EntId = entId;
   }
 }

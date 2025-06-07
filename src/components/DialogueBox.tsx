@@ -1,30 +1,30 @@
-import "./DialogueBox.css"
-import * as React from "react"
+import "./DialogueBox.css";
+import * as React from "react";
 
-let dialogue: React.ReactNode = undefined
-let keyCounter = 0
+let dialogue: React.ReactNode = undefined;
+let keyCounter = 0;
 
-const getUniqueKey = () => `text-${keyCounter++}`
+const getUniqueKey = () => `text-${keyCounter++}`;
 
 export const setDialogue = (text: React.ReactNode) => {
-  dialogue = text
+  dialogue = text;
 
-  window.dispatchEvent(new Event("dialogue-updated"))
-}
+  window.dispatchEvent(new Event("dialogue-updated"));
+};
 
 /**
  * Recursively extracts the full text content from a React node.
  */
 function getFullText(node: React.ReactNode): string {
-  if (typeof node === 'string' || typeof node === 'number') {
-    return String(node)
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
   }
   if (React.isValidElement(node)) {
     return React.Children.toArray(node.props.children)
       .map(getFullText)
-      .join('')
+      .join("");
   }
-  return ''
+  return "";
 }
 
 /**
@@ -42,45 +42,65 @@ function cloneWithReveal(
   revealCount: number
 ): [React.ReactNode, number] {
   // Handle strings and numbers (treated as text)
-  if (typeof node === 'string' || typeof node === 'number') {
-    const text = String(node)
+  if (typeof node === "string" || typeof node === "number") {
+    const text = String(node);
     if (text.length <= revealCount) {
       // Fully revealed text node.
-      return [<span key={getUniqueKey()}>{text}</span>, revealCount - text.length]
+      return [
+        <span key={getUniqueKey()}>{text}</span>,
+        revealCount - text.length,
+      ];
     } else {
       // Partially reveal the text and insert the cursor immediately after.
-      const revealedText = text.slice(0, revealCount)
-      const cursor = <span key={getUniqueKey()} className="cursor">❚</span>
-      return [<span key={getUniqueKey()}>{revealedText}{cursor}</span>, 0]
+      const revealedText = text.slice(0, revealCount);
+      const cursor = (
+        <span key={getUniqueKey()} className="cursor">
+          ❚
+        </span>
+      );
+      return [
+        <span key={getUniqueKey()}>
+          {revealedText}
+          {cursor}
+        </span>,
+        0,
+      ];
     }
   }
 
   // Handle valid React elements
   if (React.isValidElement(node)) {
-    if (!node.props.children) return [node, revealCount]
+    if (!node.props.children) return [node, revealCount];
 
-    const childrenArray = React.Children.toArray(node.props.children)
-    const newChildren: React.ReactNode[] = []
+    const childrenArray = React.Children.toArray(node.props.children);
+    const newChildren: React.ReactNode[] = [];
 
     // Process each child until we run out of characters to reveal.
     for (const child of childrenArray) {
       if (revealCount <= 0) {
         // Once we've hit the unrevealed point, stop processing further children.
-        break
+        break;
       }
-      const [newChild, remaining] = cloneWithReveal(child, revealCount)
-      newChildren.push(newChild)
-      revealCount = remaining
+      const [newChild, remaining] = cloneWithReveal(child, revealCount);
+      newChildren.push(newChild);
+      revealCount = remaining;
       // If the current child ended with a cursor (i.e. revealCount is 0), break out.
-      if (revealCount <= 0) break
+      if (revealCount <= 0) break;
     }
 
     // Clone the element with the partially revealed children.
-    return [React.cloneElement(node, { ...node.props, key: getUniqueKey() }, newChildren), revealCount]
+    return [
+      React.cloneElement(
+        node,
+        { ...node.props, key: getUniqueKey() },
+        newChildren
+      ),
+      revealCount,
+    ];
   }
 
   // For other node types (e.g. booleans, null), return as-is.
-  return [node, revealCount]
+  return [node, revealCount];
 }
 
 /**
@@ -93,62 +113,59 @@ function cloneWithReveal(
  *   }
  */
 export function* proceduralDialogue(node: React.ReactNode) {
-  const fullText = getFullText(node)
-  const totalLength = fullText.length
+  const fullText = getFullText(node);
+  const totalLength = fullText.length;
 
   // Yield intermediate states with increasing revealed character counts.
   for (let i = 0; i < totalLength; i++) {
-    const [revealedNode] = cloneWithReveal(node, i)
-    yield revealedNode
+    const [revealedNode] = cloneWithReveal(node, i);
+    yield revealedNode;
   }
 
   // Final yield without the cursor.
-  yield node
+  yield node;
 }
-
 
 export async function* timedDialogue({
   texts,
   ms = 30,
 }: {
-  texts: React.ReactNode[]
-  ms?: number
+  texts: React.ReactNode[];
+  ms?: number;
 }) {
-  let parts: React.ReactNode[] = new Array(texts.length)
-  parts.fill("")
+  let parts: React.ReactNode[] = new Array(texts.length);
+  parts.fill("");
 
   for (let i = 0; i < texts.length; i++) {
-    const generator = proceduralDialogue(texts[i])
+    const generator = proceduralDialogue(texts[i]);
 
     for (let value of generator) {
-      parts[i] = value
-      yield parts.map((part, idx) => <span key={`part-${idx}`}>{part}</span>)
+      parts[i] = value;
+      yield parts.map((part, idx) => <span key={`part-${idx}`}>{part}</span>);
 
-      await new Promise(resolve => setTimeout(resolve, ms))
+      await new Promise((resolve) => setTimeout(resolve, ms));
     }
   }
 }
 
 export const DialogueBox: React.FC = () => {
-  const [text, setText] = React.useState<React.ReactNode>("")
+  const [text, setText] = React.useState<React.ReactNode>("");
 
   React.useEffect(() => {
     const handler = () => {
-      setText(dialogue)
-    }
+      setText(dialogue);
+    };
 
-    window.addEventListener("dialogue-updated", handler)
+    window.addEventListener("dialogue-updated", handler);
 
     return () => {
-      window.removeEventListener("dialogue-updated", handler)
-    }
-  }, [])
+      window.removeEventListener("dialogue-updated", handler);
+    };
+  }, []);
 
   return (
     <div id="dialogue-box" is-hidden={!text ? "true" : undefined}>
-      <p>
-        {text}
-      </p>
+      <p>{text}</p>
     </div>
-  )
-}
+  );
+};

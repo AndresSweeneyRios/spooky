@@ -1,204 +1,220 @@
-import * as THREE from 'three'
-import { renderer } from '../../components/Viewport';
-import { Simulation } from '../../simulation';
-import { View } from '../../simulation/View';
-import { loadEquirectangularAsEnvMap, loadGltf } from '../../graphics/loaders';
-import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
-import ReactDOM from 'react-dom';
-import React from 'react';
-import { playAnimation } from '../../animation/animationPlayer';
-import { animationKeys } from '../../assets/3d/animations';
+import * as THREE from "three";
+import { renderer } from "../../components/Viewport";
+import { Simulation } from "../../simulation";
+import { View } from "../../simulation/View";
+import { loadEquirectangularAsEnvMap, loadGltf } from "../../graphics/loaders";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
+import ReactDOM from "react-dom";
+import React from "react";
+import { playAnimation } from "../../animation/animationPlayer";
+import { animationKeys } from "../../assets/3d/animations";
 
-import skyMirrorWebp from '../../assets/3d/env/sky_mirror.webp';
-import caseohGlb from '../../assets/3d/entities/caseoh.glb';
-import animationsListJson from '../../assets/3d/animations/_list.json';
+import skyMirrorWebp from "../../assets/3d/env/sky_mirror.webp";
+import caseohGlb from "../../assets/3d/entities/caseoh.glb";
+import animationsListJson from "../../assets/3d/animations/_list.json";
 
 export const init = async () => {
-  const scene = new THREE.Scene()
-  const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const simulation = new Simulation(camera, scene)
-  camera.position.set(0, 0.5, 2)
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(
+    90,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  const simulation = new Simulation(camera, scene);
+  camera.position.set(0, 0.5, 2);
 
-  const sceneEntId = simulation.EntityRegistry.Create()
-  simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId)
+  const sceneEntId = simulation.EntityRegistry.Create();
+  simulation.SimulationState.PhysicsRepository.CreateComponent(sceneEntId);
 
-  simulation.ViewSync.AddAuxiliaryView(new class ThreeJSRenderer extends View {
-    public Draw(): void {
-      renderer.render(scene, camera)
-    }
-  })
+  simulation.ViewSync.AddAuxiliaryView(
+    new (class ThreeJSRenderer extends View {
+      public Draw(): void {
+        renderer.render(scene, camera);
+      }
+    })()
+  );
 
   const resize = () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-  }
+  };
 
-  resize()
+  resize();
 
-  window.addEventListener('resize', resize, false);
+  window.addEventListener("resize", resize, false);
 
   const [, playerModelGLTF, animationListJSON] = await Promise.all([
-    loadEquirectangularAsEnvMap(skyMirrorWebp, THREE.LinearFilter, THREE.LinearFilter, renderer).then((texture) => {
-      scene.background = texture
-      scene.backgroundIntensity = 0.0
-      scene.environment = texture
-      scene.environmentIntensity = 1.0
+    loadEquirectangularAsEnvMap(
+      skyMirrorWebp,
+      THREE.LinearFilter,
+      THREE.LinearFilter,
+      renderer
+    ).then((texture) => {
+      scene.background = texture;
+      scene.backgroundIntensity = 0.0;
+      scene.environment = texture;
+      scene.environmentIntensity = 1.0;
 
-      scene.environmentRotation.y = Math.PI / -4
-      scene.backgroundRotation.y = Math.PI / -4
+      scene.environmentRotation.y = Math.PI / -4;
+      scene.backgroundRotation.y = Math.PI / -4;
     }),
 
     loadGltf(caseohGlb),
 
     Promise.resolve(animationsListJson),
-  ])
+  ]);
 
-  const animationList = animationListJSON as { [directory: string]: string[] }
+  const animationList = animationListJSON as { [directory: string]: string[] };
 
-  type AnimationObject = { 
-    directory: string, 
-    name: string, 
-    clip: THREE.AnimationClip, 
-    key: string,
-  }
+  type AnimationObject = {
+    directory: string;
+    name: string;
+    clip: THREE.AnimationClip;
+    key: string;
+  };
 
-  const animationMap = new Map<string, AnimationObject[]>()
+  const animationMap = new Map<string, AnimationObject[]>();
 
-  const fullPaths = Object.entries(animationList).flatMap(([directory, files]) => files.map((file) => `/3d/animations/${directory}/${file}`))
+  const fullPaths = Object.entries(animationList).flatMap(
+    ([directory, files]) =>
+      files.map((file) => `/3d/animations/${directory}/${file}`)
+  );
 
-  fullPaths.sort()
+  fullPaths.sort();
 
-  const [...animationObjects] = await Promise.all(fullPaths.map(async (path) => {
-    const animation = await loadGltf(path)
+  const [...animationObjects] = await Promise.all(
+    fullPaths.map(async (path) => {
+      const animation = await loadGltf(path);
 
-    const filename = path.split('/').pop() as string
+      const filename = path.split("/").pop() as string;
 
-    const directory = path.split('/').slice(-2)[0]
+      const directory = path.split("/").slice(-2)[0];
 
-    return animation.animations.map((clip) => {
-      const clipName = clip.name
+      return animation.animations.map((clip) => {
+        const clipName = clip.name;
 
-      if (!animationMap.has(directory)) {
-        animationMap.set(directory, [] as AnimationObject[])
-      }
+        if (!animationMap.has(directory)) {
+          animationMap.set(directory, [] as AnimationObject[]);
+        }
 
-      const object: AnimationObject = { 
-        directory: directory, 
-        name: `${filename} - ${clipName}`, 
-        clip, 
-        key: `${directory}/${filename} - ${clipName}`,
-      }
+        const object: AnimationObject = {
+          directory: directory,
+          name: `${filename} - ${clipName}`,
+          clip,
+          key: `${directory}/${filename} - ${clipName}`,
+        };
 
-      return object
+        return object;
+      });
     })
-  }))
+  );
 
   animationObjects.forEach((objects) => {
     objects.forEach((object) => {
-      animationMap.get(object.directory)?.push(object)
-    })
-  })
+      animationMap.get(object.directory)?.push(object);
+    });
+  });
 
-  const playerModel = SkeletonUtils.clone(playerModelGLTF.scene)
+  const playerModel = SkeletonUtils.clone(playerModelGLTF.scene);
 
-  scene.add(playerModel)
+  scene.add(playerModel);
 
-  let rotationEnabled = false
+  let rotationEnabled = false;
 
-  const playerView = new class PlayerView extends View {
+  const playerView = new (class PlayerView extends View {
     public Draw(simulation: Simulation): void {
       if (rotationEnabled) {
-        playerModel.rotateY(simulation.SimulationState.DeltaTime)
+        playerModel.rotateY(simulation.SimulationState.DeltaTime);
       }
     }
 
-    public Cleanup(): void {
-    }
-  }
+    public Cleanup(): void {}
+  })();
 
-  const skinnedMeshes = [] as THREE.SkinnedMesh[]
+  const skinnedMeshes = [] as THREE.SkinnedMesh[];
 
   playerModel.traverse((object) => {
     if (object instanceof THREE.SkinnedMesh) {
-      skinnedMeshes.push(object)
+      skinnedMeshes.push(object);
     }
-  })
+  });
 
   const playClip = (clip: THREE.AnimationClip) => {
     for (const skinnedMesh of skinnedMeshes) {
-      playAnimation(skinnedMesh, clip)
+      playAnimation(skinnedMesh, clip);
     }
-  }
+  };
 
   for (const [, animations] of animationMap.entries()) {
     for (const { clip } of animations) {
-      playClip(clip)
+      playClip(clip);
 
-      break
+      break;
     }
 
-    break
+    break;
   }
 
   const serialize = () => {
-    const serialized: Record<string, any> = {}
+    const serialized: Record<string, any> = {};
 
     for (const [, animations] of animationMap.entries()) {
       for (const { clip, key } of animations) {
         if (!enabledAnimations.has(key)) {
-          continue
+          continue;
         }
 
-        serialized[key] = THREE.AnimationClip.toJSON(clip)
+        serialized[key] = THREE.AnimationClip.toJSON(clip);
       }
     }
 
     return {
       names: Object.keys(serialized),
       json: JSON.stringify(serialized),
-    }
-  }
+    };
+  };
 
-  const enabledAnimations = new Set<string>(animationKeys)
+  const enabledAnimations = new Set<string>(animationKeys);
 
   const generateBody = () => {
-    const serialized = serialize()
+    const serialized = serialize();
 
     const typescript = `
 export const animationKeys = ${JSON.stringify(serialized.names)} as const
 export type AnimationKey = typeof animationKeys[number]
-`
+`;
 
     return {
       typescript,
       json: serialized.json,
-    }
-  }
+    };
+  };
 
   const publish = async () => {
     try {
-      const response = await fetch('http://localhost:8888/update-animations', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8888/update-animations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(generateBody()),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(await response.text())
+        throw new Error(await response.text());
       }
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
 
-  const debugMenuHtmlElement = document.createElement('div')
-  debugMenuHtmlElement.id = 'animation-debugger'
-  document.body.appendChild(debugMenuHtmlElement)
+  const debugMenuHtmlElement = document.createElement("div");
+  debugMenuHtmlElement.id = "animation-debugger";
+  document.body.appendChild(debugMenuHtmlElement);
 
-  const styleElement = document.createElement('style')
-  styleElement.innerHTML = /* css */`
+  const styleElement = document.createElement("style");
+  styleElement.innerHTML = /* css */ `
     #animation-debugger {
       color: white;
       font-size: 12px;
@@ -253,97 +269,99 @@ export type AnimationKey = typeof animationKeys[number]
       height: 1em;
       cursor: pointer;
     }
-  `
-  document.head.appendChild(styleElement)
+  `;
+  document.head.appendChild(styleElement);
 
   const Component = () => {
-    const [_, setUpdate] = React.useState(0)
-    const [loading, setLoading] = React.useState(false)
+    const [_, setUpdate] = React.useState(0);
+    const [loading, setLoading] = React.useState(false);
 
     const publishReactive = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
-        await publish()
+        await publish();
 
-        setLoading(false)
+        setLoading(false);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
+    };
 
     if (loading) {
-      return <>Loading...</>
+      return <>Loading...</>;
     }
 
-    return <>
-      <div id="animation-debugger-controls">
-        <h1>Animation Debugger</h1>
-        {Array.from(animationMap.entries()).map(([directory, animations]) => (
-          <React.Fragment key={directory}>
-            <h2>{directory}</h2>
-            {animations.map(({ name, clip, key }) => {
-              return (
-                <div className='animation' key={`${directory}-${name}`}>
-                  <input
-                    type='checkbox'
-                    checked={enabledAnimations.has(key)}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        enabledAnimations.add(key);
-                      } else {
-                        enabledAnimations.delete(key);
-                      }
+    return (
+      <>
+        <div id="animation-debugger-controls">
+          <h1>Animation Debugger</h1>
+          {Array.from(animationMap.entries()).map(([directory, animations]) => (
+            <React.Fragment key={directory}>
+              <h2>{directory}</h2>
+              {animations.map(({ name, clip, key }) => {
+                return (
+                  <div className="animation" key={`${directory}-${name}`}>
+                    <input
+                      type="checkbox"
+                      checked={enabledAnimations.has(key)}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          enabledAnimations.add(key);
+                        } else {
+                          enabledAnimations.delete(key);
+                        }
 
-                      setUpdate((prev) => prev + 1);
-                    }}
-                  />
-                  <button onClick={() => playClip(clip)}>{name}</button>
-                </div>
-              );
-            })}
-          </React.Fragment>
-        ))}
-      </div>
+                        setUpdate((prev) => prev + 1);
+                      }}
+                    />
+                    <button onClick={() => playClip(clip)}>{name}</button>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
 
-      <button
-        onClick={() => {
-          rotationEnabled = !rotationEnabled
-          setUpdate((prev) => prev + 1)
-        }}
-        style={{
-          position: 'absolute',
-          bottom: '1em',
-          right: '1em',
-          fontSize: '2em',
-        }}
-      >{
-          rotationEnabled ? 'Disable Rotation' : 'Enable Rotation'
-        }</button>
+        <button
+          onClick={() => {
+            rotationEnabled = !rotationEnabled;
+            setUpdate((prev) => prev + 1);
+          }}
+          style={{
+            position: "absolute",
+            bottom: "1em",
+            right: "1em",
+            fontSize: "2em",
+          }}
+        >
+          {rotationEnabled ? "Disable Rotation" : "Enable Rotation"}
+        </button>
 
-      {/* publish button */}
+        {/* publish button */}
 
-      <button
-        onClick={publishReactive}
-        style={{
-          position: 'absolute',
-          bottom: '4em',
-          right: '1em',
-          fontSize: '2em',
-        }}
-      >
-        Publish
-      </button>
-    </>
-  }
+        <button
+          onClick={publishReactive}
+          style={{
+            position: "absolute",
+            bottom: "4em",
+            right: "1em",
+            fontSize: "2em",
+          }}
+        >
+          Publish
+        </button>
+      </>
+    );
+  };
 
-  ReactDOM.render(<Component />, debugMenuHtmlElement)
+  ReactDOM.render(<Component />, debugMenuHtmlElement);
 
-  simulation.ViewSync.AddAuxiliaryView(playerView)
+  simulation.ViewSync.AddAuxiliaryView(playerView);
 
-  simulation.Start()
+  simulation.Start();
 
   return () => {
-    simulation.Stop()
-  }
-}
+    simulation.Stop();
+  };
+};

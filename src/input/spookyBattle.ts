@@ -1,24 +1,24 @@
 export enum Key {
-  W = 'W',
-  A = 'A',
-  S = 'S',
-  D = 'D',
-  H = 'H',
-  J = 'J',
-  K = 'K',
-  L = 'L',
-  ArrowUp = 'ArrowUp',
-  ArrowDown = 'ArrowDown',
-  ArrowLeft = 'ArrowLeft',
-  ArrowRight = 'ArrowRight',
-  GamepadUp = 'GamepadUp',
-  GamepadDown = 'GamepadDown',
-  GamepadLeft = 'GamepadLeft',
-  GamepadRight = 'GamepadRight',
-  GamepadX = 'GamepadX',
-  GamepadA = 'GamepadA',
-  GamepadY = 'GamepadY',
-  GamepadB = 'GamepadB'
+  W = "W",
+  A = "A",
+  S = "S",
+  D = "D",
+  H = "H",
+  J = "J",
+  K = "K",
+  L = "L",
+  ArrowUp = "ArrowUp",
+  ArrowDown = "ArrowDown",
+  ArrowLeft = "ArrowLeft",
+  ArrowRight = "ArrowRight",
+  GamepadUp = "GamepadUp",
+  GamepadDown = "GamepadDown",
+  GamepadLeft = "GamepadLeft",
+  GamepadRight = "GamepadRight",
+  GamepadX = "GamepadX",
+  GamepadA = "GamepadA",
+  GamepadY = "GamepadY",
+  GamepadB = "GamepadB",
 }
 
 // For keys currently held, we keep booleans.
@@ -29,18 +29,18 @@ export const JustPressed: { [key in Key]?: number } = {};
 
 // Use lowercase for single-character keys, but for multi‑character keys we assume the caller provides a suitable value.
 const keyMap: { [key: string]: Key } = {
-  'w': Key.W,
-  'a': Key.A,
-  's': Key.S,
-  'd': Key.D,
-  'h': Key.H,
-  'j': Key.J,
-  'k': Key.K,
-  'l': Key.L,
-  'arrowup': Key.ArrowUp,
-  'arrowdown': Key.ArrowDown,
-  'arrowleft': Key.ArrowLeft,
-  'arrowright': Key.ArrowRight
+  w: Key.W,
+  a: Key.A,
+  s: Key.S,
+  d: Key.D,
+  h: Key.H,
+  j: Key.J,
+  k: Key.K,
+  l: Key.L,
+  arrowup: Key.ArrowUp,
+  arrowdown: Key.ArrowDown,
+  arrowleft: Key.ArrowLeft,
+  arrowright: Key.ArrowRight,
 };
 
 const gamepadMap: { [index: number]: Key } = {
@@ -51,12 +51,12 @@ const gamepadMap: { [index: number]: Key } = {
   2: Key.GamepadX,
   0: Key.GamepadA,
   3: Key.GamepadY,
-  1: Key.GamepadB
+  1: Key.GamepadB,
 };
 
 export const listenForEvents = () => {
   // Keyboard event listeners.
-  window.addEventListener('keydown', (event) => {
+  window.addEventListener("keydown", (event) => {
     const normalizedKey = event.key.toLowerCase();
     const mapped = keyMap[normalizedKey];
     if (mapped) {
@@ -68,7 +68,7 @@ export const listenForEvents = () => {
     }
   });
 
-  window.addEventListener('keyup', (event) => {
+  window.addEventListener("keyup", (event) => {
     const normalizedKey = event.key.toLowerCase();
     const mapped = keyMap[normalizedKey];
     if (mapped) {
@@ -105,7 +105,10 @@ function updateGamepadState() {
 function flushJustPressed(thresholdMs: number = 200) {
   const now = Date.now();
   for (const key in JustPressed) {
-    if (JustPressed[key as Key] && (now - JustPressed[key as Key]!) > thresholdMs) {
+    if (
+      JustPressed[key as Key] &&
+      now - JustPressed[key as Key]! > thresholdMs
+    ) {
       delete JustPressed[key as Key];
     }
   }
@@ -119,14 +122,14 @@ function updateInput() {
 
 // Define possible actions.
 export enum Action {
-  Up = 'Up',
-  Down = 'Down',
-  Left = 'Left',
-  Right = 'Right',
-  MinorAttack = 'MinorAttack',
-  MinorBreaker = 'MinorBreaker',
-  MajorAttack = 'MajorAttack',
-  MajorBreaker = 'MajorBreaker'
+  Up = "Up",
+  Down = "Down",
+  Left = "Left",
+  Right = "Right",
+  MinorAttack = "MinorAttack",
+  MinorBreaker = "MinorBreaker",
+  MajorAttack = "MajorAttack",
+  MajorBreaker = "MajorBreaker",
 }
 
 // Map keys to actions.
@@ -150,22 +153,29 @@ const actionMap: { [key in Key]?: Action } = {
   [Key.K]: Action.MajorAttack,
   [Key.GamepadY]: Action.MajorAttack,
   [Key.L]: Action.MajorBreaker,
-  [Key.GamepadB]: Action.MajorBreaker
+  [Key.GamepadB]: Action.MajorBreaker,
 };
 
 // New function: WasRecentlyPressed.
 // Returns true if any key mapping to the given action was pressed within thresholdMs (default 200ms).
-export function WasRecentlyPressed(action: Action, thresholdMs: number = 200): boolean {
+export function WasRecentlyPressed(
+  action: Action,
+  thresholdMs: number = 200
+): boolean {
   const now = Date.now();
-  return Object.keys(JustPressed).some(key => {
+  return Object.keys(JustPressed).some((key) => {
     const mapped = key as Key;
-    return actionMap[mapped] === action &&
+    return (
+      actionMap[mapped] === action &&
       JustPressed[mapped] !== undefined &&
-      (now - JustPressed[mapped]!) <= thresholdMs;
+      now - JustPressed[mapped]! <= thresholdMs
+    );
   });
 }
 
 // For compatibility.
 export function IsPressed(action: Action): boolean {
-  return Object.keys(Pressed).some(key => actionMap[key as Key] === action && Pressed[key as Key]);
+  return Object.keys(Pressed).some(
+    (key) => actionMap[key as Key] === action && Pressed[key as Key]
+  );
 }

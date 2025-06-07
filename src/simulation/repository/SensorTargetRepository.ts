@@ -1,13 +1,9 @@
-import {
-  SimulationRepository,
-  SimulationComponent,
-} from "./_repository"
+import { SimulationRepository, SimulationComponent } from "./_repository";
 
-class SensorTargetComponent extends SimulationComponent {
-}
+class SensorTargetComponent extends SimulationComponent {}
 
 export class SensorTargetRepository extends SimulationRepository<SensorTargetComponent> {
   public static Factory() {
-    return new SensorTargetRepository(new SensorTargetComponent())
+    return new SensorTargetRepository(new SensorTargetComponent());
   }
 }

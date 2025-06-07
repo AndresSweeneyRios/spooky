@@ -1,7 +1,7 @@
-export type EntId = symbol & { __entId: true }
+export type EntId = symbol & { __entId: true };
 
 export class EntityRegistry {
   Create() {
-    return Symbol() as EntId
+    return Symbol() as EntId;
   }
 }

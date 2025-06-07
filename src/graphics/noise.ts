@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 import { renderer } from "../components/Viewport";
 
 function createNoiseShaderMaterial() {
@@ -6,9 +6,9 @@ function createNoiseShaderMaterial() {
   const material = new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
-      resolution: { value: new THREE.Vector2(0, 0) }
+      resolution: { value: new THREE.Vector2(0, 0) },
     },
-    vertexShader: /*glsl*/`
+    vertexShader: /*glsl*/ `
       varying vec2 vUv;
       
       void main() {
@@ -16,7 +16,7 @@ function createNoiseShaderMaterial() {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
-    fragmentShader: /*glsl*/`
+    fragmentShader: /*glsl*/ `
       precision mediump float;
       varying vec2 vUv;
       uniform float time;
@@ -42,7 +42,7 @@ function createNoiseShaderMaterial() {
         gl_FragColor = vec4(noise, noise, noise, 1.0); // Output noise as grayscale color
       }
     `,
-    transparent: true // Allow the material to have transparent cutout sections
+    transparent: true, // Allow the material to have transparent cutout sections
   });
 
   let previousWidth = 0;
@@ -54,7 +54,7 @@ function createNoiseShaderMaterial() {
     material.uniforms.time.value = time;
 
     if (renderer === null) {
-      return
+      return;
     }
 
     const width = renderer.domElement.clientWidth;

@@ -19,6 +19,6 @@ export class ThroneTestSequence extends SimulationCommand {
       command: new LogCommand("WEEEEOOOOOO"),
       executionMode: ExecutionMode.Immediate,
       once: true,
-    })
+    });
   }
 }

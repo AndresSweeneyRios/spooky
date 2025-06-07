@@ -1,1 +1,1 @@
-import "./throne"
+import "./throne";

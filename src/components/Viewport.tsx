@@ -1,22 +1,22 @@
-import * as React from "react"
-import * as THREE from "three"
+import * as React from "react";
+import * as THREE from "three";
 
-import { RENDERER } from "../../constants"
-import { loadAppropriateScene, Scene, unloadScene } from "../scenes"
+import { RENDERER } from "../../constants";
+import { loadAppropriateScene, Scene, unloadScene } from "../scenes";
 
-export let canvas: HTMLCanvasElement = null!
-export let renderer: THREE.WebGLRenderer = null!
+export let canvas: HTMLCanvasElement = null!;
+export let renderer: THREE.WebGLRenderer = null!;
 
 export const Viewport: React.FC<{
-  scene?: Scene
+  scene?: Scene;
 }> = (props) => {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null)
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   React.useEffect(() => {
-    if (canvas) return
-    if (!canvasRef.current) return
+    if (canvas) return;
+    if (!canvasRef.current) return;
 
-    canvas = canvasRef.current
+    canvas = canvasRef.current;
 
     renderer = new THREE.WebGLRenderer({
       canvas,
@@ -24,33 +24,34 @@ export const Viewport: React.FC<{
       preserveDrawingBuffer: true,
       failIfMajorPerformanceCaveat: false,
       powerPreference: "high-performance",
-    })
-    
+    });
+
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const resize = () => {
       if (!RENDERER.limitResolution) {
-        canvas.width = window.innerWidth
-        canvas.height = window.innerHeight
-        renderer.setSize(window.innerWidth, window.innerHeight)
-        return
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        return;
       }
 
       // Helper to ensure an even number
-      const ensureEven = (value: number) => value % 2 === 0 ? value : value - 1;
-    
+      const ensureEven = (value: number) =>
+        value % 2 === 0 ? value : value - 1;
+
       // Get window dimensions (ensured even)
       const windowWidth = ensureEven(window.innerWidth);
       const windowHeight = ensureEven(window.innerHeight);
       const targetHeight = RENDERER.height; // desired downscaled renderer height
-    
+
       // Compute the GCD of windowWidth and windowHeight
-      const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+      const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
       const commonDivisor = gcd(windowWidth, windowHeight);
-    
+
       // Gather all divisors of the commonDivisor.
       // Each divisor S is a candidate integer scale factor.
       let candidateScaleFactors: number[] = [];
@@ -59,7 +60,7 @@ export const Viewport: React.FC<{
           candidateScaleFactors.push(i);
         }
       }
-    
+
       // Now choose the S that makes canvas.height = windowHeight/S as close as possible to targetHeight.
       let bestS = candidateScaleFactors[0];
       let bestDiff = Infinity;
@@ -71,51 +72,45 @@ export const Viewport: React.FC<{
           bestS = s;
         }
       }
-    
+
       // Now, set the canvas resolution based on the chosen scale factor.
       const canvasHeight = windowHeight / bestS;
-      const canvasWidth  = windowWidth / bestS;
-    
+      const canvasWidth = windowWidth / bestS;
+
       // These are the low-resolution (downscaled) dimensions used for rendering
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
-    
+
       // For display, set the CSS size to the full window dimensions.
       // (This causes the browser to scale up the canvas by an integer factor of bestS.)
-      canvas.parentElement!.style.width  = `${windowWidth}px`;
+      canvas.parentElement!.style.width = `${windowWidth}px`;
       canvas.parentElement!.style.height = `${windowHeight}px`;
-    
+
       // Update your renderer with the canvas's pixel dimensions.
       renderer.setSize(canvas.width, canvas.height);
     };
-    
 
-    window.addEventListener("resize", resize)
-    resize()
+    window.addEventListener("resize", resize);
+    resize();
 
-    loadAppropriateScene(props.scene)
+    loadAppropriateScene(props.scene);
 
     return () => {
-      unloadScene()
+      unloadScene();
 
-      window.removeEventListener("resize", resize)
-    }
-  }, [])
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
 
   React.useEffect(() => {
     return () => {
-      unloadScene()
+      unloadScene();
 
       if (renderer) {
-        renderer.dispose()
+        renderer.dispose();
       }
-    }
-  }, [])
+    };
+  }, []);
 
-  return (
-    <canvas
-      id="viewport"
-      ref={canvasRef}
-    />
-  )
-}
+  return <canvas id="viewport" ref={canvasRef} />;
+};

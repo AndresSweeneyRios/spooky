@@ -4,7 +4,7 @@ export const RENDERER = Object.freeze({
   colorBits: 64,
   vertexBits: 8,
   antialias: true,
-})
+});
 
 // export const RENDERER = Object.freeze({
 //   limitResolution: false,

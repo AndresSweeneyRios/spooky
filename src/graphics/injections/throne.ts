@@ -1,20 +1,20 @@
-import * as shaders from '../shaders';
+import * as shaders from "../shaders";
 
 shaders.inject({
   uniforms: {
-    throneEye: { value: false }
+    throneEye: { value: false },
   },
-  
+
   fragment: [
     {
       marker: shaders.FRAGMENT_MARKER.UNIFORM,
-      value: /* glsl */`
+      value: /* glsl */ `
 uniform bool throneEye;
-`
+`,
     },
     {
       marker: shaders.FRAGMENT_MARKER.POST_QUANTIZATION,
-      value: /* glsl */`
+      value: /* glsl */ `
 if (throneEye) {
   vec4 color = gl_FragColor;
   // increase exposure
@@ -23,7 +23,7 @@ if (throneEye) {
   color.g *= 1.7;
   gl_FragColor = color;
 }
-      `
+      `,
     },
-  ]
-})
+  ],
+});

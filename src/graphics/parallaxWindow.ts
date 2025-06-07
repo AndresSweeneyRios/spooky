@@ -1,14 +1,19 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
-export function createParallaxWindowMaterial(envMap: THREE.CubeTexture, camera: THREE.Camera) {
+export function createParallaxWindowMaterial(
+  envMap: THREE.CubeTexture,
+  camera: THREE.Camera
+) {
   const material = new THREE.ShaderMaterial({
     uniforms: {
       envMap: { value: envMap },
       cameraPosition: { value: new THREE.Vector3() },
-      rotationMatrix: { value: new THREE.Matrix3() }, // Pass the rotation matrix as a uniform 
-      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, // Pass the resolution
+      rotationMatrix: { value: new THREE.Matrix3() }, // Pass the rotation matrix as a uniform
+      resolution: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      }, // Pass the resolution
     },
-    vertexShader: /* glsl */`
+    vertexShader: /* glsl */ `
       varying vec3 vWorldPosition;
 
       void main() {
@@ -17,7 +22,7 @@ export function createParallaxWindowMaterial(envMap: THREE.CubeTexture, camera: 
         gl_Position = projectionMatrix * viewMatrix * worldPosition;
       }
     `,
-    fragmentShader: /* glsl */`
+    fragmentShader: /* glsl */ `
       precision mediump float;
       varying vec3 vWorldPosition;
       uniform samplerCube envMap;
@@ -43,17 +48,20 @@ export function createParallaxWindowMaterial(envMap: THREE.CubeTexture, camera: 
   });
 
   const updateCameraPosition = () => {
-    material.uniforms.cameraPosition.value.copy(camera.position)
-    material.uniforms.resolution.value.set(window.innerWidth, window.innerHeight)
-  }
-  
+    material.uniforms.cameraPosition.value.copy(camera.position);
+    material.uniforms.resolution.value.set(
+      window.innerWidth,
+      window.innerHeight
+    );
+  };
+
   const setRotationMatrix = (rotationMatrix: THREE.Matrix3) => {
-    material.uniforms.rotationMatrix.value.copy(rotationMatrix)
-  }
+    material.uniforms.rotationMatrix.value.copy(rotationMatrix);
+  };
 
   return {
     material,
     updateCameraPosition,
     setRotationMatrix,
-  }
+  };
 }

@@ -5,9 +5,9 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 // Hide splash element if it exists
-const splash = document.getElementById('splash');
+const splash = document.getElementById("splash");
 if (splash) {
-  splash.setAttribute('is-hidden', 'true');
+  splash.setAttribute("is-hidden", "true");
 }
 
 // Binary size tree node structure
@@ -58,7 +58,7 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
   if ((object as THREE.Mesh).material) {
     const material = (object as THREE.Mesh).material;
     if (Array.isArray(material)) {
-      material.forEach(mat => {
+      material.forEach((mat) => {
         if (!seenMaterials.has(mat)) {
           seenMaterials.add(mat);
           ownSize += estimateMaterialSize(mat);
@@ -72,7 +72,7 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
 
   // Process children recursively and sum up their sizes
   let childrenTotalSize = 0;
-  object.children.forEach(child => {
+  object.children.forEach((child) => {
     const childNode = calculateBinarySize(child);
     childrenNodes.push(childNode);
     childrenTotalSize += childNode.size;
@@ -88,7 +88,7 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
     name: nodeName,
     size: totalSize,
     percentage: 0, // to be set later
-    children: []
+    children: [],
   };
 
   // If there is a nonzero "direct" size and also children,
@@ -99,7 +99,7 @@ function calculateBinarySize(object: THREE.Object3D): BinarySizeNode {
       name: `${nodeName} (direct)`,
       size: ownSize,
       percentage: 0,
-      children: []
+      children: [],
     });
   }
 
@@ -122,10 +122,10 @@ function estimateMaterialSize(material: THREE.Material): number {
     standardMat.roughnessMap,
     standardMat.metalnessMap,
     standardMat.aoMap,
-    standardMat.emissiveMap
+    standardMat.emissiveMap,
   ];
 
-  textureMaps.forEach(texture => {
+  textureMaps.forEach((texture) => {
     if (texture && texture.image && !seenTextures.has(texture)) {
       seenTextures.add(texture);
       // Estimate size: width * height * 4 (assuming RGBA)
@@ -144,7 +144,7 @@ function estimateMaterialSize(material: THREE.Material): number {
  */
 function calculatePercentages(node: BinarySizeNode, totalSize: number): void {
   node.percentage = (node.size / totalSize) * 100;
-  node.children.forEach(child => calculatePercentages(child, totalSize));
+  node.children.forEach((child) => calculatePercentages(child, totalSize));
 }
 
 export const SizeChecker: React.FC = () => {
@@ -154,22 +154,24 @@ export const SizeChecker: React.FC = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-  
+
     setLoading(true);
-    
+
     // Reset the WeakSets for a fresh calculation.
     seenGeometries = new WeakSet<THREE.BufferGeometry>();
     seenMaterials = new WeakSet<THREE.Material>();
     seenTextures = new WeakSet<THREE.Texture>();
 
     const objectUrl = URL.createObjectURL(file);
-    
+
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-    
+    dracoLoader.setDecoderPath(
+      "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    );
+
     const loader = new GLTFLoader();
     loader.setDRACOLoader(dracoLoader);
-    
+
     loader.load(
       objectUrl,
       (gltf) => {
@@ -177,11 +179,11 @@ export const SizeChecker: React.FC = () => {
         const tree = calculateBinarySize(gltf.scene);
         // Compute percentages based on total size
         calculatePercentages(tree, tree.size);
-        
+
         console.log("Binary Size Tree:", tree);
         setSizeTree(tree);
         setLoading(false);
-        
+
         URL.revokeObjectURL(objectUrl);
         dracoLoader.dispose();
       },
@@ -201,11 +203,11 @@ export const SizeChecker: React.FC = () => {
 
   // Helper: Format bytes into a human-readable string.
   const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   /**
@@ -221,26 +223,27 @@ export const SizeChecker: React.FC = () => {
     // Sort children by percentage in descending order and filter out near-zero contributions.
     const sortedChildren = [...node.children]
       .sort((a, b) => b.percentage - a.percentage)
-      .filter(child => child.percentage > 1);
-    
+      .filter((child) => child.percentage > 1);
+
     return (
       <div key={`${node.name}-${level}`}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span>
             {prefix}
             {level > 0 && (isLast ? "└─ " : "├─ ")}
-            <span style={{ width: '80px', display: 'inline-block' }}>
+            <span style={{ width: "80px", display: "inline-block" }}>
               {node.percentage.toFixed(2)}%
             </span>
-            <span style={{ backgroundColor: 'white', color: 'black' }}>
-              {node.name || 'Unnamed'}
+            <span style={{ backgroundColor: "white", color: "black" }}>
+              {node.name || "Unnamed"}
             </span>{" "}
             {formatBytes(node.size)}
           </span>
         </div>
         {sortedChildren.map((child, index) => {
           const childIsLast = index === sortedChildren.length - 1;
-          const newPrefix = prefix + (level > 0 ? (isLast ? "   " : "│  ") : "");
+          const newPrefix =
+            prefix + (level > 0 ? (isLast ? "   " : "│  ") : "");
           return renderSizeNode(child, level + 1, childIsLast, newPrefix);
         })}
       </div>
@@ -254,11 +257,11 @@ export const SizeChecker: React.FC = () => {
         <form>
           <div>
             <label htmlFor="glbFile">Upload GLB file: </label>
-            <input 
-              type="file" 
-              id="glbFile" 
-              accept=".glb" 
-              onChange={handleFileUpload} 
+            <input
+              type="file"
+              id="glbFile"
+              accept=".glb"
+              onChange={handleFileUpload}
               disabled={loading}
             />
           </div>
@@ -268,9 +271,7 @@ export const SizeChecker: React.FC = () => {
           <div>
             <h2>Binary Size Analysis</h2>
             <p>Total Size: {formatBytes(sizeTree.size)}</p>
-            <div className="size-tree">
-              {renderSizeNode(sizeTree)}
-            </div>
+            <div className="size-tree">{renderSizeNode(sizeTree)}</div>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * Interface for tree node representing serialized size information
@@ -36,7 +36,7 @@ export function computeSerializedSizeTree(root: THREE.Object3D): SizeTreeNode {
     name: root.name || root.type,
     size: totalSize,
     percentage: 100, // the root is 100% of the total
-    children: []
+    children: [],
   };
 
   // Initialize the BFS queue. Each element contains:
@@ -48,7 +48,7 @@ export function computeSerializedSizeTree(root: THREE.Object3D): SizeTreeNode {
     const { object, treeNode } = queue.shift()!;
 
     // Process each child of the current object
-    object.children.forEach(child => {
+    object.children.forEach((child) => {
       // Serialize the child object and compute its size
       const childJSON: string = JSON.stringify(child.toJSON());
       const childSize: number = childJSON.length;
@@ -59,7 +59,7 @@ export function computeSerializedSizeTree(root: THREE.Object3D): SizeTreeNode {
         name: child.name || child.type,
         size: childSize,
         percentage: percentage,
-        children: []
+        children: [],
       };
 
       // Append the child's tree node to its parent's children list
@@ -80,9 +80,15 @@ const rootObject = new THREE.Object3D();
 rootObject.name = "RootObject";
 
 // Create some children and add them to the root
-const child1 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
+const child1 = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial()
+);
 child1.name = "Child1";
-const child2 = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), new THREE.MeshBasicMaterial());
+const child2 = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 16, 16),
+  new THREE.MeshBasicMaterial()
+);
 child2.name = "Child2";
 
 // Add children to root
@@ -90,7 +96,10 @@ rootObject.add(child1);
 rootObject.add(child2);
 
 // Optionally add a grandchild
-const grandchild = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1, 8), new THREE.MeshBasicMaterial());
+const grandchild = new THREE.Mesh(
+  new THREE.ConeGeometry(0.5, 1, 8),
+  new THREE.MeshBasicMaterial()
+);
 grandchild.name = "Grandchild";
 child1.add(grandchild);
 

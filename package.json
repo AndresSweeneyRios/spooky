@@ -16,7 +16,8 @@
     "optimize-glb": "node ./tools/optimizeGLB.js",
     "generate-animations": "node ./tools/animation/_generate.js",
     "generate-brotli": "node ./tools/generateBrotli.js",
-    "build": "npm run build-tripshred && npm run build-crazeoh && npm run build-loh"
+    "build": "npm run build-tripshred && npm run build-crazeoh && npm run build-loh",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
@@ -52,6 +53,7 @@
     "ejs": "^3.1.10",
     "express": "^4.21.1",
     "fbx2gltf": "^0.9.7-p1",
+    "prettier": "^3.5.3",
     "rollup-plugin-ignore": "^1.0.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",

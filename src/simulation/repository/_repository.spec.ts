@@ -1,47 +1,39 @@
-import {
-  SimulationRepository,
-  SimulationComponent,
-} from "./_repository"
+import { SimulationRepository, SimulationComponent } from "./_repository";
 
-import {
-  expect,
-  describe,
-  test,
-} from "vitest"
+import { expect, describe, test } from "vitest";
 
-import { EntityRegistry, EntId } from "../EntityRegistry"
+import { EntityRegistry, EntId } from "../EntityRegistry";
 
-class TestComponent extends SimulationComponent {
-}
+class TestComponent extends SimulationComponent {}
 
 class TestRepository extends SimulationRepository<TestComponent> {
-  public static readonly Id = 'Test'
-  public GetId = () => TestRepository.Id
+  public static readonly Id = "Test";
+  public GetId = () => TestRepository.Id;
 
   public static Factory() {
-    return new TestRepository(new TestComponent())
+    return new TestRepository(new TestComponent());
   }
 }
 
-describe('SimulationDb', () => {
-  test('CreateComponent', () => {
-    const simulation = new EntityRegistry()
-    const repository = TestRepository.Factory()
+describe("SimulationDb", () => {
+  test("CreateComponent", () => {
+    const simulation = new EntityRegistry();
+    const repository = TestRepository.Factory();
 
-    const entId = simulation.Create()
-    repository.CreateComponent(entId)
+    const entId = simulation.Create();
+    repository.CreateComponent(entId);
 
-    expect([...repository.Entities].includes(entId)).toBeTruthy()
-  })
+    expect([...repository.Entities].includes(entId)).toBeTruthy();
+  });
 
-  test('RemoveComponent', () => {
-    const simulation = new EntityRegistry()
-    const repository = TestRepository.Factory()
+  test("RemoveComponent", () => {
+    const simulation = new EntityRegistry();
+    const repository = TestRepository.Factory();
 
-    const entId = simulation.Create()
-    repository.CreateComponent(entId)
-    repository.RemoveComponent(entId)
+    const entId = simulation.Create();
+    repository.CreateComponent(entId);
+    repository.RemoveComponent(entId);
 
-    expect([...repository.Entities].includes(entId)).toBeFalsy()
-  })
-})
+    expect([...repository.Entities].includes(entId)).toBeFalsy();
+  });
+});

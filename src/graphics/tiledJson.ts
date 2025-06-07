@@ -61,16 +61,16 @@ export enum TileType {
 export const getHeight = (type: TileType) => {
   switch (type) {
     case TileType.Height1:
-      return 3
+      return 3;
     case TileType.Height2:
-      return 6
+      return 6;
     case TileType.Height3:
-      return 9
+      return 9;
     case TileType.Height4:
-      return 12
+      return 12;
     default:
-      return 0
+      return 0;
   }
-}
+};
 
-export const PLOT_SIZE = 16
+export const PLOT_SIZE = 16;

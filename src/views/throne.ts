@@ -9,12 +9,12 @@ import { EntityView } from "../simulation/EntityView";
 import { vec3 } from "gl-matrix";
 import { renderer } from "../components/Viewport";
 import { currentCrtPass } from "../scenes/goh/battle-scene";
-import throneGlb from '../assets/3d/throne.glb';
-import acid1Webp from '../assets/3d/throne/ACID1.webp';
-import acid2Webp from '../assets/3d/throne/ACID2.webp';
-import acid3Webp from '../assets/3d/throne/ACID3.webp';
+import throneGlb from "../assets/3d/throne.glb";
+import acid1Webp from "../assets/3d/throne/ACID1.webp";
+import acid2Webp from "../assets/3d/throne/ACID2.webp";
+import acid3Webp from "../assets/3d/throne/ACID3.webp";
 
-const gltfPromise = loadGltf(throneGlb)
+const gltfPromise = loadGltf(throneGlb);
 
 // const battlesphereMaterial = new THREE.ShaderMaterial({
 //   uniforms: {
@@ -126,93 +126,97 @@ const gltfPromise = loadGltf(throneGlb)
 //   `
 // })
 
-const battlesphereMaterial = new THREE.MeshBasicMaterial()
+const battlesphereMaterial = new THREE.MeshBasicMaterial();
 
-battlesphereMaterial.side = THREE.DoubleSide
+battlesphereMaterial.side = THREE.DoubleSide;
 
 const loadAcidTexture = async (uniformName: string, path: string) => {
-  const texture = await loadTextureAsync(path)
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.anisotropy = 16
-  texture.magFilter = THREE.LinearFilter
-  texture.minFilter = THREE.LinearFilter
-  texture.needsUpdate = true
+  const texture = await loadTextureAsync(path);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.anisotropy = 16;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
 
   // battlesphereMaterial.uniforms[uniformName].value = texture
-  battlesphereMaterial.needsUpdate = true
-}
+  battlesphereMaterial.needsUpdate = true;
+};
 
 // loadAcidTexture("acid1", acid1Webp)
 // loadAcidTexture("acid2", acid2Webp)
 // loadAcidTexture("acid3", acid3Webp)
 
 export class ThroneView extends EntityView {
-  throne: THREE.Object3D | null = null
-  scene: THREE.Scene
-  circles: THREE.Mesh[] | null = null
-  eye: THREE.Mesh | null = null
-  throneYPosition = 0
-  battleSphere: THREE.Mesh | null = null
+  throne: THREE.Object3D | null = null;
+  scene: THREE.Scene;
+  circles: THREE.Mesh[] | null = null;
+  eye: THREE.Mesh | null = null;
+  throneYPosition = 0;
+  battleSphere: THREE.Mesh | null = null;
 
   async init(simulation: Simulation, entId: EntId, startPosition: vec3) {
-    const gltf = await gltfPromise
+    const gltf = await gltfPromise;
 
-    this.throne = gltf.scene.clone()
+    this.throne = gltf.scene.clone();
 
-    shaders.applyInjectedMaterials(this.throne)
+    shaders.applyInjectedMaterials(this.throne);
 
     for (const child of traverse(this.throne)) {
       if (!this.throne) {
-        continue
+        continue;
       }
 
       if (child.name === "BATTLESPHERE" && child instanceof THREE.Mesh) {
-        child.material = battlesphereMaterial
-        this.battleSphere = child
-        child.visible = false
+        child.material = battlesphereMaterial;
+        this.battleSphere = child;
+        child.visible = false;
       }
 
       if (child.name === "eye") {
-        const eye = child as THREE.Mesh
+        const eye = child as THREE.Mesh;
 
-        this.eye = eye
+        this.eye = eye;
 
         shaders.waitForShader(eye).then((shader) => {
-          shader.uniforms.throneEye = { value: true }
+          shader.uniforms.throneEye = { value: true };
 
           shaders.recursivelyManipulateMaterial(eye, (material) => {
-            material.needsUpdate = true
-          })
-        })
+            material.needsUpdate = true;
+          });
+        });
       }
 
       if (child.name === "circles") {
-        this.circles = child.children as THREE.Mesh[]
+        this.circles = child.children as THREE.Mesh[];
 
         for (let i = 0; i < 4; i++) {
-          this.circles[i].rotation.x = Math.PI / 2
+          this.circles[i].rotation.x = Math.PI / 2;
 
-          this.circles[i].position.set(0, 0, 0)
+          this.circles[i].position.set(0, 0, 0);
         }
       }
     }
 
-    this.throne.position.set(startPosition[0], startPosition[1] + 30, startPosition[2])
+    this.throne.position.set(
+      startPosition[0],
+      startPosition[1] + 30,
+      startPosition[2]
+    );
 
-    processAttributes(this.throne, simulation, entId, true)
+    processAttributes(this.throne, simulation, entId, true);
 
     this.scene.add(this.throne);
   }
 
   constructor(simulation: Simulation, entId: EntId, startPosition: vec3) {
-    super(entId)
-    this.scene = simulation.ThreeScene
-    this.init(simulation, entId, startPosition).catch(console.error)
+    super(entId);
+    this.scene = simulation.ThreeScene;
+    this.init(simulation, entId, startPosition).catch(console.error);
 
     if (currentCrtPass) {
-      currentCrtPass.uniforms.rgbOffset.value = new THREE.Vector2(0.000, 0.000)
-      currentCrtPass.uniforms.noiseIntensity = { value: 0.6 }
+      currentCrtPass.uniforms.rgbOffset.value = new THREE.Vector2(0.0, 0.0);
+      currentCrtPass.uniforms.noiseIntensity = { value: 0.6 };
     }
     // currentCrtPass!.uniforms.scanlineIntensity = { value: 0.8 }
     // currentCrtPass!.uniforms.curvature.value = 0.2
@@ -221,32 +225,32 @@ export class ThroneView extends EntityView {
 
   // Rotate it slowly
   public Draw(simulation: Simulation, lerpFactor: number): void {
-    if (!this.circles) return
-    if (!this.eye) return
-    if (!this.battleSphere) return
+    if (!this.circles) return;
+    if (!this.eye) return;
+    if (!this.battleSphere) return;
 
     for (let i = 0; i < this.circles.length; i++) {
-      const circle = this.circles[i]
+      const circle = this.circles[i];
 
       // use i to generate a unique rotation for each circle
       // this is a biblically accurate Throne, with 4 circles spinning in opposite directions
-      circle.rotation.y += (0.002 * (i + 1)) * (i % 2 === 0 ? 1 : -1)
+      circle.rotation.y += 0.002 * (i + 1) * (i % 2 === 0 ? 1 : -1);
     }
 
-    this.throneYPosition += simulation.SimulationState.DeltaTime * 2
+    this.throneYPosition += simulation.SimulationState.DeltaTime * 2;
 
-    this.circles[0].rotation.x += 0.007
-    this.circles[1].rotation.z -= 0.001
-    this.circles[2].rotation.x -= 0.003
-    this.circles[3].rotation.z += 0.002
+    this.circles[0].rotation.x += 0.007;
+    this.circles[1].rotation.z -= 0.001;
+    this.circles[2].rotation.x -= 0.003;
+    this.circles[3].rotation.z += 0.002;
 
-    this.eye.rotation.y += 0.01
-    this.eye.position.y = Math.sin(this.throneYPosition) * 2
+    this.eye.rotation.y += 0.01;
+    this.eye.position.y = Math.sin(this.throneYPosition) * 2;
 
     // battlesphereMaterial.uniforms.time.value = simulation.ViewSync.TimeMS / 1000
 
-    this.battleSphere.rotateY(+0.0003)
-    this.battleSphere.rotateZ(+0.0003)
+    this.battleSphere.rotateY(+0.0003);
+    this.battleSphere.rotateZ(+0.0003);
   }
 
   public Resize() {
@@ -255,7 +259,7 @@ export class ThroneView extends EntityView {
 
   public Cleanup(simulation: Simulation): void {
     if (this.throne) {
-      this.scene.remove(this.throne)
+      this.scene.remove(this.throne);
     }
   }
 }

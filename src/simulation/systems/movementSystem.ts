@@ -6,9 +6,13 @@ export const movementSystem = (state: SimulationState) => {
   for (const entId of state.MovementRepository.Entities) {
     // state.PhysicsRepository.StopMovement(entId);
 
-    const speed = state.StatRepository.GetStatComputedValue(entId, StatType.SPEED);
+    const speed = state.StatRepository.GetStatComputedValue(
+      entId,
+      StatType.SPEED
+    );
     const direction = state.MovementRepository.GetDirection(entId);
-    const lockVerticalMovement = state.MovementRepository.GetLockVerticalMovement(entId);
+    const lockVerticalMovement =
+      state.MovementRepository.GetLockVerticalMovement(entId);
 
     state.MovementRepository.SetPreviousDirection(entId, direction);
 
@@ -25,7 +29,11 @@ export const movementSystem = (state: SimulationState) => {
       vec3.normalize(normalizedDirection, normalizedDirection); // Re-normalize after adjustment
     }
 
-    const movement = vec3.scale(vec3.create(), normalizedDirection, speed * state.DeltaTime);
+    const movement = vec3.scale(
+      vec3.create(),
+      normalizedDirection,
+      speed * state.DeltaTime
+    );
 
     state.PhysicsRepository.TryMoveCharacterController(entId, movement);
   }

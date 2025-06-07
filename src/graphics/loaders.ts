@@ -1,110 +1,113 @@
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import * as THREE from "three";
-import * as shaders from './shaders';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import * as Tiled from "./tiledJson"
+import * as shaders from "./shaders";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
+import * as Tiled from "./tiledJson";
 import { vec2, vec3 } from "gl-matrix";
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { traverse } from "../utils/traverse";
-import * as animation from "../animation"
+import * as animation from "../animation";
 import { playerInput } from "../input/player";
 
 const fbxLoader = new FBXLoader();
 
 export const loadFbx = async (path: string, mapBones = false) => {
-  const fbx = await fbxLoader.loadAsync(path)
+  const fbx = await fbxLoader.loadAsync(path);
 
   if (mapBones) {
     for (const object of traverse(fbx)) {
       if (object instanceof THREE.SkinnedMesh) {
-        const bones = object.skeleton.bones
+        const bones = object.skeleton.bones;
 
         for (const bone of bones) {
           if (!bone.name) {
-            continue
+            continue;
           }
 
-          bone.name = animation.adapter.mapName(bone.name)
+          bone.name = animation.adapter.mapName(bone.name);
         }
       }
     }
   }
 
-  shaders.applyInjectedMaterials(fbx)
+  shaders.applyInjectedMaterials(fbx);
 
-  return fbx
-}
+  return fbx;
+};
 
 const gltfLoader = new GLTFLoader();
 
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('https://threejs.org/examples/jsm/libs/draco/');
+dracoLoader.setDecoderPath("https://threejs.org/examples/jsm/libs/draco/");
 gltfLoader.setDRACOLoader(dracoLoader);
 
 export const loadGltf = async (path: string, mapBones = false) => {
-  const gltf = await gltfLoader.loadAsync(path)
+  const gltf = await gltfLoader.loadAsync(path);
 
   if (mapBones) {
     for (const object of traverse(gltf.scene)) {
       if (object instanceof THREE.SkinnedMesh) {
-        const bones = object.skeleton.bones
+        const bones = object.skeleton.bones;
 
         for (const bone of bones) {
           if (!bone.name) {
-            continue
+            continue;
           }
 
-          bone.name = animation.adapter.mapName(bone.name)
+          bone.name = animation.adapter.mapName(bone.name);
         }
       }
     }
   }
 
-  shaders.applyInjectedMaterials(gltf.scene)
+  shaders.applyInjectedMaterials(gltf.scene);
 
-  return gltf
-}
+  return gltf;
+};
 
 const hdriLoader = new RGBELoader();
 
-export const loadPMREM = async (path: string, renderer: THREE.WebGLRenderer) => {
+export const loadPMREM = async (
+  path: string,
+  renderer: THREE.WebGLRenderer
+) => {
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
 
-  const hdr = await hdriLoader.loadAsync(path)
+  const hdr = await hdriLoader.loadAsync(path);
 
   const hdrCubeRenderTarget = pmremGenerator.fromEquirectangular(hdr);
   hdr.dispose();
 
-  return hdrCubeRenderTarget.texture
-}
+  return hdrCubeRenderTarget.texture;
+};
 
-const textureLoader = new THREE.TextureLoader()
+const textureLoader = new THREE.TextureLoader();
 
-export const loadTexture = (path: string) => textureLoader.load(path)
+export const loadTexture = (path: string) => textureLoader.load(path);
 
 export const loadTextureAsync = async (path: string) => {
   return await new Promise<THREE.Texture>((resolve) => {
-    textureLoader.load(path, resolve)
-  })
-}
+    textureLoader.load(path, resolve);
+  });
+};
 
 export const loadVideoTexture = (path: string) => {
-  const video = document.createElement('video')
-  video.src = path
-  video.loop = true
-  video.muted = true
-  video.play()
+  const video = document.createElement("video");
+  video.src = path;
+  video.loop = true;
+  video.muted = true;
+  video.play();
 
-  const texture = new THREE.VideoTexture(video)
-  texture.minFilter = THREE.NearestFilter
-  texture.magFilter = THREE.NearestFilter
-  texture.format = THREE.RGBFormat
-  texture.colorSpace = THREE.SRGBColorSpace
+  const texture = new THREE.VideoTexture(video);
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+  texture.format = THREE.RGBFormat;
+  texture.colorSpace = THREE.SRGBColorSpace;
 
-  return texture
-}
+  return texture;
+};
 
 export const loadEquirectangularAsEnvMap = async (
   path: string,
@@ -114,40 +117,42 @@ export const loadEquirectangularAsEnvMap = async (
 ) => {
   const env = await new Promise<THREE.CubeTexture>((resolve) => {
     textureLoader.load(path, (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping
-      texture.colorSpace = THREE.SRGBColorSpace
-      texture.minFilter = minFilter
-      texture.magFilter = magFilter
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = minFilter;
+      texture.magFilter = magFilter;
 
-      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(texture.image.height)
-      cubeRenderTarget.fromEquirectangularTexture(renderer, texture)
+      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
+        texture.image.height
+      );
+      cubeRenderTarget.fromEquirectangularTexture(renderer, texture);
 
-      resolve(cubeRenderTarget.texture)
-    })
-  })
+      resolve(cubeRenderTarget.texture);
+    });
+  });
 
-  return env
-}
+  return env;
+};
 
 export const loadTiledJSON = async (path: string) => {
-  const response = await fetch(path)
-  const json = await response.json() as Tiled.Map
+  const response = await fetch(path);
+  const json = (await response.json()) as Tiled.Map;
 
-  const map = new Map<string, Tiled.TileType>()
-  const heightMap = new Map<string, number>()
+  const map = new Map<string, Tiled.TileType>();
+  const heightMap = new Map<string, number>();
 
   for (const layer of json.layers) {
     for (const chunk of layer.chunks) {
       for (let y = 0; y < chunk.height; y++) {
         for (let x = 0; x < chunk.width; x++) {
-          const tile = chunk.data[y * chunk.width + x]
+          const tile = chunk.data[y * chunk.width + x];
           if (tile > 1) {
-            const key = `${chunk.x + x},0,${chunk.y + y}`
+            const key = `${chunk.x + x},0,${chunk.y + y}`;
 
-            if (layer.name === 'height') {
-              heightMap.set(key, tile - 1)
-            } else if (layer.name === 'terrain') {
-              map.set(key, tile - 1)
+            if (layer.name === "height") {
+              heightMap.set(key, tile - 1);
+            } else if (layer.name === "terrain") {
+              map.set(key, tile - 1);
             }
           }
         }
@@ -159,15 +164,15 @@ export const loadTiledJSON = async (path: string) => {
     let height: number = Tiled.getHeight(type);
 
     if (height === 0) {
-      continue
+      continue;
     }
 
-    const [x, y, z] = position.split(',').map(Number);
+    const [x, y, z] = position.split(",").map(Number);
 
     const key = `${x},${y},${z}`;
 
     if (!map.has(key)) {
-      continue
+      continue;
     }
 
     const terrainType = map.get(key)!;
@@ -182,28 +187,31 @@ export const loadTiledJSON = async (path: string) => {
         break;
       }
 
-      map.set(key, terrainType)
+      map.set(key, terrainType);
     }
   }
 
   const geometries: Map<Tiled.TileType, THREE.BufferGeometry[]> = new Map();
 
   const boxColliders: {
-    halfExtents: vec3,
-    position: vec3,
-  }[] = []
+    halfExtents: vec3;
+    position: vec3;
+  }[] = [];
 
   while (map.size > 0) {
-    const [position, type] = map.entries().next().value as [string, Tiled.TileType];
+    const [position, type] = map.entries().next().value as [
+      string,
+      Tiled.TileType,
+    ];
     map.delete(position);
 
-    const xGroup = new Set<string>()
+    const xGroup = new Set<string>();
     xGroup.add(position);
-    const yGroup = new Set<string>()
-    const zGroup = new Set<string>()
+    const yGroup = new Set<string>();
+    const zGroup = new Set<string>();
 
     const growX = (position: string, direction: number) => {
-      const [x, y, z] = position.split(',').map(Number);
+      const [x, y, z] = position.split(",").map(Number);
       const key = `${x + direction},${y},${z}`;
 
       if (!map.has(key) || map.get(key) !== type) {
@@ -214,7 +222,7 @@ export const loadTiledJSON = async (path: string) => {
       xGroup.add(key);
 
       growX(key, direction);
-    }
+    };
 
     growX(position, +1);
     growX(position, -1);
@@ -223,7 +231,7 @@ export const loadTiledJSON = async (path: string) => {
       let positions = [];
 
       for (const position of xGroup) {
-        const [x, y, z] = position.split(',').map(Number);
+        const [x, y, z] = position.split(",").map(Number);
         const key = `${x},${y},${z + delta}`;
 
         if (!map.has(key) || map.get(key) !== type) {
@@ -239,7 +247,7 @@ export const loadTiledJSON = async (path: string) => {
       }
 
       growZ(delta + direction, direction);
-    }
+    };
 
     growZ(+1, +1);
     growZ(-1, -1);
@@ -254,7 +262,7 @@ export const loadTiledJSON = async (path: string) => {
     const completeGroup = new Set([...xGroup, ...yGroup, ...zGroup]);
 
     for (const position of completeGroup) {
-      const [x, y, z] = position.split(',').map(Number);
+      const [x, y, z] = position.split(",").map(Number);
 
       if (x < minX) {
         minX = x;
@@ -286,13 +294,21 @@ export const loadTiledJSON = async (path: string) => {
     const depth = maxZ - minZ + 1;
 
     const geometry = new THREE.BoxGeometry(width, height, depth);
-    const matrix = new THREE.Matrix4().makeTranslation(minX + width / 2, minY + height / 2 - 1, minZ + depth / 2);
+    const matrix = new THREE.Matrix4().makeTranslation(
+      minX + width / 2,
+      minY + height / 2 - 1,
+      minZ + depth / 2
+    );
     geometry.applyMatrix4(matrix);
 
     boxColliders.push({
       halfExtents: vec3.fromValues(width / 2, height / 2, depth / 2),
-      position: vec3.fromValues(minX + width / 2, minY + height / 2 - 1, minZ + depth / 2),
-    })
+      position: vec3.fromValues(
+        minX + width / 2,
+        minY + height / 2 - 1,
+        minZ + depth / 2
+      ),
+    });
 
     if (!geometries.has(type)) {
       geometries.set(type, []);
@@ -309,7 +325,7 @@ export const loadTiledJSON = async (path: string) => {
       [Tiled.TileType.Sand]: 0xffff00,
       [Tiled.TileType.Water]: 0x0000ff,
       [Tiled.TileType.Trail]: 0xff00ff,
-    }
+    };
 
     if (!colors[tile as keyof typeof colors]) {
       continue;
@@ -331,12 +347,12 @@ export const loadTiledJSON = async (path: string) => {
 
   for (const [position, type] of heightMap.entries()) {
     if (type === Tiled.TileType.Spawn) {
-      const [x, y, z] = position.split(',').map(Number);
+      const [x, y, z] = position.split(",").map(Number);
       spawnPoints.push(vec3.fromValues(x, y, z));
     }
 
     if (type === Tiled.TileType.Plot) {
-      const [x, y, z] = position.split(',').map(Number);
+      const [x, y, z] = position.split(",").map(Number);
       plots.push(vec3.fromValues(x, y, z));
     }
   }
@@ -347,14 +363,15 @@ export const loadTiledJSON = async (path: string) => {
     plots,
     boxColliders,
   };
-}
+};
 
 function isElectron() {
-  return navigator.userAgent.toLowerCase().includes("electron") ||
+  return (
+    navigator.userAgent.toLowerCase().includes("electron") ||
     navigator.userAgent.toLowerCase().includes("node.js") ||
-    navigator.userAgent.toLowerCase().includes("electron/");
+    navigator.userAgent.toLowerCase().includes("electron/")
+  );
 }
-
 
 let firstClickResolved = false;
 
@@ -386,15 +403,20 @@ if (!localStorage.getItem("volume")) {
 
 listener.setMasterVolume(parseFloat(localStorage.getItem("volume")!));
 
-export const loadAudio = async (path: string, {
-  loop = false,
-  randomPitch = false,
-  detune = 0,
-  positional = false,
-  pitchRange = 1500, // New parameter to control the range of the random pitch
-  volume = 0.2,
-}) => {
-  const audio = positional ? new THREE.PositionalAudio(listener) : new THREE.Audio(listener);
+export const loadAudio = async (
+  path: string,
+  {
+    loop = false,
+    randomPitch = false,
+    detune = 0,
+    positional = false,
+    pitchRange = 1500, // New parameter to control the range of the random pitch
+    volume = 0.2,
+  }
+) => {
+  const audio = positional
+    ? new THREE.PositionalAudio(listener)
+    : new THREE.Audio(listener);
 
   const audioLoader = new THREE.AudioLoader();
 
@@ -449,7 +471,7 @@ export const loadAudio = async (path: string, {
       const fadeSteps = 5;
       const fadeInterval = fadeDuration / fadeSteps;
 
-      return await new Promise<void>(resolve => {
+      return await new Promise<void>((resolve) => {
         let step = 0;
         activeFadeTimer = window.setInterval(() => {
           step++;
@@ -478,7 +500,7 @@ export const loadAudio = async (path: string, {
     const fadeSteps = 5;
     const fadeInterval = fadeDuration / fadeSteps;
 
-    return await new Promise<void>(resolve => {
+    return await new Promise<void>((resolve) => {
       let step = 0;
       activeFadeTimer = window.setInterval(() => {
         step++;
@@ -517,4 +539,4 @@ export const loadAudio = async (path: string, {
       audio.setVolume(value);
     },
   };
-}
+};

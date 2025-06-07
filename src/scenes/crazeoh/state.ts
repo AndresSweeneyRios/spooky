@@ -1,149 +1,149 @@
-import * as THREE from 'three'
+import * as THREE from "three";
 
 // -----
 
-export let anomaly = false
+export let anomaly = false;
 
 export const setAnomaly = (value: boolean) => {
-  anomaly = value
-}
+  anomaly = value;
+};
 
 // -----
 
-export let foundAnomaly = false
+export let foundAnomaly = false;
 
 export const setFoundAnomaly = (value: boolean) => {
-  foundAnomaly = value
-}
+  foundAnomaly = value;
+};
 
 // -----
 
-export let anomalyPosition = new THREE.Vector3(0, 0, 0)
+export let anomalyPosition = new THREE.Vector3(0, 0, 0);
 
 export const setAnomalyPosition = (value: THREE.Vector3) => {
-  anomalyPosition = value
-}
+  anomalyPosition = value;
+};
 
 // -----
 
-export let wins = 0
+export let wins = 0;
 
 export const incrementWins = () => {
-  wins++
+  wins++;
 
   if (winAnomalyIndex < wins) {
     incrementWinAnomalyIndex();
   }
-}
+};
 
 export const resetWins = () => {
   // wins = 0
-}
+};
 
 export const decrementWins = () => {
   if (wins <= 1) {
-    return
+    return;
   }
 
-  wins--
-}
+  wins--;
+};
 
 // -----
 
-export let tookPicture = false
+export let tookPicture = false;
 
 export const setTookPicture = (value: boolean) => {
-  tookPicture = value
-}
+  tookPicture = value;
+};
 
 // -----
 
-export let gameStarted = false
+export let gameStarted = false;
 
 export const setGameStarted = (value: boolean) => {
-  gameStarted = value
-}
+  gameStarted = value;
+};
 
 // -----
 
-export let winScriptIndex = -1
+export let winScriptIndex = -1;
 
 export const incrementWinScriptIndex = () => {
-  winScriptIndex++
-}
+  winScriptIndex++;
+};
 
 // -----
 
-export let winAnomalyIndex = 0
+export let winAnomalyIndex = 0;
 
 export const incrementWinAnomalyIndex = () => {
-  winAnomalyIndex++
-}
+  winAnomalyIndex++;
+};
 
 // -----
 
-export let inDialogue = false
+export let inDialogue = false;
 
 export const setInDialogue = (value: boolean) => {
-  inDialogue = value
-}
+  inDialogue = value;
+};
 
 // -----
 
-export let picking = false
+export let picking = false;
 
 export const setPicking = (value: boolean) => {
-  picking = value
-}
+  picking = value;
+};
 
 // -----
 
-export let isTutorial = true
+export let isTutorial = true;
 
 export const setIsTutorial = (value: boolean) => {
-  isTutorial = value
-}
+  isTutorial = value;
+};
 
 // -----
 
-export let outro = false
+export let outro = false;
 
 export const setOutro = (value: boolean) => {
-  outro = value
-}
+  outro = value;
+};
 
 // -----
 
 export const setVolume = (value: number) => {
-  localStorage.setItem('volume', value.toString())
-}
+  localStorage.setItem("volume", value.toString());
+};
 
 export const getVolume = () => {
-  return parseFloat(localStorage.getItem('volume') || '0.5')
-}
+  return parseFloat(localStorage.getItem("volume") || "0.5");
+};
 
 // -----
 
-export let inSettings = false
+export let inSettings = false;
 
-let caseohModule: typeof import("../../pages/Caseoh") | undefined = undefined
+let caseohModule: typeof import("../../pages/Caseoh") | undefined = undefined;
 
 export const setInSettings = (value: boolean) => {
-  inSettings = value
+  inSettings = value;
 
   if (caseohModule) {
-    caseohModule.setSettingsVisibility(value)
+    caseohModule.setSettingsVisibility(value);
   } else {
     import("../../pages/Caseoh").then((module) => {
-      caseohModule = module
-      module.setSettingsVisibility(value)
-    })
+      caseohModule = module;
+      module.setSettingsVisibility(value);
+    });
   }
-}
+};
 
 export const toggleSettings = () => {
-  setInSettings(!inSettings)
-}
+  setInSettings(!inSettings);
+};
 
 // -----
 
@@ -155,4 +155,4 @@ export const resetRound = () => {
   setPicking(false);
   setInDialogue(false);
   setInSettings(false);
-}
+};

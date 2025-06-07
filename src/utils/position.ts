@@ -1,3 +1,1 @@
-export const getWorldPositionFromObject = () => { 
-
-}
+export const getWorldPositionFromObject = () => {};

@@ -3,10 +3,10 @@ import { loadGltf } from "../graphics/loaders";
 import { Simulation } from "../simulation";
 import { EntId } from "../simulation/EntityRegistry";
 import { EntityView } from "../simulation/EntityView";
-import * as THREE from 'three';
-import houseGlb from '../assets/3d/houses/mushy.glb';
+import * as THREE from "three";
+import houseGlb from "../assets/3d/houses/mushy.glb";
 
-const houseGltfPromise = loadGltf(houseGlb)
+const houseGltfPromise = loadGltf(houseGlb);
 
 export class GardenView extends EntityView {
   private house: THREE.Object3D | null = null;
@@ -14,7 +14,7 @@ export class GardenView extends EntityView {
   constructor(
     entId: EntId,
     public simulation: Simulation,
-    public initalPosition: vec3,
+    public initalPosition: vec3
   ) {
     super(entId);
 

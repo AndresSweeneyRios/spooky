@@ -11,15 +11,15 @@ export function getRGBBits(totalBits: number) {
   let remainingBits = totalBits - (rBits + gBits + bBits);
 
   while (remainingBits > 0) {
-    if (remainingBits > 0 && gBits < (totalBits - 2 * minBits)) {
+    if (remainingBits > 0 && gBits < totalBits - 2 * minBits) {
       gBits++;
       remainingBits--;
     }
-    if (remainingBits > 0 && rBits < (totalBits - 2 * minBits)) {
+    if (remainingBits > 0 && rBits < totalBits - 2 * minBits) {
       rBits++;
       remainingBits--;
     }
-    if (remainingBits > 0 && bBits < (totalBits - 2 * minBits)) {
+    if (remainingBits > 0 && bBits < totalBits - 2 * minBits) {
       bBits++;
       remainingBits--;
     }

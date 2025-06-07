@@ -11,16 +11,17 @@ import { processAttributes } from "../utils/processAttributes";
 import { animationsPromise, getAnimation, playAnimation } from "../animation";
 import { AnimationKey } from "../assets/3d/animations";
 import { EntityView } from "../simulation/EntityView";
-import caseohGlb from '../assets/3d/entities/caseoh.glb';
+import caseohGlb from "../assets/3d/entities/caseoh.glb";
 
-const gltfPromise = loadGltf(caseohGlb, true)
+const gltfPromise = loadGltf(caseohGlb, true);
 
 const ROTATION_SPEED = 3; // Adjust this value to control speed
 
-const IDLE_ANIMATION: AnimationKey = 'humanoid/Drunk Idle Variation.glb - mixamo.com'
-const IDLE_TIMESCALE = 1
-const WALK_TIMESCALE = 1.7
-const RUN_TIMESCALE = 1.3
+const IDLE_ANIMATION: AnimationKey =
+  "humanoid/Drunk Idle Variation.glb - mixamo.com";
+const IDLE_TIMESCALE = 1;
+const WALK_TIMESCALE = 1.7;
+const RUN_TIMESCALE = 1.3;
 
 export class CaseohView extends EntityView {
   public mesh: THREE.Object3D | null = null;
@@ -29,16 +30,18 @@ export class CaseohView extends EntityView {
   meshOffset: vec3 = vec3.fromValues(0, -0.25, 0);
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
-  public meshPromise = this.init().catch(console.error) as Promise<THREE.Object3D>;
+  public meshPromise = this.init().catch(
+    console.error
+  ) as Promise<THREE.Object3D>;
 
   async init() {
-    await animationsPromise
+    await animationsPromise;
 
     const gltf = await gltfPromise;
 
     this.mesh = SkeletonUtils.clone(gltf.scene);
 
-    this.mesh.scale.set(1.5, 1.5, 1.5)
+    this.mesh.scale.set(1.5, 1.5, 1.5);
 
     const bones: THREE.Bone[] = [];
 
@@ -55,11 +58,11 @@ export class CaseohView extends EntityView {
 
       if (child instanceof THREE.SkinnedMesh) {
         child.frustumCulled = false;
-        const clip = getAnimation(IDLE_ANIMATION)
-        playAnimation(child, clip, IDLE_TIMESCALE)
+        const clip = getAnimation(IDLE_ANIMATION);
+        playAnimation(child, clip, IDLE_TIMESCALE);
         this.skinnedMeshes.push(child);
       }
-    })
+    });
 
     processAttributes(this.mesh, this.simulation, this.entId, false);
 
@@ -70,12 +73,14 @@ export class CaseohView extends EntityView {
     return this.mesh;
   }
 
-  constructor(public entId: EntId, public simulation: Simulation) {
+  constructor(
+    public entId: EntId,
+    public simulation: Simulation
+  ) {
     super(entId);
   }
 
-  public Draw(simulation: Simulation, lerpFactor: number): void {
-  }
+  public Draw(simulation: Simulation, lerpFactor: number): void {}
 
   public Cleanup(): void {
     if (this.mesh) {

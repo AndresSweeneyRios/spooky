@@ -25,4 +25,4 @@ export const animationKeys = [
   "humanoid/Walk Backward.glb - mixamo.com",
 ] as const;
 
-export type AnimationKey = typeof animationKeys[number];
+export type AnimationKey = (typeof animationKeys)[number];

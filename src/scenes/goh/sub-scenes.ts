@@ -3,12 +3,12 @@ import { defer } from "../../utils/defer";
 
 export type Awaitable<T> = PromiseLike<T> | T;
 
-export type SubSceneCleanup = (() => Awaitable<void>) | void
+export type SubSceneCleanup = (() => Awaitable<void>) | void;
 
 export type SubSceneContext = Promise<void> & {
   End: () => void;
   shown: Promise<void>;
-}
+};
 
 export interface SubSceneModule {
   init?: () => Awaitable<SubSceneCleanup>;
@@ -24,21 +24,26 @@ export interface InitializeSubSceneResult {
   Cleanup: () => void;
 }
 
-export const afterAwaitable = <T>(value: Awaitable<T>, callback: ((value: T) => void)) => {
+export const afterAwaitable = <T>(
+  value: Awaitable<T>,
+  callback: (value: T) => void
+) => {
   if (value instanceof Promise) {
     value.then(callback);
   } else {
     callback(value as T);
   }
-}
+};
 
-export function initializeSubScene(loader: () => Awaitable<SubSceneModule>): InitializeSubSceneResult {
+export function initializeSubScene(
+  loader: () => Awaitable<SubSceneModule>
+): InitializeSubSceneResult {
   let loaded = false;
   let scene: SubSceneModule | undefined;
   let sceneCleanup: SubSceneCleanup;
 
   // Once the scene is ready and init has been called we will set loaded to true.
-  let ready = defer<void>()
+  let ready = defer<void>();
   ready.promise.then(() => {
     loaded = true;
   });
@@ -56,8 +61,7 @@ export function initializeSubScene(loader: () => Awaitable<SubSceneModule>): Ini
   afterAwaitable(loader(), (module) => {
     scene = module;
     moduleLoaded.resolve();
-  })
-
+  });
 
   return {
     loaded,
@@ -102,6 +106,6 @@ export function initializeSubScene(loader: () => Awaitable<SubSceneModule>): Ini
     Cleanup() {
       void sceneCleanup?.();
       void scene?.cleanup?.();
-    }
-  }
+    },
+  };
 }

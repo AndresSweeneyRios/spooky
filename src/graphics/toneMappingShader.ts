@@ -6,14 +6,14 @@ export const ToneMappingShader = {
     contrast: { value: 1.02 },
     contrastMidpoint: { value: 0.5 },
   },
-  vertexShader: /*glsl*/`
+  vertexShader: /*glsl*/ `
     varying vec2 vUv;
     void main() {
       vUv = uv;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
-  fragmentShader: /*glsl*/`
+  fragmentShader: /*glsl*/ `
     uniform sampler2D tDiffuse;
     uniform float toneMappingExposure;
     uniform float saturation;

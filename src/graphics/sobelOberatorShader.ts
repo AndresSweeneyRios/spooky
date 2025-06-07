@@ -1,17 +1,14 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export const SobelOperatorShader = {
+  name: "SobelOperatorShader",
 
-	name: 'SobelOperatorShader',
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2() },
+  },
 
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'resolution': { value: new THREE.Vector2() }
-
-	},
-
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
 
 		varying vec2 vUv;
 
@@ -23,7 +20,7 @@ export const SobelOperatorShader = {
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
 
 		uniform sampler2D tDiffuse;
 		uniform vec2 resolution;
@@ -80,6 +77,5 @@ export const SobelOperatorShader = {
 
 			gl_FragColor = vec4(original.rgb * outline, original.a);
 
-		}`
-
+		}`,
 };

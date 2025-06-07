@@ -1,46 +1,52 @@
-import { NoiseMaterial } from "../../graphics/noise"
-import type { Simulation } from "../../simulation"
-import { EntId } from "../../simulation/EntityRegistry"
-import { EntityView } from "../../simulation/EntityView"
-import { View } from "../../simulation/View"
-import { traverse } from "../../utils/traverse"
-import * as state from "./state"
-import * as THREE from 'three'
-import type { loadAudio } from "../../graphics/loaders"
-import { getAngle } from "../../utils/math"
-import webaOgg from '../../assets/audio/sfx/weba.ogg';
-import keyboardTypingOgg from '../../assets/audio/sfx/keyboard_typing.ogg';
-import clockOgg from '../../assets/audio/sfx/clock.ogg';
+import { NoiseMaterial } from "../../graphics/noise";
+import type { Simulation } from "../../simulation";
+import { EntId } from "../../simulation/EntityRegistry";
+import { EntityView } from "../../simulation/EntityView";
+import { View } from "../../simulation/View";
+import { traverse } from "../../utils/traverse";
+import * as state from "./state";
+import * as THREE from "three";
+import type { loadAudio } from "../../graphics/loaders";
+import { getAngle } from "../../utils/math";
+import webaOgg from "../../assets/audio/sfx/weba.ogg";
+import keyboardTypingOgg from "../../assets/audio/sfx/keyboard_typing.ogg";
+import clockOgg from "../../assets/audio/sfx/clock.ogg";
 
-const loaderPromise = import("../../graphics/loaders")
+const loaderPromise = import("../../graphics/loaders");
 
-const monitorAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio(webaOgg, {
-    loop: true,
-    positional: true,
+const monitorAudioPromise = loaderPromise
+  .then(async ({ loadAudio }) => {
+    return await loadAudio(webaOgg, {
+      loop: true,
+      positional: true,
+    });
   })
-}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+  .catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>;
 
-const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio(keyboardTypingOgg, {
-    loop: true,
-    positional: true,
+const keyboardAudioPromise = loaderPromise
+  .then(async ({ loadAudio }) => {
+    return await loadAudio(keyboardTypingOgg, {
+      loop: true,
+      positional: true,
+    });
   })
-}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+  .catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>;
 
-export const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio(clockOgg, {
-    loop: true,
-    positional: true,
-    volume: 0.1,
+export const clockAudioPromise = loaderPromise
+  .then(async ({ loadAudio }) => {
+    return await loadAudio(clockOgg, {
+      loop: true,
+      positional: true,
+      volume: 0.1,
+    });
   })
-}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
+  .catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>;
 
 interface Anomaly {
-  Id: number
-  Description?: string
-  Enable(simulation: Simulation): THREE.Vector3
-  Disable(simulation: Simulation): void
+  Id: number;
+  Description?: string;
+  Enable(simulation: Simulation): THREE.Vector3;
+  Disable(simulation: Simulation): void;
 }
 
 const FrenchFries: Anomaly = {
@@ -49,133 +55,158 @@ const FrenchFries: Anomaly = {
   Description: "FUCKASS BITCH ",
 
   Enable(simulation: Simulation) {
-    const fries = simulation.ThreeScene.getObjectByName('RootNode045')!
-    fries.scale.set(3.5, 3.5, 3.5)
+    const fries = simulation.ThreeScene.getObjectByName("RootNode045")!;
+    fries.scale.set(3.5, 3.5, 3.5);
 
-    return fries.getWorldPosition(new THREE.Vector3())
+    return fries.getWorldPosition(new THREE.Vector3());
   },
 
-  Disable(simulation: Simulation) {
-  },
-}
+  Disable(simulation: Simulation) {},
+};
 
 const SeveredHand: Anomaly = {
   Id: 2,
 
   Enable(simulation: Simulation) {
-    const hand = simulation.ThreeScene.getObjectByName('hand')!
+    const hand = simulation.ThreeScene.getObjectByName("hand")!;
 
-    hand.visible = true
+    hand.visible = true;
 
-    return hand.getWorldPosition(new THREE.Vector3())
+    return hand.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const hand = simulation.ThreeScene.getObjectByName('hand')!
+    const hand = simulation.ThreeScene.getObjectByName("hand")!;
 
-    hand.visible = false
+    hand.visible = false;
   },
-}
+};
 
 const FanFast: Anomaly = {
   Id: 3,
 
   Enable(simulation: Simulation) {
-    const fanBlades = simulation.ThreeScene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh
+    const fanBlades = simulation.ThreeScene.getObjectByName(
+      "Cylinder008_Wings_0"
+    ) as THREE.Mesh;
 
-    simulation.ViewSync.AddAuxiliaryView(new class Fan extends View {
-      public Draw() {
-        fanBlades.rotateZ(0.12)
-      }
-    })
+    simulation.ViewSync.AddAuxiliaryView(
+      new (class Fan extends View {
+        public Draw() {
+          fanBlades.rotateZ(0.12);
+        }
+      })()
+    );
 
-    return fanBlades.getWorldPosition(new THREE.Vector3())
+    return fanBlades.getWorldPosition(new THREE.Vector3());
   },
 
-  Disable(simulation: Simulation) {
-  },
-}
+  Disable(simulation: Simulation) {},
+};
 
 const ClockSix: Anomaly = {
   Id: 4,
 
   Enable(simulation: Simulation) {
-    const clock1 = simulation.ThreeScene.getObjectByName('6_0002') as THREE.Mesh
-    const clock2 = simulation.ThreeScene.getObjectByName('6_0003') as THREE.Mesh
-    const clock3 = simulation.ThreeScene.getObjectByName('6_0001') as THREE.Mesh
+    const clock1 = simulation.ThreeScene.getObjectByName(
+      "6_0002"
+    ) as THREE.Mesh;
+    const clock2 = simulation.ThreeScene.getObjectByName(
+      "6_0003"
+    ) as THREE.Mesh;
+    const clock3 = simulation.ThreeScene.getObjectByName(
+      "6_0001"
+    ) as THREE.Mesh;
 
-    clock1.visible = true
-    clock2.visible = true
-    clock3.visible = true
+    clock1.visible = true;
+    clock2.visible = true;
+    clock3.visible = true;
 
-    return clock1.getWorldPosition(new THREE.Vector3())
+    return clock1.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const clock1 = simulation.ThreeScene.getObjectByName('6_0002') as THREE.Mesh
-    const clock2 = simulation.ThreeScene.getObjectByName('6_0003') as THREE.Mesh
-    const clock3 = simulation.ThreeScene.getObjectByName('6_0001') as THREE.Mesh
+    const clock1 = simulation.ThreeScene.getObjectByName(
+      "6_0002"
+    ) as THREE.Mesh;
+    const clock2 = simulation.ThreeScene.getObjectByName(
+      "6_0003"
+    ) as THREE.Mesh;
+    const clock3 = simulation.ThreeScene.getObjectByName(
+      "6_0001"
+    ) as THREE.Mesh;
 
-    clock1.visible = false
-    clock2.visible = false
-    clock3.visible = false
+    clock1.visible = false;
+    clock2.visible = false;
+    clock3.visible = false;
   },
-}
+};
 
 const Demon: Anomaly = {
   Id: 5,
 
   Enable(simulation: Simulation) {
-    const demon = simulation.ThreeScene.getObjectByName('demon') as THREE.Mesh
+    const demon = simulation.ThreeScene.getObjectByName("demon") as THREE.Mesh;
 
-    demon.visible = true
+    demon.visible = true;
 
-    return demon.getWorldPosition(new THREE.Vector3())
+    return demon.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const demon = simulation.ThreeScene.getObjectByName('demon') as THREE.Mesh
+    const demon = simulation.ThreeScene.getObjectByName("demon") as THREE.Mesh;
 
-
-    demon.visible = false
+    demon.visible = false;
   },
-}
+};
 
 // hour hand_0
 // minute hand_0
 // second hand_0
 
-let clockView: View | null = null
+let clockView: View | null = null;
 
 const ClockSpinFast: Anomaly = {
   Id: 6,
 
   Enable(simulation: Simulation) {
-    const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh
-    const clock2 = simulation.ThreeScene.getObjectByName('minute_hand_0') as THREE.Mesh
-    const clock3 = simulation.ThreeScene.getObjectByName('second_hand_0') as THREE.Mesh
+    const clock1 = simulation.ThreeScene.getObjectByName(
+      "hour_hand_0"
+    ) as THREE.Mesh;
+    const clock2 = simulation.ThreeScene.getObjectByName(
+      "minute_hand_0"
+    ) as THREE.Mesh;
+    const clock3 = simulation.ThreeScene.getObjectByName(
+      "second_hand_0"
+    ) as THREE.Mesh;
 
     if (clockView) {
-      simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol)
+      simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol);
     }
 
-    clockView = new class Clock extends View {
+    clockView = new (class Clock extends View {
       public Draw() {
-        clock1.rotateZ(0.035)
-        clock2.rotateZ(0.035 * 2)
-        clock3.rotateZ(0.035 * 3)
+        clock1.rotateZ(0.035);
+        clock2.rotateZ(0.035 * 2);
+        clock3.rotateZ(0.035 * 3);
       }
-    }
+    })();
 
-    simulation.ViewSync.AddAuxiliaryView(clockView)
+    simulation.ViewSync.AddAuxiliaryView(clockView);
 
-    return clock1.getWorldPosition(new THREE.Vector3())
+    return clock1.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh;
-    const clock2 = simulation.ThreeScene.getObjectByName('minute_hand_0') as THREE.Mesh;
-    const clock3 = simulation.ThreeScene.getObjectByName('second_hand_0') as THREE.Mesh;
+    const clock1 = simulation.ThreeScene.getObjectByName(
+      "hour_hand_0"
+    ) as THREE.Mesh;
+    const clock2 = simulation.ThreeScene.getObjectByName(
+      "minute_hand_0"
+    ) as THREE.Mesh;
+    const clock3 = simulation.ThreeScene.getObjectByName(
+      "second_hand_0"
+    ) as THREE.Mesh;
 
     clockAudioPromise.then((audio) => {
       const now = new Date();
@@ -185,13 +216,13 @@ const ClockSpinFast: Anomaly = {
         clock1.add(audio.getPositionalAudio());
         audio.play();
       }, millisecondsUntilNextSecond);
-    })
+    });
 
     if (clockView) {
-      simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol)
+      simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol);
     }
 
-    clockView = new class ClockView extends View {
+    clockView = new (class ClockView extends View {
       public Draw() {
         const now = new Date();
         const hours = now.getHours() % 12;
@@ -202,170 +233,217 @@ const ClockSpinFast: Anomaly = {
         const targetMinuteRotation = -minutes * (Math.PI / 30) + 1;
         const targetSecondRotation = -seconds * (Math.PI / 30) + 2;
 
-        clock1.rotation.z = targetHourRotation
-        clock2.rotation.z = targetMinuteRotation
-        clock3.rotation.z = targetSecondRotation
+        clock1.rotation.z = targetHourRotation;
+        clock2.rotation.z = targetMinuteRotation;
+        clock3.rotation.z = targetSecondRotation;
       }
-    }
+    })();
 
     simulation.ViewSync.AddAuxiliaryView(clockView);
   },
-}
+};
 
 const Monitors: Anomaly = {
   Id: 7,
 
   Enable(simulation: Simulation) {
-    const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
-    const big = simulation.ThreeScene.getObjectByName('bigmonitorscreen') as THREE.Mesh
+    const small = simulation.ThreeScene.getObjectByName(
+      "smallmonitorscreen"
+    ) as THREE.Mesh;
+    const big = simulation.ThreeScene.getObjectByName(
+      "bigmonitorscreen"
+    ) as THREE.Mesh;
 
-    small.material = NoiseMaterial
-    big.material = NoiseMaterial
+    small.material = NoiseMaterial;
+    big.material = NoiseMaterial;
 
-    return simulation.ThreeScene.getObjectByName('Bigmonitorstand')!.getWorldPosition(new THREE.Vector3())
+    return simulation.ThreeScene.getObjectByName(
+      "Bigmonitorstand"
+    )!.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const small = simulation.ThreeScene.getObjectByName('smallmonitorscreen') as THREE.Mesh
-    const big = simulation.ThreeScene.getObjectByName('bigmonitorscreen') as THREE.Mesh
+    const small = simulation.ThreeScene.getObjectByName(
+      "smallmonitorscreen"
+    ) as THREE.Mesh;
+    const big = simulation.ThreeScene.getObjectByName(
+      "bigmonitorscreen"
+    ) as THREE.Mesh;
 
-    const material = new THREE.MeshBasicMaterial({ color: 0x000000 })
+    const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
-    small.material = material
-    big.material = material
+    small.material = material;
+    big.material = material;
   },
-}
+};
 
 const RedDemon: Anomaly = {
   Id: 8,
 
   Enable(simulation: Simulation) {
-    const demon = simulation.ThreeScene.getObjectByName('reddemon') as THREE.Mesh
+    const demon = simulation.ThreeScene.getObjectByName(
+      "reddemon"
+    ) as THREE.Mesh;
 
-    demon.visible = true
+    demon.visible = true;
 
-    simulation.ViewSync.AddAuxiliaryView(new class RedDemonView extends View {
-      public Draw() {
-        // always face player
-        let playerEntId: EntId | null = null
+    simulation.ViewSync.AddAuxiliaryView(
+      new (class RedDemonView extends View {
+        public Draw() {
+          // always face player
+          let playerEntId: EntId | null = null;
 
-        for (const entId of simulation.SimulationState.SensorTargetRepository.Entities) {
-          playerEntId = entId
-          break
+          for (const entId of simulation.SimulationState.SensorTargetRepository
+            .Entities) {
+            playerEntId = entId;
+            break;
+          }
+
+          if (!playerEntId) {
+            return;
+          }
+
+          // get position of player
+          const player =
+            simulation.SimulationState.PhysicsRepository.GetPosition(
+              playerEntId
+            );
+          const playerPosition = new THREE.Vector3(
+            player[0],
+            player[1],
+            player[2]
+          );
+
+          // get position of demon
+          const demonPosition = demon.getWorldPosition(new THREE.Vector3());
+
+          // get rotation of demon to direction
+          const rotationMatrix = new THREE.Matrix4().lookAt(
+            demonPosition,
+            playerPosition,
+            new THREE.Vector3(0, 1, 0)
+          );
+          demon.setRotationFromMatrix(rotationMatrix);
+
+          demon.rotateX(-Math.PI / 2);
         }
+      })()
+    );
 
-        if (!playerEntId) {
-          return
-        }
-
-        // get position of player
-        const player = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
-        const playerPosition = new THREE.Vector3(player[0], player[1], player[2])
-
-        // get position of demon
-        const demonPosition = demon.getWorldPosition(new THREE.Vector3())
-
-        // get rotation of demon to direction
-        const rotationMatrix = new THREE.Matrix4().lookAt(demonPosition, playerPosition, new THREE.Vector3(0, 1, 0))
-        demon.setRotationFromMatrix(rotationMatrix)
-
-        demon.rotateX(-Math.PI / 2)
-      }
-    })
-
-
-    return demon.getWorldPosition(new THREE.Vector3())
+    return demon.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const demon = simulation.ThreeScene.getObjectByName('reddemon') as THREE.Mesh
+    const demon = simulation.ThreeScene.getObjectByName(
+      "reddemon"
+    ) as THREE.Mesh;
 
-    demon.visible = false
-  }
-}
+    demon.visible = false;
+  },
+};
 
 const Head: Anomaly = {
   Id: 9,
 
   Enable(simulation: Simulation) {
-    const head = simulation.ThreeScene.getObjectByName('Object_2009') as THREE.Mesh
+    const head = simulation.ThreeScene.getObjectByName(
+      "Object_2009"
+    ) as THREE.Mesh;
 
-    head.visible = true
+    head.visible = true;
 
-    const microwave = simulation.ThreeScene.getObjectByName('Microwave001') as THREE.Mesh
+    const microwave = simulation.ThreeScene.getObjectByName(
+      "Microwave001"
+    ) as THREE.Mesh;
 
-    return microwave.getWorldPosition(new THREE.Vector3())
+    return microwave.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const head = simulation.ThreeScene.getObjectByName('Object_2009') as THREE.Mesh
+    const head = simulation.ThreeScene.getObjectByName(
+      "Object_2009"
+    ) as THREE.Mesh;
 
-    head.visible = false
-  }
-}
+    head.visible = false;
+  },
+};
 
 const KitchenKnife: Anomaly = {
   Id: 10,
 
   Enable(simulation: Simulation) {
-    const knife = simulation.ThreeScene.getObjectByName('Knife_Knife_0') as THREE.Mesh
+    const knife = simulation.ThreeScene.getObjectByName(
+      "Knife_Knife_0"
+    ) as THREE.Mesh;
 
-    knife.visible = true
+    knife.visible = true;
 
-    return knife.getWorldPosition(new THREE.Vector3())
+    return knife.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const knife = simulation.ThreeScene.getObjectByName('Knife_Knife_0') as THREE.Mesh
+    const knife = simulation.ThreeScene.getObjectByName(
+      "Knife_Knife_0"
+    ) as THREE.Mesh;
 
-    knife.visible = false
-  }
-}
+    knife.visible = false;
+  },
+};
 
 const Feet: Anomaly = {
   Id: 11,
 
   Enable(simulation: Simulation) {
-    const feet = simulation.ThreeScene.getObjectByName('feet') as THREE.Mesh
+    const feet = simulation.ThreeScene.getObjectByName("feet") as THREE.Mesh;
 
-    feet.visible = true
+    feet.visible = true;
 
-    return feet.getWorldPosition(new THREE.Vector3())
+    return feet.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const feet = simulation.ThreeScene.getObjectByName('feet') as THREE.Mesh
+    const feet = simulation.ThreeScene.getObjectByName("feet") as THREE.Mesh;
 
-    feet.visible = false
-  }
-}
+    feet.visible = false;
+  },
+};
 
 const CoatHanger: Anomaly = {
   Id: 12,
 
   Enable(simulation: Simulation) {
-    const coatHanger = simulation.ThreeScene.getObjectByName('coathanger') as THREE.Mesh
-    const realCoatHanger = simulation.ThreeScene.getObjectByName('realcoathanger') as THREE.Mesh
+    const coatHanger = simulation.ThreeScene.getObjectByName(
+      "coathanger"
+    ) as THREE.Mesh;
+    const realCoatHanger = simulation.ThreeScene.getObjectByName(
+      "realcoathanger"
+    ) as THREE.Mesh;
 
-    coatHanger.visible = true
-    realCoatHanger.visible = false
+    coatHanger.visible = true;
+    realCoatHanger.visible = false;
 
-    return coatHanger.getWorldPosition(new THREE.Vector3())
+    return coatHanger.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const coatHanger = simulation.ThreeScene.getObjectByName('coathanger') as THREE.Mesh
-    const realCoatHanger = simulation.ThreeScene.getObjectByName('realcoathanger') as THREE.Mesh
+    const coatHanger = simulation.ThreeScene.getObjectByName(
+      "coathanger"
+    ) as THREE.Mesh;
+    const realCoatHanger = simulation.ThreeScene.getObjectByName(
+      "realcoathanger"
+    ) as THREE.Mesh;
 
-    coatHanger.visible = false
-    realCoatHanger.visible = true
-  }
-}
+    coatHanger.visible = false;
+    realCoatHanger.visible = true;
+  },
+};
 const BurgerLevitate: Anomaly = {
   Id: 13,
 
   Enable(simulation: Simulation) {
-    const burger = simulation.ThreeScene.getObjectByName('burger') as THREE.Mesh;
+    const burger = simulation.ThreeScene.getObjectByName(
+      "burger"
+    ) as THREE.Mesh;
     const entId = simulation.EntityRegistry.Create();
 
     // Gather all child meshes of the burger.
@@ -386,17 +464,20 @@ const BurgerLevitate: Anomaly = {
     // Save each mesh’s original global position.
     const originalPositionMap = new Map<number, THREE.Vector3>();
     for (const mesh of meshes) {
-      originalPositionMap.set(mesh.id, mesh.getWorldPosition(new THREE.Vector3()));
+      originalPositionMap.set(
+        mesh.id,
+        mesh.getWorldPosition(new THREE.Vector3())
+      );
     }
 
     // Pick a base position (using a known ingredient).
-    const baseMesh = meshes.find(mesh => mesh.name === 'Patty2_PattyA_0');
+    const baseMesh = meshes.find((mesh) => mesh.name === "Patty2_PattyA_0");
     const basePosition = baseMesh
       ? baseMesh.getWorldPosition(new THREE.Vector3())
       : new THREE.Vector3();
 
     simulation.ViewSync.AddEntityView(
-      new class BurgerView extends EntityView {
+      new (class BurgerView extends EntityView {
         constructor() {
           super(entId);
         }
@@ -404,15 +485,23 @@ const BurgerLevitate: Anomaly = {
         public Draw(simulation: Simulation, lerpFactor: number): void {
           // Get the player entity.
           let playerEntId: EntId | null = null;
-          for (const id of simulation.SimulationState.SensorTargetRepository.Entities) {
+          for (const id of simulation.SimulationState.SensorTargetRepository
+            .Entities) {
             playerEntId = id;
             break;
           }
           if (!playerEntId) return;
 
           // Get the player's global position.
-          const playerPosArray = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId);
-          const playerPosition = new THREE.Vector3(playerPosArray[0], playerPosArray[1], playerPosArray[2]);
+          const playerPosArray =
+            simulation.SimulationState.PhysicsRepository.GetPosition(
+              playerEntId
+            );
+          const playerPosition = new THREE.Vector3(
+            playerPosArray[0],
+            playerPosArray[1],
+            playerPosArray[2]
+          );
 
           const distance = playerPosition.distanceTo(basePosition);
           const enabled = distance < 2;
@@ -444,200 +533,244 @@ const BurgerLevitate: Anomaly = {
             mesh.position.lerp(desiredLocalPos, 0.1);
           }
         }
-      }()
+      })()
     );
 
     return burger.getWorldPosition(new THREE.Vector3());
   },
 
-  Disable(simulation: Simulation) {
-  }
-}
+  Disable(simulation: Simulation) {},
+};
 
 const Keyboard: Anomaly = {
   Id: 14,
 
   Enable(simulation: Simulation) {
-    const keyboard = simulation.ThreeScene.getObjectByName('keyboard') as THREE.Mesh
+    const keyboard = simulation.ThreeScene.getObjectByName(
+      "keyboard"
+    ) as THREE.Mesh;
 
     const audioPromise = keyboardAudioPromise.then((audio) => {
-      keyboard.add(audio.getPositionalAudio())
-      audio.play()
-      audio.setVolume(2.0)
+      keyboard.add(audio.getPositionalAudio());
+      audio.play();
+      audio.setVolume(2.0);
 
-      return audio
-    })
+      return audio;
+    });
 
     // add auxiliary view
-    simulation.ViewSync.AddAuxiliaryView(new class KeyboardView extends View {
-      public Draw() {
-        let playerEntId: EntId | null = null
+    simulation.ViewSync.AddAuxiliaryView(
+      new (class KeyboardView extends View {
+        public Draw() {
+          let playerEntId: EntId | null = null;
 
-        for (const entId of simulation.SimulationState.SensorTargetRepository.Entities) {
-          playerEntId = entId
-          break
-        }
-
-        if (!playerEntId) {
-          return
-        }
-
-        const playerPosition = simulation.SimulationState.PhysicsRepository.GetPosition(playerEntId)
-        const keyboardPosition = keyboard.getWorldPosition(new THREE.Vector3())
-        const camera = simulation.Camera
-
-        const angle = getAngle(keyboardPosition, new THREE.Vector3(
-          playerPosition[0],
-          playerPosition[1],
-          playerPosition[2]
-        ), camera)
-
-        audioPromise.then((audio) => {
-          if (angle > 90) {
-            audio.setVolume(2.0)
-          } else {
-            audio.setVolume(0.0)
+          for (const entId of simulation.SimulationState.SensorTargetRepository
+            .Entities) {
+            playerEntId = entId;
+            break;
           }
-        })
-      }
-    })
 
-    return keyboard.getWorldPosition(new THREE.Vector3())
+          if (!playerEntId) {
+            return;
+          }
+
+          const playerPosition =
+            simulation.SimulationState.PhysicsRepository.GetPosition(
+              playerEntId
+            );
+          const keyboardPosition = keyboard.getWorldPosition(
+            new THREE.Vector3()
+          );
+          const camera = simulation.Camera;
+
+          const angle = getAngle(
+            keyboardPosition,
+            new THREE.Vector3(
+              playerPosition[0],
+              playerPosition[1],
+              playerPosition[2]
+            ),
+            camera
+          );
+
+          audioPromise.then((audio) => {
+            if (angle > 90) {
+              audio.setVolume(2.0);
+            } else {
+              audio.setVolume(0.0);
+            }
+          });
+        }
+      })()
+    );
+
+    return keyboard.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
     keyboardAudioPromise.then((audio) => {
-      audio.stop()
-      audio.setVolume(0.0)
-    })
-  }
-}
+      audio.stop();
+      audio.setVolume(0.0);
+    });
+  },
+};
 
 const Pitchfork: Anomaly = {
   Id: 15,
 
   Enable(simulation: Simulation) {
-    const pitchfork = simulation.ThreeScene.getObjectByName('pitchfork') as THREE.Mesh
-    const leftfork = simulation.ThreeScene.getObjectByName('leftfork') as THREE.Mesh
+    const pitchfork = simulation.ThreeScene.getObjectByName(
+      "pitchfork"
+    ) as THREE.Mesh;
+    const leftfork = simulation.ThreeScene.getObjectByName(
+      "leftfork"
+    ) as THREE.Mesh;
 
-    pitchfork.visible = true
-    leftfork.visible = false
+    pitchfork.visible = true;
+    leftfork.visible = false;
 
-
-    return pitchfork.getWorldPosition(new THREE.Vector3())
+    return pitchfork.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const pitchfork = simulation.ThreeScene.getObjectByName('pitchfork') as THREE.Mesh
-    const leftfork = simulation.ThreeScene.getObjectByName('leftfork') as THREE.Mesh
+    const pitchfork = simulation.ThreeScene.getObjectByName(
+      "pitchfork"
+    ) as THREE.Mesh;
+    const leftfork = simulation.ThreeScene.getObjectByName(
+      "leftfork"
+    ) as THREE.Mesh;
 
-    pitchfork.visible = false
-    leftfork.visible = true
-  }
-}
+    pitchfork.visible = false;
+    leftfork.visible = true;
+  },
+};
 
 // pPlane1_Poster_01_Mat_0.001
 const Poster = {
   Id: 16,
 
   Enable(simulation: Simulation) {
-    const poster = simulation.ThreeScene.getObjectByName('pPlane1_Poster_01_Mat_0001') as THREE.Mesh
+    const poster = simulation.ThreeScene.getObjectByName(
+      "pPlane1_Poster_01_Mat_0001"
+    ) as THREE.Mesh;
 
-    poster.visible = true
+    poster.visible = true;
 
-    return poster.getWorldPosition(new THREE.Vector3())
+    return poster.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const poster = simulation.ThreeScene.getObjectByName('pPlane1_Poster_01_Mat_0001') as THREE.Mesh
+    const poster = simulation.ThreeScene.getObjectByName(
+      "pPlane1_Poster_01_Mat_0001"
+    ) as THREE.Mesh;
 
-    poster.visible = false
-  }
-}
+    poster.visible = false;
+  },
+};
 
 //lburger on, burger off
 const LettuceBurger: Anomaly = {
   Id: 17,
 
   Enable(simulation: Simulation) {
-    const lburger = simulation.ThreeScene.getObjectByName('lburger') as THREE.Mesh
-    const burger = simulation.ThreeScene.getObjectByName('burger') as THREE.Mesh
+    const lburger = simulation.ThreeScene.getObjectByName(
+      "lburger"
+    ) as THREE.Mesh;
+    const burger = simulation.ThreeScene.getObjectByName(
+      "burger"
+    ) as THREE.Mesh;
 
-    lburger.visible = true
-    burger.visible = false
+    lburger.visible = true;
+    burger.visible = false;
 
-    return lburger.getWorldPosition(new THREE.Vector3())
+    return lburger.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const lburger = simulation.ThreeScene.getObjectByName('lburger') as THREE.Mesh
-    const burger = simulation.ThreeScene.getObjectByName('burger') as THREE.Mesh
+    const lburger = simulation.ThreeScene.getObjectByName(
+      "lburger"
+    ) as THREE.Mesh;
+    const burger = simulation.ThreeScene.getObjectByName(
+      "burger"
+    ) as THREE.Mesh;
 
-    lburger.visible = false
-    burger.visible = true
-  }
-}
+    lburger.visible = false;
+    burger.visible = true;
+  },
+};
 
 // reallabel off, fakelabel on
 const RealLabel: Anomaly = {
   Id: 18,
 
   Enable(simulation: Simulation) {
-    const reallabel = simulation.ThreeScene.getObjectByName('fakelabel') as THREE.Mesh
-    const fakelabel = simulation.ThreeScene.getObjectByName('reallabel') as THREE.Mesh
+    const reallabel = simulation.ThreeScene.getObjectByName(
+      "fakelabel"
+    ) as THREE.Mesh;
+    const fakelabel = simulation.ThreeScene.getObjectByName(
+      "reallabel"
+    ) as THREE.Mesh;
 
-    reallabel.visible = false
-    fakelabel.visible = true
+    reallabel.visible = false;
+    fakelabel.visible = true;
 
-    return fakelabel.getWorldPosition(new THREE.Vector3())
+    return fakelabel.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const reallabel = simulation.ThreeScene.getObjectByName('fakelabel') as THREE.Mesh
-    const fakelabel = simulation.ThreeScene.getObjectByName('reallabel') as THREE.Mesh
+    const reallabel = simulation.ThreeScene.getObjectByName(
+      "fakelabel"
+    ) as THREE.Mesh;
+    const fakelabel = simulation.ThreeScene.getObjectByName(
+      "reallabel"
+    ) as THREE.Mesh;
 
-    reallabel.visible = true
-    fakelabel.visible = false
-  }
-}
+    reallabel.visible = true;
+    fakelabel.visible = false;
+  },
+};
 
 // glock
 const Glock: Anomaly = {
   Id: 19,
 
   Enable(simulation: Simulation) {
-    const glock = simulation.ThreeScene.getObjectByName('glock') as THREE.Mesh
+    const glock = simulation.ThreeScene.getObjectByName("glock") as THREE.Mesh;
 
-    glock.visible = true
+    glock.visible = true;
 
-    return glock.getWorldPosition(new THREE.Vector3())
+    return glock.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const glock = simulation.ThreeScene.getObjectByName('glock') as THREE.Mesh
+    const glock = simulation.ThreeScene.getObjectByName("glock") as THREE.Mesh;
 
-    glock.visible = false
-  }
-}
+    glock.visible = false;
+  },
+};
 
 // can_bepis_0.001
 const CanBepis: Anomaly = {
   Id: 20,
 
   Enable(simulation: Simulation) {
-    const can = simulation.ThreeScene.getObjectByName('longbepis') as THREE.Mesh
+    const can = simulation.ThreeScene.getObjectByName(
+      "longbepis"
+    ) as THREE.Mesh;
 
-    can.visible = true
+    can.visible = true;
 
-    return can.getWorldPosition(new THREE.Vector3())
+    return can.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const can = simulation.ThreeScene.getObjectByName('longbepis') as THREE.Mesh
+    const can = simulation.ThreeScene.getObjectByName(
+      "longbepis"
+    ) as THREE.Mesh;
 
-    can.visible = false
-  }
-}
+    can.visible = false;
+  },
+};
 
 // bloodshake on, milkshake off
 
@@ -645,146 +778,210 @@ const Bloodshake: Anomaly = {
   Id: 21,
 
   Enable(simulation: Simulation) {
-    const bloodshake = simulation.ThreeScene.getObjectByName('bloodshake') as THREE.Mesh
-    const milkshake = simulation.ThreeScene.getObjectByName('milkshake') as THREE.Mesh
+    const bloodshake = simulation.ThreeScene.getObjectByName(
+      "bloodshake"
+    ) as THREE.Mesh;
+    const milkshake = simulation.ThreeScene.getObjectByName(
+      "milkshake"
+    ) as THREE.Mesh;
 
-    bloodshake.visible = true
-    milkshake.visible = false
+    bloodshake.visible = true;
+    milkshake.visible = false;
 
-    return bloodshake.getWorldPosition(new THREE.Vector3())
+    return bloodshake.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const bloodshake = simulation.ThreeScene.getObjectByName('bloodshake') as THREE.Mesh
-    const milkshake = simulation.ThreeScene.getObjectByName('milkshake') as THREE.Mesh
+    const bloodshake = simulation.ThreeScene.getObjectByName(
+      "bloodshake"
+    ) as THREE.Mesh;
+    const milkshake = simulation.ThreeScene.getObjectByName(
+      "milkshake"
+    ) as THREE.Mesh;
 
-    bloodshake.visible = false
-    milkshake.visible = true
-  }
-}
+    bloodshake.visible = false;
+    milkshake.visible = true;
+  },
+};
 
 const FakeBuffet: Anomaly = {
   Id: 22,
 
   Enable(simulation: Simulation) {
-    const fakeb1 = simulation.ThreeScene.getObjectByName('fakeb1') as THREE.Mesh
-    const fakeb2 = simulation.ThreeScene.getObjectByName('fakeb2') as THREE.Mesh
-    const fakeb3 = simulation.ThreeScene.getObjectByName('fakeb3') as THREE.Mesh
-    const fakeb4 = simulation.ThreeScene.getObjectByName('fakeb4') as THREE.Mesh
-    const object = simulation.ThreeScene.getObjectByName('Object_53002') as THREE.Mesh
+    const fakeb1 = simulation.ThreeScene.getObjectByName(
+      "fakeb1"
+    ) as THREE.Mesh;
+    const fakeb2 = simulation.ThreeScene.getObjectByName(
+      "fakeb2"
+    ) as THREE.Mesh;
+    const fakeb3 = simulation.ThreeScene.getObjectByName(
+      "fakeb3"
+    ) as THREE.Mesh;
+    const fakeb4 = simulation.ThreeScene.getObjectByName(
+      "fakeb4"
+    ) as THREE.Mesh;
+    const object = simulation.ThreeScene.getObjectByName(
+      "Object_53002"
+    ) as THREE.Mesh;
 
-    fakeb1.visible = true
-    fakeb2.visible = true
-    fakeb3.visible = true
-    fakeb4.visible = true
-    object.visible = true
+    fakeb1.visible = true;
+    fakeb2.visible = true;
+    fakeb3.visible = true;
+    fakeb4.visible = true;
+    object.visible = true;
 
-    return object.getWorldPosition(new THREE.Vector3())
+    return object.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const fakeb1 = simulation.ThreeScene.getObjectByName('fakeb1') as THREE.Mesh
-    const fakeb2 = simulation.ThreeScene.getObjectByName('fakeb2') as THREE.Mesh
-    const fakeb3 = simulation.ThreeScene.getObjectByName('fakeb3') as THREE.Mesh
-    const fakeb4 = simulation.ThreeScene.getObjectByName('fakeb4') as THREE.Mesh
-    const object = simulation.ThreeScene.getObjectByName('Object_53002') as THREE.Mesh
+    const fakeb1 = simulation.ThreeScene.getObjectByName(
+      "fakeb1"
+    ) as THREE.Mesh;
+    const fakeb2 = simulation.ThreeScene.getObjectByName(
+      "fakeb2"
+    ) as THREE.Mesh;
+    const fakeb3 = simulation.ThreeScene.getObjectByName(
+      "fakeb3"
+    ) as THREE.Mesh;
+    const fakeb4 = simulation.ThreeScene.getObjectByName(
+      "fakeb4"
+    ) as THREE.Mesh;
+    const object = simulation.ThreeScene.getObjectByName(
+      "Object_53002"
+    ) as THREE.Mesh;
 
-    fakeb1.visible = false
-    fakeb2.visible = false
-    fakeb3.visible = false
-    fakeb4.visible = false
-    object.visible = false
-  }
-}
+    fakeb1.visible = false;
+    fakeb2.visible = false;
+    fakeb3.visible = false;
+    fakeb4.visible = false;
+    object.visible = false;
+  },
+};
 
 // object called eyeball
 const Eyeball: Anomaly = {
   Id: 23,
 
   Enable(simulation: Simulation) {
-    const eyeball = simulation.ThreeScene.getObjectByName('eyeball') as THREE.Mesh
+    const eyeball = simulation.ThreeScene.getObjectByName(
+      "eyeball"
+    ) as THREE.Mesh;
 
-    eyeball.visible = true
+    eyeball.visible = true;
 
-    return eyeball.getWorldPosition(new THREE.Vector3())
+    return eyeball.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const eyeball = simulation.ThreeScene.getObjectByName('eyeball') as THREE.Mesh
+    const eyeball = simulation.ThreeScene.getObjectByName(
+      "eyeball"
+    ) as THREE.Mesh;
 
-    eyeball.visible = false
-  }
-}
+    eyeball.visible = false;
+  },
+};
 
 // now one called Body_Lores_GEO
 const CaseohCorner: Anomaly = {
   Id: 24,
 
   Enable(simulation: Simulation) {
-    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO') as THREE.Mesh
-    const eye = simulation.ThreeScene.getObjectByName('Circle001') as THREE.Mesh
+    const body = simulation.ThreeScene.getObjectByName(
+      "Body_Lores_GEO"
+    ) as THREE.Mesh;
+    const eye = simulation.ThreeScene.getObjectByName(
+      "Circle001"
+    ) as THREE.Mesh;
 
-    body.visible = true
-    eye.visible = true
+    body.visible = true;
+    eye.visible = true;
 
-    return new THREE.Vector3(9, 4.5, -15)
+    return new THREE.Vector3(9, 4.5, -15);
   },
 
   Disable(simulation: Simulation) {
-    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO') as THREE.Mesh
-    const eye = simulation.ThreeScene.getObjectByName('Circle001') as THREE.Mesh
+    const body = simulation.ThreeScene.getObjectByName(
+      "Body_Lores_GEO"
+    ) as THREE.Mesh;
+    const eye = simulation.ThreeScene.getObjectByName(
+      "Circle001"
+    ) as THREE.Mesh;
 
-    body.visible = false
-    eye.visible = false
-  }
-}
+    body.visible = false;
+    eye.visible = false;
+  },
+};
 
 // now, Plane001_01_-_Default_0001 and up_glass_0001
 const CaseohExtraThicc: Anomaly = {
   Id: 25,
 
   Enable(simulation: Simulation) {
-    const curtain = simulation.ThreeScene.getObjectByName('Plane001_01_-_Default_0001') as THREE.Mesh
-    const glass = simulation.ThreeScene.getObjectByName('up_glass_0001') as THREE.Mesh
-    const glass2 = simulation.ThreeScene.getObjectByName('dow_glass_0001') as THREE.Mesh
-    const frame = simulation.ThreeScene.getObjectByName('up_f_0001') as THREE.Mesh
-    const frame2 = simulation.ThreeScene.getObjectByName('dow_f_0001') as THREE.Mesh
+    const curtain = simulation.ThreeScene.getObjectByName(
+      "Plane001_01_-_Default_0001"
+    ) as THREE.Mesh;
+    const glass = simulation.ThreeScene.getObjectByName(
+      "up_glass_0001"
+    ) as THREE.Mesh;
+    const glass2 = simulation.ThreeScene.getObjectByName(
+      "dow_glass_0001"
+    ) as THREE.Mesh;
+    const frame = simulation.ThreeScene.getObjectByName(
+      "up_f_0001"
+    ) as THREE.Mesh;
+    const frame2 = simulation.ThreeScene.getObjectByName(
+      "dow_f_0001"
+    ) as THREE.Mesh;
 
     // spawn a point light at -40,17,0 XYZ
-    const light = new THREE.PointLight(0xffffff, 10, 30, 0.1)
-    light.position.set(-40, 17, 0)
-    simulation.ThreeScene.add(light)
+    const light = new THREE.PointLight(0xffffff, 10, 30, 0.1);
+    light.position.set(-40, 17, 0);
+    simulation.ThreeScene.add(light);
 
-    curtain.visible = false
-    glass.visible = false
-    glass2.visible = false
-    frame.visible = false
-    frame2.visible = false
+    curtain.visible = false;
+    glass.visible = false;
+    glass2.visible = false;
+    frame.visible = false;
+    frame2.visible = false;
 
-    return glass.getWorldPosition(new THREE.Vector3())
+    return glass.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const curtain = simulation.ThreeScene.getObjectByName('Plane001_01_-_Default_0001') as THREE.Mesh
-    const glass = simulation.ThreeScene.getObjectByName('up_glass_0001') as THREE.Mesh
-    const glass2 = simulation.ThreeScene.getObjectByName('dow_glass_0001') as THREE.Mesh
-    const frame = simulation.ThreeScene.getObjectByName('up_f_0001') as THREE.Mesh
-    const frame2 = simulation.ThreeScene.getObjectByName('dow_f_0001') as THREE.Mesh
+    const curtain = simulation.ThreeScene.getObjectByName(
+      "Plane001_01_-_Default_0001"
+    ) as THREE.Mesh;
+    const glass = simulation.ThreeScene.getObjectByName(
+      "up_glass_0001"
+    ) as THREE.Mesh;
+    const glass2 = simulation.ThreeScene.getObjectByName(
+      "dow_glass_0001"
+    ) as THREE.Mesh;
+    const frame = simulation.ThreeScene.getObjectByName(
+      "up_f_0001"
+    ) as THREE.Mesh;
+    const frame2 = simulation.ThreeScene.getObjectByName(
+      "dow_f_0001"
+    ) as THREE.Mesh;
 
-    curtain.visible = true
-    glass.visible = true
-    glass2.visible = true
-    frame.visible = true
-    frame2.visible = true
-  }
-}
+    curtain.visible = true;
+    glass.visible = true;
+    glass2.visible = true;
+    frame.visible = true;
+    frame2.visible = true;
+  },
+};
 
 const CaseohSlide: Anomaly = {
   Id: 26,
 
   Enable(simulation: Simulation) {
-    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO001') as THREE.Mesh;
-    const eye = simulation.ThreeScene.getObjectByName('Circle002') as THREE.Mesh;
+    const body = simulation.ThreeScene.getObjectByName(
+      "Body_Lores_GEO001"
+    ) as THREE.Mesh;
+    const eye = simulation.ThreeScene.getObjectByName(
+      "Circle002"
+    ) as THREE.Mesh;
 
     if (!body || !eye) {
       console.error("Required objects not found in the scene.");
@@ -795,14 +992,18 @@ const CaseohSlide: Anomaly = {
     body.visible = true;
     eye.visible = true;
 
-    const rootBone = body.parent!.parent!.getObjectByName('root_1') as THREE.Bone;
+    const rootBone = body.parent!.parent!.getObjectByName(
+      "root_1"
+    ) as THREE.Bone;
 
     const initialRootBoneX = rootBone.position.x;
 
     class CaseohSlideView extends View {
       public Draw() {
         // Get the camera's world position.
-        const playerPos = simulation.Camera.getWorldPosition(new THREE.Vector3());
+        const playerPos = simulation.Camera.getWorldPosition(
+          new THREE.Vector3()
+        );
         // If your scene is set up such that the camera's z is negative, invert it to get a positive value.
         const playerZ = -playerPos.z;
 
@@ -827,163 +1028,203 @@ const CaseohSlide: Anomaly = {
   },
 
   Disable(simulation: Simulation) {
-    const body = simulation.ThreeScene.getObjectByName('Body_Lores_GEO001') as THREE.Mesh;
-    const eye = simulation.ThreeScene.getObjectByName('Circle002') as THREE.Mesh;
+    const body = simulation.ThreeScene.getObjectByName(
+      "Body_Lores_GEO001"
+    ) as THREE.Mesh;
+    const eye = simulation.ThreeScene.getObjectByName(
+      "Circle002"
+    ) as THREE.Mesh;
 
     if (body) body.visible = false;
     if (eye) eye.visible = false;
-  }
-}
+  },
+};
 
 const ShadowMan1: Anomaly = {
   Id: 27,
 
   Enable(simulation: Simulation) {
-    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman') as THREE.Object3D
-    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const shadowMan = simulation.ThreeScene.getObjectByName(
+      "shadowman"
+    ) as THREE.Object3D;
+    const mesh = shadowMan.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    mesh.visible = true
+    mesh.visible = true;
 
-    const position = mesh.getWorldPosition(new THREE.Vector3())
-    position.y += 1
+    const position = mesh.getWorldPosition(new THREE.Vector3());
+    position.y += 1;
 
-    return position
+    return position;
   },
 
   Disable(simulation: Simulation) {
-    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman') as THREE.Object3D
-    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const shadowMan = simulation.ThreeScene.getObjectByName(
+      "shadowman"
+    ) as THREE.Object3D;
+    const mesh = shadowMan.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    mesh.visible = false
-  }
-}
+    mesh.visible = false;
+  },
+};
 
 const ShadowMan2: Anomaly = {
   Id: 28,
 
   Enable(simulation: Simulation) {
-    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman2') as THREE.Object3D
-    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const shadowMan = simulation.ThreeScene.getObjectByName(
+      "shadowman2"
+    ) as THREE.Object3D;
+    const mesh = shadowMan.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    mesh.visible = true
+    mesh.visible = true;
 
-    const position = mesh.getWorldPosition(new THREE.Vector3())
-    position.y += 1
+    const position = mesh.getWorldPosition(new THREE.Vector3());
+    position.y += 1;
 
-    return position
+    return position;
   },
 
   Disable(simulation: Simulation) {
-    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman2') as THREE.Object3D
-    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const shadowMan = simulation.ThreeScene.getObjectByName(
+      "shadowman2"
+    ) as THREE.Object3D;
+    const mesh = shadowMan.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    mesh.visible = false
-  }
-}
+    mesh.visible = false;
+  },
+};
 const ShadowMan3: Anomaly = {
   Id: 29,
 
   Enable(simulation: Simulation) {
-    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman3') as THREE.Object3D
-    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const shadowMan = simulation.ThreeScene.getObjectByName(
+      "shadowman3"
+    ) as THREE.Object3D;
+    const mesh = shadowMan.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    mesh.visible = true
+    mesh.visible = true;
 
-    const position = mesh.getWorldPosition(new THREE.Vector3())
-    position.y += 1
+    const position = mesh.getWorldPosition(new THREE.Vector3());
+    position.y += 1;
 
-    return position
+    return position;
   },
 
   Disable(simulation: Simulation) {
-    const shadowMan = simulation.ThreeScene.getObjectByName('shadowman3') as THREE.Object3D
-    const mesh = shadowMan.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const shadowMan = simulation.ThreeScene.getObjectByName(
+      "shadowman3"
+    ) as THREE.Object3D;
+    const mesh = shadowMan.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    mesh.visible = false
-  }
-}
+    mesh.visible = false;
+  },
+};
 
 const WaterBottleEggplant: Anomaly = {
   Id: 29,
 
   Enable(simulation: Simulation) {
-    const waterBottle = simulation.ThreeScene.getObjectByName('waterbottle') as THREE.Mesh
-    const eggplant = simulation.ThreeScene.getObjectByName('eggplant') as THREE.Mesh
+    const waterBottle = simulation.ThreeScene.getObjectByName(
+      "waterbottle"
+    ) as THREE.Mesh;
+    const eggplant = simulation.ThreeScene.getObjectByName(
+      "eggplant"
+    ) as THREE.Mesh;
 
-    waterBottle.visible = false
-    eggplant.visible = true
+    waterBottle.visible = false;
+    eggplant.visible = true;
 
-    return eggplant.getWorldPosition(new THREE.Vector3())
+    return eggplant.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const waterBottle = simulation.ThreeScene.getObjectByName('waterbottle') as THREE.Mesh
-    const eggplant = simulation.ThreeScene.getObjectByName('eggplant') as THREE.Mesh
+    const waterBottle = simulation.ThreeScene.getObjectByName(
+      "waterbottle"
+    ) as THREE.Mesh;
+    const eggplant = simulation.ThreeScene.getObjectByName(
+      "eggplant"
+    ) as THREE.Mesh;
 
-    waterBottle.visible = true
-    eggplant.visible = false
-  }
-}
+    waterBottle.visible = true;
+    eggplant.visible = false;
+  },
+};
 
 const AnomalyPainting: Anomaly = {
   Id: 30,
 
   Enable(simulation: Simulation) {
-    const painting = simulation.ThreeScene.getObjectByName('painting') as THREE.Mesh
-    const anomalypainting = simulation.ThreeScene.getObjectByName('anomalypainting') as THREE.Mesh
+    const painting = simulation.ThreeScene.getObjectByName(
+      "painting"
+    ) as THREE.Mesh;
+    const anomalypainting = simulation.ThreeScene.getObjectByName(
+      "anomalypainting"
+    ) as THREE.Mesh;
 
-    painting.visible = false
-    anomalypainting.visible = true
+    painting.visible = false;
+    anomalypainting.visible = true;
 
-    return anomalypainting.getWorldPosition(new THREE.Vector3())
+    return anomalypainting.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const painting = simulation.ThreeScene.getObjectByName('painting') as THREE.Mesh
-    const anomalypainting = simulation.ThreeScene.getObjectByName('anomalypainting') as THREE.Mesh
+    const painting = simulation.ThreeScene.getObjectByName(
+      "painting"
+    ) as THREE.Mesh;
+    const anomalypainting = simulation.ThreeScene.getObjectByName(
+      "anomalypainting"
+    ) as THREE.Mesh;
 
-    painting.visible = true
-    anomalypainting.visible = false
-  }
-}
+    painting.visible = true;
+    anomalypainting.visible = false;
+  },
+};
 
 const Amogus: Anomaly = {
   Id: 31,
 
   Enable(simulation: Simulation) {
-    const amogus = simulation.ThreeScene.getObjectByName('amogus') as THREE.Mesh
+    const amogus = simulation.ThreeScene.getObjectByName(
+      "amogus"
+    ) as THREE.Mesh;
 
-    amogus.visible = true
+    amogus.visible = true;
 
-    const mesh0 = amogus.getObjectByProperty('type', 'Mesh') as THREE.Mesh
+    const mesh0 = amogus.getObjectByProperty("type", "Mesh") as THREE.Mesh;
 
-    return mesh0.getWorldPosition(new THREE.Vector3())
+    return mesh0.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const amogus = simulation.ThreeScene.getObjectByName('amogus') as THREE.Mesh
+    const amogus = simulation.ThreeScene.getObjectByName(
+      "amogus"
+    ) as THREE.Mesh;
 
-    amogus.visible = false
-  }
-}
+    amogus.visible = false;
+  },
+};
 
 const FakeMirror: Anomaly = {
   Id: 32,
 
   Enable(simulation: Simulation) {
-    const mirror = simulation.ThreeScene.getObjectByName('fakemirror') as THREE.Mesh
+    const mirror = simulation.ThreeScene.getObjectByName(
+      "fakemirror"
+    ) as THREE.Mesh;
 
-    mirror.visible = true
+    mirror.visible = true;
 
-    return mirror.getWorldPosition(new THREE.Vector3())
+    return mirror.getWorldPosition(new THREE.Vector3());
   },
 
   Disable(simulation: Simulation) {
-    const mirror = simulation.ThreeScene.getObjectByName('fakemirror') as THREE.Mesh
+    const mirror = simulation.ThreeScene.getObjectByName(
+      "fakemirror"
+    ) as THREE.Mesh;
 
-    mirror.visible = false
-  }
-}
+    mirror.visible = false;
+  },
+};
 
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   Amogus,
@@ -1012,65 +1253,68 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   ShadowMan3,
   WaterBottleEggplant,
   AnomalyPainting,
-]
+];
 
 export const SPECIAL_ANOMALIES: Record<number, Anomaly> = {
   0: FrenchFries,
   3: CaseohSlide,
   12: CaseohExtraThicc,
   16: CaseohCorner,
-}
+};
 
 export const getHighestAnomalyId = () => {
-  let highestId = 0
+  let highestId = 0;
 
   for (const anomaly of DEFAULT_ANOMALIES) {
     if (anomaly.Id > highestId) {
-      highestId = anomaly.Id
+      highestId = anomaly.Id;
     }
   }
 
-  return highestId
-}
+  return highestId;
+};
 
-const anomalies: typeof DEFAULT_ANOMALIES = []
+const anomalies: typeof DEFAULT_ANOMALIES = [];
 
-export let currentAnomalyIndex = 0
-export let currentAnomalyId = 0
+export let currentAnomalyIndex = 0;
+export let currentAnomalyId = 0;
 
 export const disableAllAnomalies = (simulation: Simulation) => {
   for (const anomaly of DEFAULT_ANOMALIES) {
-    anomaly?.Disable(simulation)
+    anomaly?.Disable(simulation);
   }
 
   for (const anomaly of Object.values(SPECIAL_ANOMALIES)) {
-    anomaly?.Disable(simulation)
+    anomaly?.Disable(simulation);
   }
 
-  Bloodshake.Disable(simulation)
-  FanFast.Disable(simulation)
-  RedDemon.Disable(simulation)
-}
+  Bloodshake.Disable(simulation);
+  FanFast.Disable(simulation);
+  RedDemon.Disable(simulation);
+};
 
-let previouslyNoAnomaly = false
+let previouslyNoAnomaly = false;
 
 export const pickRandomAnomaly = (simulation: Simulation): void => {
   // Always no anomaly if winScriptIndex is 0
   if (state.winScriptIndex === 0) {
-    disableAllAnomalies(simulation)
-    state.setAnomaly(false)
-    previouslyNoAnomaly = true
-    return
+    disableAllAnomalies(simulation);
+    state.setAnomaly(false);
+    previouslyNoAnomaly = true;
+    return;
   }
 
-  disableAllAnomalies(simulation)
+  disableAllAnomalies(simulation);
 
   if (anomalies.length === 0) {
-    anomalies.push(...DEFAULT_ANOMALIES)
+    anomalies.push(...DEFAULT_ANOMALIES);
   }
 
   // If we have a special win anomaly to show, prioritize it
-  if (state.wins === state.winAnomalyIndex && SPECIAL_ANOMALIES[state.winAnomalyIndex]) {
+  if (
+    state.wins === state.winAnomalyIndex &&
+    SPECIAL_ANOMALIES[state.winAnomalyIndex]
+  ) {
     const specialAnomalyId = state.winAnomalyIndex;
     const specialAnomaly = SPECIAL_ANOMALIES[specialAnomalyId];
 
@@ -1088,35 +1332,37 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
 
   // Normal random anomaly selection
   if (!previouslyNoAnomaly && !state.isTutorial && Math.random() < 0.2) {
-    state.setAnomaly(false)
+    state.setAnomaly(false);
 
     // console.log('No anomaly this time')
 
-    previouslyNoAnomaly = true
+    previouslyNoAnomaly = true;
 
-    return
+    return;
   }
 
-  previouslyNoAnomaly = false
+  previouslyNoAnomaly = false;
 
-  const randomIndex = state.isTutorial ? 0 : Math.floor(Math.random() * anomalies.length)
+  const randomIndex = state.isTutorial
+    ? 0
+    : Math.floor(Math.random() * anomalies.length);
 
-  currentAnomalyIndex = randomIndex
+  currentAnomalyIndex = randomIndex;
 
-  const anomaly = anomalies[randomIndex]
+  const anomaly = anomalies[randomIndex];
 
-  currentAnomalyId = anomaly.Id
+  currentAnomalyId = anomaly.Id;
 
-  state.setAnomaly(true)
-  state.setFoundAnomaly(false)
+  state.setAnomaly(true);
+  state.setFoundAnomaly(false);
 
-  const position = anomaly.Enable(simulation)
+  const position = anomaly.Enable(simulation);
 
-  state.setAnomalyPosition(position)
+  state.setAnomalyPosition(position);
 
   // console.log('Anomaly:', anomaly.Id)
-}
+};
 
 export const removeCurrentAnomaly = () => {
-  anomalies.splice(currentAnomalyIndex, 1)
-}
+  anomalies.splice(currentAnomalyIndex, 1);
+};

@@ -1,73 +1,74 @@
-import * as THREE from 'three'
-import { View } from '../../simulation/View'
-import { loadGltf, loadAudio, loadTextureAsync } from '../../graphics/loaders'
-import * as player from '../../entities/player'
-import { updateGameLogic } from "../../simulation/loop"
-import * as state from "./state"
-import { setGravity } from "../../simulation/repository/PhysicsRepository"
-import { loadScene, scenes } from ".."
-import { initScene } from "./initScene"
-import dropperGlb from '../../assets/3d/scenes/island/dropper_OPTIMIZED.glb'
-import meatwireeyesWebp from '../../assets/3d/textures/meatwireeyes.webp'
-import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg'
-import worblyOgg from '../../assets/audio/music/worbly.ogg'
-import { hideMainMenu } from "../../pages/Caseoh"
+import * as THREE from "three";
+import { View } from "../../simulation/View";
+import { loadGltf, loadAudio, loadTextureAsync } from "../../graphics/loaders";
+import * as player from "../../entities/player";
+import { updateGameLogic } from "../../simulation/loop";
+import * as state from "./state";
+import { setGravity } from "../../simulation/repository/PhysicsRepository";
+import { loadScene, scenes } from "..";
+import { initScene } from "./initScene";
+import dropperGlb from "../../assets/3d/scenes/island/dropper_OPTIMIZED.glb";
+import meatwireeyesWebp from "../../assets/3d/textures/meatwireeyes.webp";
+import eatChipOgg from "../../assets/audio/sfx/eat_chip.ogg";
+import worblyOgg from "../../assets/audio/music/worbly.ogg";
+import { hideMainMenu } from "../../pages/Caseoh";
 
 // Cache frequently accessed DOM elements
-const loadingEl = document.getElementById("caseoh-loading")
-const splashEl = document.getElementById("splash")
+const loadingEl = document.getElementById("caseoh-loading");
+const splashEl = document.getElementById("splash");
 
 export const disableLoading = (): void => {
-  loadingEl?.setAttribute("is-hidden", "true")
-  splashEl?.setAttribute("is-hidden", "true")
-}
+  loadingEl?.setAttribute("is-hidden", "true");
+  splashEl?.setAttribute("is-hidden", "true");
+};
 
 export const enableLoading = (): void => {
-  loadingEl?.setAttribute("is-hidden", "false")
-}
+  loadingEl?.setAttribute("is-hidden", "false");
+};
 
-const mapLoader = loadGltf(dropperGlb).then(gltf => gltf.scene)
+const mapLoader = loadGltf(dropperGlb).then((gltf) => gltf.scene);
 
 let musicAudioPromise = loadAudio(worblyOgg, {
   loop: true,
   volume: 0.01,
-})
+});
 
-let eatChipAudioPromise = loadAudio(eatChipOgg, { volume: 0.5 })
+let eatChipAudioPromise = loadAudio(eatChipOgg, { volume: 0.5 });
 
 export const init = async () => {
-  console.log("scene init called")
+  console.log("scene init called");
 
-  enableLoading()
+  enableLoading();
 
-  setGravity(-0.2)
+  setGravity(-0.2);
 
-  player.setThirdPerson(false)
-  player.setCameraHeight(2)
+  player.setThirdPerson(false);
+  player.setCameraHeight(2);
 
-  const { scene, camera, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
-  const spotLight = createFlashlight()
-  spotLight.position.set(2, 3, -6)
-  spotLight.castShadow = false
-  spotLight.intensity = 8
-  spotLight.decay = 0.5
-  spotLight.angle = Math.PI * 0.35
-  spotLight.penumbra = 1
-  scene.add(spotLight)
-  const target = new THREE.Object3D()
-  scene.add(target)
-  spotLight.target = target
+  const { scene, camera, simulation, cleanup, createFlashlight } =
+    await initScene(mapLoader);
+  const spotLight = createFlashlight();
+  spotLight.position.set(2, 3, -6);
+  spotLight.castShadow = false;
+  spotLight.intensity = 8;
+  spotLight.decay = 0.5;
+  spotLight.angle = Math.PI * 0.35;
+  spotLight.penumbra = 1;
+  scene.add(spotLight);
+  const target = new THREE.Object3D();
+  scene.add(target);
+  spotLight.target = target;
 
-  const texture = await loadTextureAsync(meatwireeyesWebp)
+  const texture = await loadTextureAsync(meatwireeyesWebp);
 
-  const cylinder = scene.getObjectByName("Cylinder")! as THREE.Mesh
+  const cylinder = scene.getObjectByName("Cylinder")! as THREE.Mesh;
 
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
 
   // Maintain aspect ratio while repeating
-  const repeatFactor = 10.0
-  texture.repeat.set(repeatFactor, repeatFactor)
+  const repeatFactor = 10.0;
+  texture.repeat.set(repeatFactor, repeatFactor);
 
   // Create a custom shader material to map in screen space
   const customMaterial = new THREE.ShaderMaterial({
@@ -76,7 +77,9 @@ export const init = async () => {
       aspectRatio: { value: texture.image.width / texture.image.height },
       scale: { value: 1.2 }, // Adjust scale as needed
       time: { value: 0 },
-      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+      resolution: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+      },
     },
     vertexShader: /*glsl*/ `
       varying vec2 vUv;
@@ -135,88 +138,97 @@ export const init = async () => {
         gl_FragColor = color;
       }
     `,
-    side: THREE.DoubleSide
-  })
+    side: THREE.DoubleSide,
+  });
 
   // Update time and resolution uniforms in the render loop
   const updateUniforms = function () {
     if (customMaterial.uniforms) {
-      customMaterial.uniforms.time.value = performance.now() * 0.001
-      customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight)
+      customMaterial.uniforms.time.value = performance.now() * 0.001;
+      customMaterial.uniforms.resolution.value.set(
+        window.innerWidth,
+        window.innerHeight
+      );
     }
-    requestAnimationFrame(updateUniforms)
-  }
-  requestAnimationFrame(updateUniforms)
+    requestAnimationFrame(updateUniforms);
+  };
+  requestAnimationFrame(updateUniforms);
 
   // Add a resize listener to update resolution when window size changes
   const handleResize = () => {
     if (customMaterial.uniforms) {
-      customMaterial.uniforms.resolution.value.set(window.innerWidth, window.innerHeight)
+      customMaterial.uniforms.resolution.value.set(
+        window.innerWidth,
+        window.innerHeight
+      );
     }
-  }
-  window.addEventListener('resize', handleResize)
+  };
+  window.addEventListener("resize", handleResize);
 
   // Assign the material to the cylinder
   if (cylinder.material instanceof THREE.Material) {
-    cylinder.material = customMaterial
+    cylinder.material = customMaterial;
   } else if (Array.isArray(cylinder.material)) {
     // cylinder.material = Array(cylinder.material.length).fill(customMaterial)
   }
 
-  state.setGameStarted(true)
-  hideMainMenu()
+  state.setGameStarted(true);
+  hideMainMenu();
 
-  simulation.Start()
+  simulation.Start();
 
-  disableLoading()
+  disableLoading();
 
-  const musicAudio = await musicAudioPromise
+  const musicAudio = await musicAudioPromise;
 
-  musicAudio.play()
+  musicAudio.play();
 
-  simulation.ViewSync.AddAuxiliaryView(new class extends View {
-    private hasEnded = false
+  simulation.ViewSync.AddAuxiliaryView(
+    new (class extends View {
+      private hasEnded = false;
 
-    public Draw(): void {
-      // log player y position
-      const playerY = camera.position.y
+      public Draw(): void {
+        // log player y position
+        const playerY = camera.position.y;
 
-      if (!this.hasEnded && playerY <= -372) {
-        this.hasEnded = true
-        if (eatChipAudioPromise) {
-          eatChipAudioPromise.then(audio => {
-            audio.setVolume(0.03)
-            audio.play()
-          })
+        if (!this.hasEnded && playerY <= -372) {
+          this.hasEnded = true;
+          if (eatChipAudioPromise) {
+            eatChipAudioPromise.then((audio) => {
+              audio.setVolume(0.03);
+              audio.play();
+            });
+          }
+          enableLoading();
+          musicAudio?.stop();
+          state.incrementWins();
+
+          setTimeout(() => {
+            loadScene(scenes.crazeoh);
+          }, 1000);
+
+          return;
         }
-        enableLoading()
-        musicAudio?.stop()
-        state.incrementWins()
 
-        setTimeout(() => {
-          loadScene(scenes.crazeoh)
-        }, 1000)
+        // Gradually increase music volume as player descends
+        if (musicAudio && playerY > -1000 && playerY < 0) {
+          // Linear interpolation from 0.01 to 0.5 as player descends from 0 to -1000
+          const volumeFactor = Math.abs(playerY) / 1000;
+          const targetVolume = 0.01 + (0.1 - 0.01) * volumeFactor;
 
-        return
+          // Apply the calculated volume with a slight smoothing effect
+          const currentVolume = musicAudio.volume;
+          const newVolume =
+            currentVolume + (targetVolume - currentVolume) * 0.1;
+
+          musicAudio.volume = newVolume;
+        }
       }
-
-      // Gradually increase music volume as player descends
-      if (musicAudio && playerY > -1000 && playerY < 0) {
-        // Linear interpolation from 0.01 to 0.5 as player descends from 0 to -1000
-        const volumeFactor = Math.abs(playerY) / 1000
-        const targetVolume = 0.01 + (0.1 - 0.01) * volumeFactor
-
-        // Apply the calculated volume with a slight smoothing effect
-        const currentVolume = musicAudio.volume
-        const newVolume = currentVolume + (targetVolume - currentVolume) * 0.1
-
-        musicAudio.volume = newVolume
-      }
-    }
-  })
+    })()
+  );
 
   return () => {
-    if (musicAudio) musicAudio.stop()
-    cleanup()
-  }
-}
+    if (musicAudio) musicAudio.stop();
+    cleanup();
+  };
+};

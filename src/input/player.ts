@@ -24,7 +24,16 @@ export interface InputState {
 }
 
 // These are the button actions for which we emit “just pressed” events.
-export type InputAction = "interact" | "mainAction1" | "mainAction2" | "settings" | "cancel" | "up" | "down" | "left" | "right";
+export type InputAction =
+  | "interact"
+  | "mainAction1"
+  | "mainAction2"
+  | "settings"
+  | "cancel"
+  | "up"
+  | "down"
+  | "left"
+  | "right";
 
 // Input source types.
 export type InputSource = "keyboard" | "mouse" | "gamepad";
@@ -37,9 +46,18 @@ export interface JustPressedEvent {
 
 // A simple event emitter.
 class EventEmitter {
-  private listeners: { [event: string]: { listener: (payload: JustPressedEvent) => void, order: number }[] } = {};
+  private listeners: {
+    [event: string]: {
+      listener: (payload: JustPressedEvent) => void;
+      order: number;
+    }[];
+  } = {};
 
-  public on(event: string, listener: (payload: JustPressedEvent) => void, options?: { order: number }) {
+  public on(
+    event: string,
+    listener: (payload: JustPressedEvent) => void,
+    options?: { order: number }
+  ) {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
@@ -50,10 +68,15 @@ class EventEmitter {
 
   public off(event: string, listener: (payload: JustPressedEvent) => void) {
     if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter((l) => l.listener !== listener);
+    this.listeners[event] = this.listeners[event].filter(
+      (l) => l.listener !== listener
+    );
   }
 
-  public *emit(event: string, payload: JustPressedEvent & { _consumed?: boolean }) {
+  public *emit(
+    event: string,
+    payload: JustPressedEvent & { _consumed?: boolean }
+  ) {
     if (!this.listeners[event]) return;
     for (const { listener, order } of this.listeners[event]) {
       listener(payload);
@@ -222,7 +245,7 @@ export class InputManager {
     };
 
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    const gp = Array.from(gamepads).find(p => p) as Gamepad | undefined;
+    const gp = Array.from(gamepads).find((p) => p) as Gamepad | undefined;
     if (gp) {
       const gpX = applyDeadzone(gp.axes[0] || 0);
       const gpY = applyDeadzone(gp.axes[1] || 0);
@@ -243,12 +266,17 @@ export class InputManager {
 
     // --- Process Look Input with Smoothing ---
     // Smooth the raw mouse input into our smoothedLookDelta.
-    this.smoothedLookDelta.x = this.smoothedLookDelta.x * (1 - this.smoothingFactor) +
+    this.smoothedLookDelta.x =
+      this.smoothedLookDelta.x * (1 - this.smoothingFactor) +
       this.rawLookDelta.x * this.smoothingFactor;
-    this.smoothedLookDelta.y = this.smoothedLookDelta.y * (1 - this.smoothingFactor) +
+    this.smoothedLookDelta.y =
+      this.smoothedLookDelta.y * (1 - this.smoothingFactor) +
       this.rawLookDelta.y * this.smoothingFactor;
     // Use the smoothed value as the look delta.
-    let look: Vector2 = { x: this.smoothedLookDelta.x, y: this.smoothedLookDelta.y };
+    let look: Vector2 = {
+      x: this.smoothedLookDelta.x,
+      y: this.smoothedLookDelta.y,
+    };
     // Clear the raw look delta for the next frame.
     this.rawLookDelta = { x: 0, y: 0 };
 
@@ -267,31 +295,44 @@ export class InputManager {
       look = { x: 0, y: 0 };
     }
 
-
     // Process Button Actions (Digital)
     const interactKeyboard = this.keyboardPressed.has("e");
     const interactMouse = false; // No mouse interaction for "interact"
-    const interactGamepad = this.getGamepadButtonPressed(this.gamepadMapping.leftFace);
+    const interactGamepad = this.getGamepadButtonPressed(
+      this.gamepadMapping.leftFace
+    );
     const interact = interactKeyboard || interactMouse || interactGamepad;
 
     const mainAction1Keyboard = false; // No keyboard interaction for "mainAction1"
     const mainAction1Mouse = this.mouseButtonsPressed.has(0);
-    const mainAction1Gamepad = this.getGamepadButtonPressed(this.gamepadMapping.bottomFace, true);
-    const mainAction1 = mainAction1Keyboard || mainAction1Mouse || mainAction1Gamepad;
+    const mainAction1Gamepad = this.getGamepadButtonPressed(
+      this.gamepadMapping.bottomFace,
+      true
+    );
+    const mainAction1 =
+      mainAction1Keyboard || mainAction1Mouse || mainAction1Gamepad;
 
     const mainAction2Keyboard = false; // No keyboard interaction for "mainAction2"
     const mainAction2Mouse = this.mouseButtonsPressed.has(2);
-    const mainAction2Gamepad = this.getGamepadButtonPressed(this.gamepadMapping.topFace, true);
-    const mainAction2 = mainAction2Keyboard || mainAction2Mouse || mainAction2Gamepad;
+    const mainAction2Gamepad = this.getGamepadButtonPressed(
+      this.gamepadMapping.topFace,
+      true
+    );
+    const mainAction2 =
+      mainAction2Keyboard || mainAction2Mouse || mainAction2Gamepad;
 
     const cancelKeyboard = this.keyboardPressed.has("backspace");
     const cancelMouse = false; // No mouse interaction for "cancel"
-    const cancelGamepad = this.getGamepadButtonPressed(this.gamepadMapping.rightFace);
+    const cancelGamepad = this.getGamepadButtonPressed(
+      this.gamepadMapping.rightFace
+    );
     const cancel = cancelKeyboard || cancelMouse || cancelGamepad;
 
     const settingsKeyboard = this.keyboardPressed.has("escape");
     const settingsMouse = false; // No mouse interaction for "settings"
-    const settingsGamepad = this.getGamepadButtonPressed(this.gamepadMapping.start);
+    const settingsGamepad = this.getGamepadButtonPressed(
+      this.gamepadMapping.start
+    );
     const settings = settingsKeyboard || settingsMouse || settingsGamepad;
 
     const newState: InputState = {
@@ -304,23 +345,67 @@ export class InputManager {
       cancel,
 
       // Implement directional buttons
-      up: this.keyboardPressed.has("arrowup") || Boolean(gp?.buttons[12]?.pressed),
-      down: this.keyboardPressed.has("arrowdown") || Boolean(gp?.buttons[13]?.pressed),
-      left: this.keyboardPressed.has("arrowleft") || Boolean(gp?.buttons[14]?.pressed),
-      right: this.keyboardPressed.has("arrowright") || Boolean(gp?.buttons[15]?.pressed)
+      up:
+        this.keyboardPressed.has("arrowup") ||
+        Boolean(gp?.buttons[12]?.pressed),
+      down:
+        this.keyboardPressed.has("arrowdown") ||
+        Boolean(gp?.buttons[13]?.pressed),
+      left:
+        this.keyboardPressed.has("arrowleft") ||
+        Boolean(gp?.buttons[14]?.pressed),
+      right:
+        this.keyboardPressed.has("arrowright") ||
+        Boolean(gp?.buttons[15]?.pressed),
     };
 
-    this.checkJustPressed("interact", newState.interact, interactKeyboard ? "keyboard" : interactGamepad ? "gamepad" : "mouse");
-    this.checkJustPressed("mainAction1", newState.mainAction1, mainAction1Mouse ? "mouse" : mainAction1Gamepad ? "gamepad" : "keyboard");
-    this.checkJustPressed("mainAction2", newState.mainAction2, mainAction2Mouse ? "mouse" : mainAction2Gamepad ? "gamepad" : "keyboard");
-    this.checkJustPressed("settings", newState.settings, settingsKeyboard ? "keyboard" : settingsGamepad ? "gamepad" : "mouse");
-    this.checkJustPressed("cancel", newState.cancel, cancelKeyboard ? "keyboard" : cancelGamepad ? "gamepad" : "mouse");
+    this.checkJustPressed(
+      "interact",
+      newState.interact,
+      interactKeyboard ? "keyboard" : interactGamepad ? "gamepad" : "mouse"
+    );
+    this.checkJustPressed(
+      "mainAction1",
+      newState.mainAction1,
+      mainAction1Mouse ? "mouse" : mainAction1Gamepad ? "gamepad" : "keyboard"
+    );
+    this.checkJustPressed(
+      "mainAction2",
+      newState.mainAction2,
+      mainAction2Mouse ? "mouse" : mainAction2Gamepad ? "gamepad" : "keyboard"
+    );
+    this.checkJustPressed(
+      "settings",
+      newState.settings,
+      settingsKeyboard ? "keyboard" : settingsGamepad ? "gamepad" : "mouse"
+    );
+    this.checkJustPressed(
+      "cancel",
+      newState.cancel,
+      cancelKeyboard ? "keyboard" : cancelGamepad ? "gamepad" : "mouse"
+    );
 
     // Check for justPressed events for directional actions
-    this.checkJustPressed("up", newState.up, this.keyboardPressed.has("arrowup") ? "keyboard" : "gamepad");
-    this.checkJustPressed("down", newState.down, this.keyboardPressed.has("arrowdown") ? "keyboard" : "gamepad");
-    this.checkJustPressed("left", newState.left, this.keyboardPressed.has("arrowleft") ? "keyboard" : "gamepad");
-    this.checkJustPressed("right", newState.right, this.keyboardPressed.has("arrowright") ? "keyboard" : "gamepad");
+    this.checkJustPressed(
+      "up",
+      newState.up,
+      this.keyboardPressed.has("arrowup") ? "keyboard" : "gamepad"
+    );
+    this.checkJustPressed(
+      "down",
+      newState.down,
+      this.keyboardPressed.has("arrowdown") ? "keyboard" : "gamepad"
+    );
+    this.checkJustPressed(
+      "left",
+      newState.left,
+      this.keyboardPressed.has("arrowleft") ? "keyboard" : "gamepad"
+    );
+    this.checkJustPressed(
+      "right",
+      newState.right,
+      this.keyboardPressed.has("arrowright") ? "keyboard" : "gamepad"
+    );
 
     this.currentState = newState;
     this.prevButtonStates.interact = newState.interact;
@@ -337,7 +422,11 @@ export class InputManager {
 
   private debounceTimers: { [key in InputAction]?: number } = {};
 
-  private checkJustPressed(action: InputAction, newState: boolean, inputSource: InputSource) {
+  private checkJustPressed(
+    action: InputAction,
+    newState: boolean,
+    inputSource: InputSource
+  ) {
     if (newState && !this.prevButtonStates[action]) {
       // Mark this button as pressed for the next frame.
       this.prevButtonStates[action] = true;
@@ -353,7 +442,7 @@ export class InputManager {
         inputSource,
         consume: () => {
           payload._consumed = true;
-        }
+        },
       };
 
       // Emit the event. The generator will yield the "order" of each listener.
@@ -369,7 +458,10 @@ export class InputManager {
     }
   }
 
-  private getGamepadButtonPressed(buttonIndex: number, analog: boolean = false): boolean {
+  private getGamepadButtonPressed(
+    buttonIndex: number,
+    analog: boolean = false
+  ): boolean {
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (const gp of gamepads) {
       if (!gp) continue;
@@ -389,19 +481,20 @@ export class InputManager {
   }
 }
 
-export const waitForAction = (action: InputAction | "all" = "mainAction1") => new Promise<void>(resolve => {
-  const handler = (payload: JustPressedEvent) => {
-    if (action !== "all" && payload.action !== action) {
-      return
-    }
+export const waitForAction = (action: InputAction | "all" = "mainAction1") =>
+  new Promise<void>((resolve) => {
+    const handler = (payload: JustPressedEvent) => {
+      if (action !== "all" && payload.action !== action) {
+        return;
+      }
 
-    playerInput.emitter.off("justpressed", handler)
+      playerInput.emitter.off("justpressed", handler);
 
-    resolve()
-  }
+      resolve();
+    };
 
-  playerInput.emitter.on("justpressed", handler)
-})
+    playerInput.emitter.on("justpressed", handler);
+  });
 
 // Setup a global instance and update loop.
 const inputManager = new InputManager();

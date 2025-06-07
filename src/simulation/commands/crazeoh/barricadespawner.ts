@@ -6,91 +6,112 @@ import * as THREE from "three";
 export class barricadespawner extends SimulationCommand {
   public Execute(simulation: Simulation): void {
     if (this.Position === null || this.Rotation === null) {
-      throw new Error("Position and Rotation must be set before executing SpawnBarricade");
+      throw new Error(
+        "Position and Rotation must be set before executing SpawnBarricade"
+      );
     }
 
-    const position = this.Position
+    const position = this.Position;
 
-    let spawned = false
+    let spawned = false;
 
-    let interloper: (typeof import("../../../scenes/crazeoh/interloper")) | null = null
+    let interloper: typeof import("../../../scenes/crazeoh/interloper") | null =
+      null;
     // Creating a variable for the dynamically imported currentCrtPass module
-    let crtPassModule: (typeof import("../../../scenes/crazeoh/initScene")) | null = null
+    let crtPassModule:
+      | typeof import("../../../scenes/crazeoh/initScene")
+      | null = null;
 
     // Dynamic import of the interloper module
-    import("../../../scenes/crazeoh/interloper").then(interloperModule => {
+    import("../../../scenes/crazeoh/interloper").then((interloperModule) => {
       interloper = interloperModule;
-    })
+    });
 
     // Dynamic import of the initScene module (for currentCrtPass)
-    import("../../../scenes/crazeoh/initScene").then(initSceneModule => {
+    import("../../../scenes/crazeoh/initScene").then((initSceneModule) => {
       crtPassModule = initSceneModule;
-    })
+    });
 
-    const entId = simulation.EntityRegistry.Create()
-    simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
+    const entId = simulation.EntityRegistry.Create();
+    simulation.SimulationState.PhysicsRepository.CreateComponent(entId);
     // simulation.SimulationState.PhysicsRepository.SetPosition(entId, position)
 
-    simulation.ViewSync.AddAuxiliaryView(new class extends View {
-      public Draw(simulation: Simulation, lerpFactor: number): void {
-        if (spawned || !interloper?.pizzaEaten) return
+    simulation.ViewSync.AddAuxiliaryView(
+      new (class extends View {
+        public Draw(simulation: Simulation, lerpFactor: number): void {
+          if (spawned || !interloper?.pizzaEaten) return;
 
-        spawned = true
+          spawned = true;
 
-        simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [4, 100, 4], [
-          position[0],
-          position[1],
-          position[2]
-        ], undefined, false)
-
-        // Dynamically import the HeadView
-        import("../../../views/crazeoh/barricade").then(({ BarricadeView: _ }) => {
-          const BarricadeView = _ as typeof import("../../../views/crazeoh/barricade").BarricadeView;
-          const view = new BarricadeView(simulation, entId,
-            [
-              position[0],
-              position[1] - 0.1,
-              position[2]
-            ],
-            [
-              0,
-              -0.27 * Math.PI,
-              0
-            ],
-            [2.2, 2.2, 2.2]
+          simulation.SimulationState.PhysicsRepository.AddBoxCollider(
+            entId,
+            [4, 100, 4],
+            [position[0], position[1], position[2]],
+            undefined,
+            false
           );
 
-          // Using the dynamically imported currentCrtPass
-          const currentCrtPass = crtPassModule?.currentCrtPass;
-          const initialIntensity = currentCrtPass?.uniforms["noiseIntensity"].value;
+          // Dynamically import the HeadView
+          import("../../../views/crazeoh/barricade").then(
+            ({ BarricadeView: _ }) => {
+              const BarricadeView =
+                _ as typeof import("../../../views/crazeoh/barricade").BarricadeView;
+              const view = new BarricadeView(
+                simulation,
+                entId,
+                [position[0], position[1] - 0.1, position[2]],
+                [0, -0.27 * Math.PI, 0],
+                [2.2, 2.2, 2.2]
+              );
 
-          simulation.ViewSync.AddAuxiliaryView(new class extends View {
-            public Draw(simulation: Simulation, lerpFactor: number): void {
               // Using the dynamically imported currentCrtPass
               const currentCrtPass = crtPassModule?.currentCrtPass;
-              if (!view.barricade || !currentCrtPass) return
+              const initialIntensity =
+                currentCrtPass?.uniforms["noiseIntensity"].value;
 
-              // Calculate distance from player to barricade
-              const playerVec = simulation.Camera.position.clone();
-              const barricadePos = new THREE.Vector3(position[0], position[1], position[2]);
-              const distanceToPlayer = barricadePos.distanceTo(playerVec);
+              simulation.ViewSync.AddAuxiliaryView(
+                new (class extends View {
+                  public Draw(
+                    simulation: Simulation,
+                    lerpFactor: number
+                  ): void {
+                    // Using the dynamically imported currentCrtPass
+                    const currentCrtPass = crtPassModule?.currentCrtPass;
+                    if (!view.barricade || !currentCrtPass) return;
 
-              // Distance factor: 1 when far away, 0 when close
-              const distanceFactor = Math.min(1, Math.max(0, distanceToPlayer / 15));
+                    // Calculate distance from player to barricade
+                    const playerVec = simulation.Camera.position.clone();
+                    const barricadePos = new THREE.Vector3(
+                      position[0],
+                      position[1],
+                      position[2]
+                    );
+                    const distanceToPlayer = barricadePos.distanceTo(playerVec);
 
-              // Scale noise intensity based on distance:
-              // - At max distance: use initialIntensity
-              // - At min distance: use initialIntensity * 3
-              const noiseValue = initialIntensity * (1 + 15 * (1 - distanceFactor));
+                    // Distance factor: 1 when far away, 0 when close
+                    const distanceFactor = Math.min(
+                      1,
+                      Math.max(0, distanceToPlayer / 15)
+                    );
 
-              // Apply the noise effect
-              currentCrtPass.uniforms["noiseIntensity"].value = noiseValue;
+                    // Scale noise intensity based on distance:
+                    // - At max distance: use initialIntensity
+                    // - At min distance: use initialIntensity * 3
+                    const noiseValue =
+                      initialIntensity * (1 + 15 * (1 - distanceFactor));
+
+                    // Apply the noise effect
+                    currentCrtPass.uniforms["noiseIntensity"].value =
+                      noiseValue;
+                  }
+                })()
+              );
+
+              simulation.ViewSync.AddAuxiliaryView(view);
             }
-          })
-
-          simulation.ViewSync.AddAuxiliaryView(view);
-        });
-      }
-    })
+          );
+        }
+      })()
+    );
   }
 }

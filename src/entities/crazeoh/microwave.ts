@@ -5,14 +5,14 @@ import { ExecutionMode } from "../../simulation/repository/SensorCommandReposito
 import { MicrowaveView } from "../../views/crazeoh/microwave";
 
 export const createMicrowave = (simulation: Simulation) => {
-  const entId = simulation.EntityRegistry.Create()
-  simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
-  simulation.SimulationState.SensorCommandRepository.CreateComponent(entId)
+  const entId = simulation.EntityRegistry.Create();
+  simulation.SimulationState.PhysicsRepository.CreateComponent(entId);
+  simulation.SimulationState.SensorCommandRepository.CreateComponent(entId);
 
-  const microwaveObject = simulation.ThreeScene.getObjectByName("Microwave")!
+  const microwaveObject = simulation.ThreeScene.getObjectByName("Microwave")!;
 
-  const microwaveView = new MicrowaveView(microwaveObject, simulation)
-  simulation.ViewSync.AddAuxiliaryView(microwaveView)
+  const microwaveView = new MicrowaveView(microwaveObject, simulation);
+  simulation.ViewSync.AddAuxiliaryView(microwaveView);
 
   simulation.SimulationState.SensorCommandRepository.AddSensorCommand({
     entId: entId,
@@ -20,15 +20,17 @@ export const createMicrowave = (simulation: Simulation) => {
     command: new ToggleMicrowave(microwaveView),
     once: false,
     owner: microwaveObject,
-  })
+  });
 
-  const worldPosition = microwaveObject.getWorldPosition(new Vector3())
+  const worldPosition = microwaveObject.getWorldPosition(new Vector3());
 
-  simulation.SimulationState.PhysicsRepository.AddBoxCollider(entId, [3, 100, 3], [
-    worldPosition.x,
-    worldPosition.y,
-    worldPosition.z,
-  ], undefined, true)
+  simulation.SimulationState.PhysicsRepository.AddBoxCollider(
+    entId,
+    [3, 100, 3],
+    [worldPosition.x, worldPosition.y, worldPosition.z],
+    undefined,
+    true
+  );
 
-  return entId
-}
+  return entId;
+};
