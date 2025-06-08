@@ -29,7 +29,7 @@ const config = defineConfig({
             const fs = await import('fs-extra');
             const path = await import('path');
             const sourcePath = path.resolve('dist/crazeoh');
-            const targetPath = path.resolve('electron/resources/app/dist');
+            const targetPath = path.resolve('crazeoh/resources/app/dist');
 
             console.log(`Copying build files from ${sourcePath} to ${targetPath}`);
             await fs.ensureDir(targetPath);

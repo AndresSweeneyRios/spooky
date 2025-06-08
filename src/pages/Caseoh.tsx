@@ -234,11 +234,9 @@ window.addEventListener("click", () => {
 })
 
 document.addEventListener("pointerlockchange", () => {
-  requestAnimationFrame(() => {
-    if (!state.picking && document.pointerLockElement !== renderer.domElement) {
-      state.setInSettings(true);
-    }
-  })
+  if (!state.picking && document.pointerLockElement !== renderer.domElement) {
+    state.setInSettings(true);
+  }
 })
 
 /**
