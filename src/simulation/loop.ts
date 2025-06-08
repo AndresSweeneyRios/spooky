@@ -1,17 +1,17 @@
 import type { Simulation } from ".";
 import { Tick } from "./systems";
 
-// Define the FPS constant
-const FPS = 1000 / 60;
+// Frame duration in milliseconds and seconds
+const FRAME_DURATION_MS = 1000 / 60;
+const FRAME_DURATION_S = FRAME_DURATION_MS / 1000;
 export const MAX_ALLOWED_PAUSE = 1000;
 
 // Function to start the game loop
 export function startGameLoop(simulation: Simulation) {
   if (simulation.IsRunning) return;
-
   simulation.IsRunning = true;
-  simulation.LastFrameTime = Date.now();
-  gameLoop(simulation);
+  simulation.LastFrameTime = performance.now();
+  requestAnimationFrame(gameLoop.bind(null, simulation));
 }
 
 // Function to stop the game loop
@@ -20,51 +20,41 @@ export function stopGameLoop(simulation: Simulation) {
 }
 
 // Game loop function
-function gameLoop(simulation: Simulation) {
+function gameLoop(simulation: Simulation, now: number) {
   if (!simulation.IsRunning) return;
-
-  const currentTime = Date.now();
-  let deltaTime = (currentTime - simulation.LastFrameTime);
-
-  // If the pause is too long, reset the accumulated time
-  if (deltaTime > MAX_ALLOWED_PAUSE) {
-    simulation.AccumulatedTime = 0; // Reset accumulated time
-    simulation.LastFrameTime = currentTime;
-    deltaTime = 0;
+  const viewSync = simulation.ViewSync;
+  // time since last frame
+  let dtMs = now - simulation.LastFrameTime;
+  simulation.LastFrameTime = now;
+  // drop large pauses
+  if (dtMs > MAX_ALLOWED_PAUSE) {
+    simulation.AccumulatedTime = 0;
+    dtMs = 0;
   }
-
-  // Update game logic here
-  simulation.AccumulatedTime += deltaTime;
-
-  while (simulation.AccumulatedTime >= FPS) {
-    // Update game logic here
-    simulation.AccumulatedTime -= FPS;
-
-    const deltaTime = FPS / 1000;
-
-    updateGameLogic(simulation, deltaTime);
+  // accumulate time
+  simulation.AccumulatedTime += dtMs;
+  // fixed-step updates
+  while (simulation.AccumulatedTime >= FRAME_DURATION_MS) {
+    simulation.AccumulatedTime -= FRAME_DURATION_MS;
+    updateGameLogic(simulation, FRAME_DURATION_S);
   }
-
-  simulation.ViewSync.Draw(simulation, simulation.AccumulatedTime / FPS);
-
-  // Render game graphics here
-  simulation.LastFrameTime = currentTime;
-
-  // Call the game loop again
-  requestAnimationFrame(() => gameLoop(simulation));
+  // render interpolation
+  viewSync.Draw(simulation, simulation.AccumulatedTime / FRAME_DURATION_MS);
+  // schedule next
+  requestAnimationFrame(gameLoop.bind(null, simulation));
 }
 
 // Function to update the game logic independently
 export function updateGameLogic(simulation: Simulation, deltaTime: number) {
-  simulation.SimulationState.DeltaTime = deltaTime;
-
-  for (const command of simulation.SimulationState.Commands) {
-    command.Execute(simulation);
+  const state = simulation.SimulationState;
+  state.DeltaTime = deltaTime;
+  // execute and clear commands
+  const cmds = state.Commands;
+  for (const cmd of cmds) {
+    cmd.Execute(simulation);
   }
-
-  simulation.SimulationState.Commands = [];
-
-  Tick(simulation.SimulationState);
-
+  cmds.length = 0;
+  // advance simulation systems
+  Tick(state);
   simulation.ViewSync.Update(simulation);
 }

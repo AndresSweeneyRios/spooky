@@ -121,32 +121,41 @@ export class InputManager {
   // Smoothing factor (0 = no new input; 1 = no smoothing). Adjust as needed.
   private smoothingFactor: number = 0.99;
 
-  constructor() {
-    window.addEventListener("keydown", (e) => this.onKeyDown(e));
-    window.addEventListener("keyup", (e) => this.onKeyUp(e));
+  // Keep references to bound listeners so they can be removed.
+  private keyDownListener = (e: KeyboardEvent) => this.onKeyDown(e);
+  private keyUpListener = (e: KeyboardEvent) => this.onKeyUp(e);
+  private mouseDownListener = (e: MouseEvent) => this.onMouseDown(e);
+  private mouseUpListener = (e: MouseEvent) => this.onMouseUp(e);
+  private mouseMoveListener = (e: MouseEvent) => this.onMouseMove(e);
+  private pointerLockChangeListener = () => {
+    if (document.pointerLockElement === null) {
+      this.resetInputs();
+    }
+  };
+  private fullscreenChangeListener = () => {
+    if (!document.fullscreenElement) {
+      this.resetInputs();
+    }
+  };
 
-    window.addEventListener("mousedown", (e) => this.onMouseDown(e), {
+  constructor() {
+    window.addEventListener("keydown", this.keyDownListener);
+    window.addEventListener("keyup", this.keyUpListener);
+
+    window.addEventListener("mousedown", this.mouseDownListener, {
       capture: false,
     });
-    window.addEventListener("mouseup", (e) => this.onMouseUp(e), {
+    window.addEventListener("mouseup", this.mouseUpListener, {
       capture: false,
     });
-    window.addEventListener("mousemove", (e) => this.onMouseMove(e));
+    window.addEventListener("mousemove", this.mouseMoveListener);
 
     // Prevent context menu from interfering with right-click.
     // window.addEventListener("contextmenu", (e) => e.preventDefault());
 
     // Clear inputs when pointer lock/fullscreen is lost.
-    document.addEventListener("pointerlockchange", () => {
-      if (document.pointerLockElement === null) {
-        this.resetInputs();
-      }
-    });
-    document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement) {
-        this.resetInputs();
-      }
-    });
+    document.addEventListener("pointerlockchange", this.pointerLockChangeListener);
+    document.addEventListener("fullscreenchange", this.fullscreenChangeListener);
   }
 
   private onKeyDown(e: KeyboardEvent) {
@@ -387,6 +396,16 @@ export class InputManager {
   public getState(): InputState {
     return this.currentState;
   }
+
+  public dispose() {
+    window.removeEventListener("keydown", this.keyDownListener);
+    window.removeEventListener("keyup", this.keyUpListener);
+    window.removeEventListener("mousedown", this.mouseDownListener);
+    window.removeEventListener("mouseup", this.mouseUpListener);
+    window.removeEventListener("mousemove", this.mouseMoveListener);
+    document.removeEventListener("pointerlockchange", this.pointerLockChangeListener);
+    document.removeEventListener("fullscreenchange", this.fullscreenChangeListener);
+  }
 }
 
 export const waitForAction = (action: InputAction | "all" = "mainAction1") => new Promise<void>(resolve => {
@@ -404,5 +423,10 @@ export const waitForAction = (action: InputAction | "all" = "mainAction1") => ne
 })
 
 // Setup a global instance and update loop.
+const previous = (globalThis as any).playerInput as InputManager | undefined;
+if (previous) {
+  previous.dispose();
+}
 const inputManager = new InputManager();
+(globalThis as any).playerInput = inputManager;
 export const playerInput = inputManager;

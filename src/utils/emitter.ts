@@ -1,4 +1,5 @@
-export class TypedEmitter<Events extends Record<string, (...args: any[]) => void>> {
+export class TypedEmitter<Events extends { [key: string]: (...args: any[]) => void }
+> {
   private listeners: { [K in keyof Events]?: Events[K][] } = {};
 
   on<K extends keyof Events>(eventName: K, listener: Events[K]): void {
