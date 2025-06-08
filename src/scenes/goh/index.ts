@@ -7,7 +7,7 @@ import * as shaders from '../../graphics/shaders';
 import { processAttributes } from '../../utils/processAttributes';
 import { traverse } from '../../utils/traverse';
 import cityscapeWebp from '../../assets/3d/env/cityscape.webp';
-import starterSceneGlb from '../../assets/3d/scenes/startscene/starterscenetest_OPTIMIZED.glb';
+import starterSceneGlb from '../../assets/3d/scenes/startscene/forest_OPTIMIZED.glb';
 import { playerInput } from "../../input/player";
 import { PlayerView } from "../../views/player";
 import { initializeSubScene, InitializeSubSceneResult, SubSceneContext } from "./sub-scenes";

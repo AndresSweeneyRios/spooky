@@ -2,8 +2,8 @@ export const RENDERER = Object.freeze({
   limitResolution: true,
   height: 600,
   colorBits: 64,
-  vertexBits: 8,
-  antialias: true,
+  vertexBits: 64,
+  antialias: false,
 })
 
 // export const RENDERER = Object.freeze({
