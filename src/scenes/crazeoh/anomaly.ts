@@ -966,13 +966,50 @@ const FakeMirror: Anomaly = {
   }
 }
 
+// Skull anomaly
+const Skull: Anomaly = {
+  Id: 33,
+
+  Enable(simulation: Simulation) {
+    const skull = simulation.ThreeScene.getObjectByName('Object_2006') as THREE.Mesh
+
+    skull.visible = true
+
+    return skull.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const skull = simulation.ThreeScene.getObjectByName('Object_2006') as THREE.Mesh
+
+    skull.visible = false
+  },
+}
+
+// Arm anomaly
+const Arm: Anomaly = {
+  Id: 34,
+
+  Enable(simulation: Simulation) {
+    const arm = simulation.ThreeScene.getObjectByName('Sketchfab_model022') as THREE.Mesh
+
+    arm.visible = true
+
+    return arm.getWorldPosition(new THREE.Vector3())
+  },
+
+  Disable(simulation: Simulation) {
+    const arm = simulation.ThreeScene.getObjectByName('Sketchfab_model022') as THREE.Mesh
+
+    arm.visible = false
+  },
+}
+
 export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   Amogus,
   LettuceBurger,
   Keyboard,
   ClockSpinFast,
   Monitors,
-  FakeMirror,
   SeveredHand,
   ClockSix,
   Demon,
@@ -993,6 +1030,8 @@ export const DEFAULT_ANOMALIES: Array<Anomaly> = [
   ShadowMan3,
   WaterBottleEggplant,
   AnomalyPainting,
+  Skull,
+  Arm,
 ]
 
 export const SPECIAL_ANOMALIES: Record<number, Anomaly> = {
@@ -1030,6 +1069,7 @@ export const disableAllAnomalies = (simulation: Simulation) => {
 
   Bloodshake.Disable(simulation)
   RedDemon.Disable(simulation)
+  FakeMirror.Disable(simulation)
 }
 
 let previouslyNoAnomaly = false
