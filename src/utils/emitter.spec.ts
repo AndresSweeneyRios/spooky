@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { TypedEmitter } from './emitter'
 
-interface TestEvents {
+type TestEvents = {
   foo: (value: number) => void
   bar: () => void
 }
@@ -17,7 +17,7 @@ describe('TypedEmitter', () => {
 
   it('removes listeners with off', () => {
     const emitter = new TypedEmitter<TestEvents>()
-    const listener = () => {}
+    const listener = () => { }
     emitter.on('bar', listener)
     emitter.off('bar', listener)
     let triggered = false
