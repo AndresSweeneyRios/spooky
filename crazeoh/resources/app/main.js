@@ -1,99 +1,68 @@
-// main.js
 // @ts-ignore
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
-const { globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
-/* ──────────────────────────
- * Chromium / GPU switches
- * ────────────────────────── */
-app.commandLine.appendSwitch('disable-gpu-vsync');                 // uncap vsync
-app.commandLine.appendSwitch('disable-frame-rate-limit');          // uncap FPS
-app.commandLine.appendSwitch('disable-direct-composition');        // fix stutter on non‑primary screens
-app.commandLine.appendSwitch('force_high_performance_gpu');        // pick discrete GPU if present
-app.commandLine.appendSwitch('use-angle', 'd3d11');                // best backend for WebGL2 on Windows
-app.commandLine.appendSwitch('enable-zero-copy');                  // faster texture uploads
-app.commandLine.appendSwitch('disable-renderer-backgrounding');    // keep renderer at full priority
-app.commandLine.appendSwitch('disable-background-timer-throttling');
-app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
-app.commandLine.appendSwitch('disable-http-cache');                // always pull fresh assets
 
-/* ──────────────────────────
- * Globals
- * ────────────────────────── */
+// Store the main window reference
 let mainWindow;
 
-/* ──────────────────────────
- * Helpers
- * ────────────────────────── */
-/**
- * Move an existing window to the requested display and
- * bounce out‑then‑in of fullscreen to get true exclusive
- * mode on that monitor.
- * @param {number} displayIndex – index from screen.getAllDisplays()
- */
-function moveToDisplayAndFullscreen(displayIndex = 0) {
-  const displays = screen.getAllDisplays();
-  if (!displays[displayIndex]) return;
-  const { bounds } = displays[displayIndex];
-
-  mainWindow.setFullScreen(false);              // leave fullscreen
-  mainWindow.setBounds(bounds, false);          // jump without resize flicker
-  mainWindow.setFullScreen(true);               // re‑enter exclusive FS
-}
-
-/* ──────────────────────────
- * Window bootstrap
- * ────────────────────────── */
+// Create the main application window
 function createWindow() {
   mainWindow = new BrowserWindow({
-    x: 0,
-    y: 0,
     width: 1200,
     height: 800,
-    autoHideMenuBar: true,
-    fullscreen: true,              // start in FS
+    autoHideMenuBar: true, // Hide the menu bar
+    fullscreen: true, // Start in fullscreen mode immediately
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: true,
       enableRemoteModule: true,
       webSecurity: false,
-      backgroundThrottling: false, // prevent idle throttling
     },
-    show: false,
+    show: false, // Don't show until ready
   });
 
+  // Load the main HTML file
   mainWindow.loadFile(path.join(__dirname, './dist/index.html'));
-  mainWindow.once('ready-to-show', () => mainWindow.show());
-  mainWindow.on('closed', () => (mainWindow = null));
 
-  /* IPC hook so the renderer can request the hop
-   * `ipcRenderer.invoke('move-to-display', 1)`    */
-  ipcMain.handle('move-to-display', (_, idx) => moveToDisplayAndFullscreen(idx));
+  // Open DevTools in development mode
+  // mainWindow.webContents.openDevTools();
+
+  // Show window when ready to avoid flashing
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  // Handle window closing
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+
+  ipcMain.on('enable-fullscreen', () => {
+    mainWindow.setFullScreen(true);
+  });
 }
 
+// Initialize the app when Electron is ready
 app.whenReady().then(() => {
   createWindow();
 
-  // Register Alt+Enter to toggle fullscreen
-  globalShortcut.register('Alt+Enter', () => {
-    if (!mainWindow) return;
-    mainWindow.setFullScreen(!mainWindow.isFullScreen());
-  });
-
+  // Re-create window on macOS when dock icon is clicked
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-
-  // Unregister shortcuts on quit
-  app.on('will-quit', () => {
-    globalShortcut.unregister('Alt+Enter');
-    globalShortcut.unregisterAll();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
   });
 });
 
+// Quit the app when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
+
+// Prevent cache
+app.commandLine.appendSwitch("disable-http-cache");
