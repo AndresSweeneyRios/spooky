@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { renderer } from '../../components/Viewport';
+import { requestPointerLock } from '../../utils/requestFullscreen';
 import { Simulation } from '../../simulation';
 import { View } from '../../simulation/View';
 import { loadEquirectangularAsEnvMap, loadGltf } from '../../graphics/loaders';
@@ -147,18 +148,27 @@ export const init = async () => {
 
   shaders.applyInjectedMaterials(sceneGltf.scene)
 
+  // throttle pointer-lock requests to avoid repeated GPU/context locks
+  let lastLockRequest = 0;
   const refocusHandler = () => {
-    if (document.pointerLockElement !== renderer.domElement) {
+    const now = Date.now();
+    if (
+      document.pointerLockElement !== renderer.domElement &&
+      now - lastLockRequest > 500
+    ) {
+      lastLockRequest = now;
       try {
-        renderer.domElement.requestPointerLock();
-
+        requestPointerLock(renderer.domElement);
         // find player view
-        const playerView = simulation.ViewSync.GetAllViews().find((view) => view instanceof PlayerView)
-
+        const playerView = simulation.ViewSync.GetAllViews().find(
+          (view) => view instanceof PlayerView
+        );
         if (playerView) {
           playerView.enableControls();
         }
-      } catch { }
+      } catch {
+        // silence pointer-lock errors
+      }
     }
     // try {
     //   if (document.fullscreenElement !== document.body) {

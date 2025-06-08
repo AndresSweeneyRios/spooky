@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { renderer } from '../../components/Viewport'
+import { requestPointerLock } from '../../utils/requestFullscreen'
 import { Simulation } from '../../simulation'
 import { View } from '../../simulation/View'
 import { loadAudio, loadGltf } from '../../graphics/loaders'
@@ -383,7 +384,8 @@ export const init = async () => {
 
   state.setGameStarted(true)
 
-  renderer.domElement.requestPointerLock()
+  // use throttled util for pointer lock
+  requestPointerLock(renderer.domElement)
 
   caseohAudioPromise.then(audio => audio.stop())
 

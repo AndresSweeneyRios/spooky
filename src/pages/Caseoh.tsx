@@ -20,7 +20,16 @@ import TrophySvg from "../assets/icons/trophy.svg";
 import errorOgg from '../assets/audio/sfx/error.ogg';
 import coinsOgg from '../assets/audio/sfx/coins.ogg';
 import { loadAudio } from "../graphics/loaders";
-import { requestFullscreen } from "../utils/requestFullscreen";
+import { requestFullscreen, requestPointerLock } from "../utils/requestFullscreen";
+// Throttle focus to avoid layout thrashing
+let lastFocus = 0;
+function ensureFocus(el: HTMLElement) {
+  const now = Date.now();
+  if (el !== document.activeElement && now - lastFocus > 300) {
+    lastFocus = now;
+    el.focus();
+  }
+}
 import LogOutSvg from "../assets/icons/log-out.svg";
 
 if (!localStorage.sensitivity) {
@@ -219,7 +228,7 @@ window.addEventListener("click", () => {
   try {
     if (!state.picking && !state.inSettings && document.pointerLockElement !== renderer.domElement) {
       requestFullscreen();
-      renderer.domElement.requestPointerLock()
+      requestPointerLock(renderer.domElement);
     }
   } catch { }
 })
@@ -257,16 +266,9 @@ const handleDecision = async (decision: boolean) => {
       state.decrementWins();
     }
 
-    if (!document.fullscreenElement) {
-      try {
-        requestFullscreen();
-      } catch { }
-    }
-    if (!document.pointerLockElement) {
-      try {
-        renderer.domElement.requestPointerLock();
-      } catch { }
-    }
+    // re-enter fullscreen and pointer lock
+    requestFullscreen();
+    requestPointerLock(renderer.domElement);
 
     // caseoh-loading
     document.querySelector("#caseoh-loading")!.setAttribute("is-hidden", "false");
@@ -286,16 +288,8 @@ const cancelDecision = async () => {
   try {
     setPickerVisibility(false);
 
-    if (!document.fullscreenElement) {
-      try {
-        requestFullscreen();
-      } catch { }
-    }
-    if (!document.pointerLockElement) {
-      try {
-        renderer.domElement.requestPointerLock();
-      } catch { }
-    }
+    requestFullscreen();
+    requestPointerLock(renderer.domElement);
   } catch (error) {
     console.error("Error canceling decision:", error);
   }
@@ -307,9 +301,8 @@ const cancelDecision = async () => {
 playerInput.emitter.on(
   "justpressed",
   ({ action, consume, inputSource }) => {
-    try {
-      requestFullscreen();
-    } catch { }
+    // ensure fullscreen
+    requestFullscreen();
 
     if (action === "interact" && state.picking) {
       setPickerVisibility(false);
@@ -317,13 +310,9 @@ playerInput.emitter.on(
       consume()
 
       // request pointer lock
-      if (document.pointerLockElement !== renderer.domElement) {
-        try {
-          renderer.domElement.requestPointerLock();
-        } catch { }
-      }
-
-      requestFullscreen()
+      // pointer lock + fullscreen
+      requestPointerLock(renderer.domElement);
+      requestFullscreen();
 
       return
     }
@@ -365,8 +354,8 @@ playerInput.emitter.on(
     if (action === "up" || action === "down" || action === "left" || action === "right" || action === "mainAction1") {
       const hasFocus = currentInputTreeNode?.element === document.activeElement;
       
-      if (!hasFocus) {
-        currentInputTreeNode?.element.focus();
+      if (!hasFocus && currentInputTreeNode) {
+        ensureFocus(currentInputTreeNode.element);
 
         return
       }
@@ -377,7 +366,7 @@ playerInput.emitter.on(
         currentInputTreeNode.upAction();
       } else if (currentInputTreeNode?.up) {
         currentInputTreeNode = currentInputTreeNode.up;
-        currentInputTreeNode.element.focus();
+        ensureFocus(currentInputTreeNode.element);
       }
 
       return
@@ -388,7 +377,7 @@ playerInput.emitter.on(
         currentInputTreeNode.downAction();
       } else if (currentInputTreeNode?.down) {
         currentInputTreeNode = currentInputTreeNode.down;
-        currentInputTreeNode.element.focus();
+        ensureFocus(currentInputTreeNode.element);
       }
 
       return
@@ -399,7 +388,7 @@ playerInput.emitter.on(
         currentInputTreeNode.leftAction();
       } else if (currentInputTreeNode?.left) {
         currentInputTreeNode = currentInputTreeNode.left;
-        currentInputTreeNode.element.focus();
+        ensureFocus(currentInputTreeNode.element);
       }
 
       return
@@ -410,7 +399,7 @@ playerInput.emitter.on(
         currentInputTreeNode.rightAction();
       } else if (currentInputTreeNode?.right) {
         currentInputTreeNode = currentInputTreeNode.right;
-        currentInputTreeNode.element.focus();
+        ensureFocus(currentInputTreeNode.element);
       }
 
       return
@@ -448,18 +437,20 @@ export const CrazeOh = () => {
   }, []);
 
   React.useEffect(() => {
-    const handler = () => {
-      const wins = document.getElementById("caseoh-wins")!
-      const stats = document.getElementById("caseoh-stats")!
+    // Throttle stats/UI updates to 1 Hz
+    function updateStats() {
+      const wins = document.getElementById("caseoh-wins")!;
+      const stats = document.getElementById("caseoh-stats")!;
       wins.innerText = `${state.wins} / 20 WINS`;
-      stats.setAttribute("is-hidden", (state.gameStarted && !state.picking && !state.inDialogue) ? "false" : "true");
-
-      animationFrame = requestAnimationFrame(handler);
+      stats.setAttribute(
+        "is-hidden",
+        state.gameStarted && !state.picking && !state.inDialogue ? "false" : "true"
+      );
     }
-
-    let animationFrame = requestAnimationFrame(handler)
-
-    return () => cancelAnimationFrame(animationFrame);
+    // Initial update
+    updateStats();
+    const intervalId = setInterval(updateStats, 100);
+    return () => clearInterval(intervalId);
   }, [])
 
   // useMemo to memoize the JSX since this layout is static.
