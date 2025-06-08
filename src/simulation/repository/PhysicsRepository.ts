@@ -287,52 +287,26 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
         continue
       }
 
-      const geometry = (child as THREE.Mesh).geometry as THREE.BufferGeometry
-      const vertices = new Float32Array(geometry.getAttribute("position").array)
-
-      const indices = geometry.getIndex()
-        ? geometry.getIndex()!.array as Uint32Array
-        : new Uint32Array(Array.from({ length: vertices.length / 3 }, (_, i) => i)); // Generate sequential indices for non-indexed geometry
+      const mesh = child as THREE.Mesh
+      const originalGeometry = mesh.geometry as THREE.BufferGeometry
+      const geometry = originalGeometry.clone()
 
       const worldPosition = child.getWorldPosition(new THREE.Vector3())
-      const center = getMeshCenter(child as THREE.Mesh)
+      const center = getMeshCenter(mesh)
 
       const offset = new THREE.Vector3()
       offset.subVectors(center, worldPosition)
       offsets.push(offset)
 
-      const translation = new RAPIER.Vector3(worldPosition.x, worldPosition.y, worldPosition.z)
-      const rotation = new RAPIER.Quaternion(child.quaternion.x, child.quaternion.y, child.quaternion.z, child.quaternion.w)
-      const scaledScale = new RAPIER.Vector3(child.scale.x, child.scale.y, child.scale.z)
+      const matrix = new THREE.Matrix4()
+      matrix.compose(worldPosition, mesh.quaternion, mesh.scale)
+      geometry.applyMatrix4(matrix)
 
-      // for (const parent of traverseParents(child)) {
-      //   if (addCharacter && parent.uuid === object.uuid) {
-      //     continue
-      //   }
+      const vertices = new Float32Array(geometry.getAttribute("position").array)
 
-      //   scaledScale.x *= parent.scale.x
-      //   scaledScale.y *= parent.scale.y
-      //   scaledScale.z *= parent.scale.z
-      // }
-
-      for (let i = 0; i < vertices.length; i += 3) {
-        vertices[i] *= scaledScale.x
-        vertices[i + 1] *= scaledScale.y
-        vertices[i + 2] *= scaledScale.z
-
-        // rotate quaternion
-        const vertex = [vertices[i], vertices[i + 1], vertices[i + 2]] as vec3
-        const rotatedVertex = vec3.create()
-        vec3.transformQuat(rotatedVertex, vertex, [rotation.x, rotation.y, rotation.z, rotation.w])
-        vertices[i] = rotatedVertex[0]
-        vertices[i + 1] = rotatedVertex[1]
-        vertices[i + 2] = rotatedVertex[2]
-
-        // translate vertices
-        vertices[i] += translation.x
-        vertices[i + 1] += translation.y
-        vertices[i + 2] += translation.z
-      }
+      const indices = geometry.getIndex()
+        ? (geometry.getIndex()!.array as Uint32Array)
+        : new Uint32Array(Array.from({ length: vertices.length / 3 }, (_, i) => i)) // Generate sequential indices for non-indexed geometry
 
       const collider = this.AddMeshCollider(entId, vertices, indices, addCharacter ? component.GetFirstBody() : undefined)
 
