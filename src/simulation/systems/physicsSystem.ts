@@ -9,4 +9,6 @@ export const physicsSystem = (state: SimulationState) => {
   state.PhysicsRepository.TickWorld()
 
   state.PhysicsRepository.ApplyAllGravity(state.DeltaTime)
+
+  state.PhysicsRepository.TickWorld()
 }
