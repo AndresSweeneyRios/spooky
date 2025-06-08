@@ -77,25 +77,6 @@ const SeveredHand: Anomaly = {
   },
 }
 
-const FanFast: Anomaly = {
-  Id: 3,
-
-  Enable(simulation: Simulation) {
-    const fanBlades = simulation.ThreeScene.getObjectByName("Cylinder008_Wings_0") as THREE.Mesh
-
-    simulation.ViewSync.AddAuxiliaryView(new class Fan extends View {
-      public Draw() {
-        fanBlades.rotateZ(0.12)
-      }
-    })
-
-    return fanBlades.getWorldPosition(new THREE.Vector3())
-  },
-
-  Disable(simulation: Simulation) {
-  },
-}
-
 const ClockSix: Anomaly = {
   Id: 4,
 
@@ -1048,7 +1029,6 @@ export const disableAllAnomalies = (simulation: Simulation) => {
   }
 
   Bloodshake.Disable(simulation)
-  FanFast.Disable(simulation)
   RedDemon.Disable(simulation)
 }
 

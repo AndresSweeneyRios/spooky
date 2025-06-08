@@ -181,9 +181,9 @@ const setupFan = (simulation: Simulation, scene: THREE.Scene) => {
   simulation.ViewSync.AddAuxiliaryView(new class extends View {
     private isCleanedUp = false
 
-    public Draw(): void {
+    public Draw(_: Simulation, lerp: number): void {
       if (this.isCleanedUp) return
-      fanBlades.rotateZ(0.06)
+      fanBlades.rotateZ(10 * simulation.ViewSync.DeltaTime)
     }
 
     public Cleanup(): void {
