@@ -13,6 +13,8 @@ import skyMirrorWebp from '../../assets/3d/env/sky_mirror.webp';
 import caseohGlb from '../../assets/3d/entities/caseoh.glb';
 import animationsListJson from '../../assets/3d/animations/_list.json';
 
+console.log(animationsListJson)
+
 export const init = async () => {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -64,12 +66,14 @@ export const init = async () => {
 
   const animationMap = new Map<string, AnimationObject[]>()
 
-  const fullPaths = Object.entries(animationList).flatMap(([directory, files]) => files.map((file) => `/3d/animations/${directory}/${file}`))
+  const fullPaths = Object.entries(animationList).flatMap(([directory, files]) => files.map((file) => `${directory}/${file}`))
 
   fullPaths.sort()
 
+  console.log(fullPaths)
+
   const [...animationObjects] = await Promise.all(fullPaths.map(async (path) => {
-    const animation = await loadGltf(path)
+    const animation = await loadGltf(await import(`../../../tools/animation/${path}`))
 
     const filename = path.split('/').pop() as string
 

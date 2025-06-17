@@ -277,8 +277,14 @@ const outro = async (simulation: Simulation) => {
     audio.play();
   });
 
-  mesh.position.set(endX, -0.5, -5.7)
+  mesh.position.set(endX - 1.5, -0.3, -5.7)
   mesh.rotation.y = THREE.MathUtils.degToRad(90)
+
+  // hide the "chair" object
+  const chair = simulation.ThreeScene.getObjectByName("chair")
+  if (chair) {
+    chair.visible = false
+  }
 
   // flip the camera 180 degrees
   simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(90), 0, "YXZ"))
@@ -313,9 +319,9 @@ const outro = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  0: intro,
+  // 0: intro,
   1: introNoAnomaly,
-  20: outro,
+  0: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
