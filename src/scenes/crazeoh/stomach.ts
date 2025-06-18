@@ -104,10 +104,6 @@ export const init = async () => {
 
   const { scene, camera, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
 
-  const [playerView] = await Promise.all([
-    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
-  ])
-
   const ambientLight = new THREE.AmbientLight(0xffffff, 1.5)
   scene.add(ambientLight)
 

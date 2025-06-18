@@ -18,6 +18,7 @@ import oofOgg from '../../assets/audio/sfx/oof.ogg';
 import loudOgg from '../../assets/audio/sfx/loud.ogg';
 import screamOgg from '../../assets/audio/sfx/scream.ogg';
 import outroOgg from '../../assets/audio/sfx/outro.ogg';
+import scratchbeatOgg from '../../assets/audio/music/scratchbeat.ogg';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import caseohLiveWebp from '../../assets/screenshots/caseoh_live.webp';
 import { simulationPlayerViews } from "../../views/player"
@@ -292,7 +293,7 @@ const outro = async (simulation: Simulation) => {
   // move the player position X to 4.0
   simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [4.0, 0.2, -5.7])
 
-  await new Promise(resolve => setTimeout(resolve, 10000))
+  await new Promise(resolve => setTimeout(resolve, 8000))
 
   // stop all sounds
   ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,windAudioPromise,
@@ -313,9 +314,22 @@ const outro = async (simulation: Simulation) => {
 
   document.exitPointerLock()
 
-  await new Promise(resolve => {})
+  document.querySelectorAll("canvas")!.forEach(canvas => {
+    canvas.style.display = "none"
+  })
 
-  // location.assign("/spooky")
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
+  const thankyou = document.getElementById("caseoh-thankyou")!
+  thankyou.setAttribute("is-hidden", "false")
+
+  loadAudio(scratchbeatOgg, {
+    volume: 0.3,
+    loop: true,
+    positional: false,
+  }).then(audio => {
+    audio.play()
+  })
 }
 
 const winScript: Record<number, typeof intro> = {

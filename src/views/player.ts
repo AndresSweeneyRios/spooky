@@ -9,6 +9,8 @@ import { vec3 } from "gl-matrix";
 import * as THREE from "three";
 import { TypedEmitter } from "../utils/emitter";
 import footstepsConcreteOgg from '../assets/audio/sfx/footsteps_concrete.ogg';
+import { HintType } from "../simulation/repository/HintRepository";
+import { until } from "../utils/defer";
 
 export let simulationPlayerViews: Record<number, PlayerView> = {}
 
@@ -60,12 +62,15 @@ export class PlayerView extends EntityView {
     interactionsChanged: (interactions: InteractionsChangedPayload) => void;
   }>();
 
-  constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3) {
+  constructor(entId: EntId, protected simulation: Simulation, initialRotation: vec3 | undefined = undefined) {
     super(entId);
-    const [yaw, pitch] = initialRotation;
     this.canvas = document.querySelector('canvas#viewport')!;
-    const euler = new THREE.Euler(pitch, yaw, 0, "YXZ");
-    this.simulation.Camera.quaternion.setFromEuler(euler);
+
+    if (initialRotation) {
+      const [yaw, pitch] = initialRotation;
+      const euler = new THREE.Euler(pitch, yaw, 0, "YXZ");
+      this.simulation.Camera.quaternion.setFromEuler(euler);
+    }
 
     document.querySelector("#debug")?.appendChild(this.debugElement);
 
@@ -162,27 +167,47 @@ export class PlayerView extends EntityView {
     const state = simulation.SimulationState;
     const position = state.PhysicsRepository.GetPosition(this.EntId);
     const previousPosition = state.PhysicsRepository.GetPreviousPosition(this.EntId);
-    const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor);
-
-    const basePosition = new THREE.Vector3(lerpedPosition[0], lerpedPosition[1], lerpedPosition[2]).add(new THREE.Vector3(...this.cameraPositionOffset));
+    const lerpedPosition = math.lerpVec3(previousPosition, position, lerpFactor); const basePosition = new THREE.Vector3(lerpedPosition[0], lerpedPosition[1], lerpedPosition[2]).add(new THREE.Vector3(...this.cameraPositionOffset));
     const offset = new THREE.Vector3(...this.cameraOffset).applyQuaternion(this.simulation.Camera.quaternion);
     basePosition.add(offset);
     this.simulation.Camera.position.set(basePosition.x, basePosition.y, basePosition.z);
 
     // this.debugElement.innerText = `${JSON.stringify(this.simulation.Camera.getWorldPosition(new THREE.Vector3()))}\n${JSON.stringify(this.simulation.Camera.getWorldDirection(new THREE.Vector3()))}`;
 
-    if (!this.controlsEnabled) return;
+    // Apply normal camera updates if controls are enabled 
+    if (this.controlsEnabled) {
+      const input = playerInput.getState();
+      this.updateCamera(input.look.x, input.look.y);
+    }
 
-    const input = playerInput.getState();
-    this.updateCamera(input.look.x, input.look.y);
+    // Check for look hints
+    const lookHints = simulation.SimulationState.HintRepository.GetHintsOfType(HintType.LOOK);
+
+    if (lookHints.length > 0) {
+      const lookHintEntId = lookHints[0];
+      const lookHintPositionVec3 = state.HintRepository.GetPosition(lookHintEntId)!;
+
+      if (lookHintPositionVec3) {
+        const lookHintPosition = new THREE.Vector3(lookHintPositionVec3[0], lookHintPositionVec3[1], lookHintPositionVec3[2]);
+
+        // Immediately make the camera look at the position
+        this.simulation.Camera.lookAt(lookHintPosition);
+
+
+        console.log("Look hint position:", lookHintPosition, lookHintEntId);
+      }
+
+      simulation.SimulationState.Destroy(lookHintEntId);
+    }
   }
 
   public Update(simulation: Simulation): void {
     document.querySelector(".caseoh-interactable")?.setAttribute("is-hidden", "true");
 
+    const state = simulation.SimulationState;
+
     if (!this.controlsEnabled) return;
 
-    const state = simulation.SimulationState;
     const input = playerInput.getState();
     const localDirection = new THREE.Vector3(input.walk.x, 0, input.walk.y);
 

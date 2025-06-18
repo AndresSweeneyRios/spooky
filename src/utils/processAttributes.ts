@@ -3,6 +3,7 @@ import type { Simulation } from "../simulation"
 import type { EntId } from "../simulation/EntityRegistry"
 import { traverse } from "./traverse"
 import { commands } from "../simulation/commands"
+import { HintType } from "../simulation/repository/HintRepository"
 
 export const processAttributes = (object: THREE.Object3D, simulation: Simulation, entId: EntId, addRigidBody: boolean) => {
   let removalList: THREE.Object3D[] = []
@@ -25,6 +26,24 @@ export const processAttributes = (object: THREE.Object3D, simulation: Simulation
       continue
     } else if (child.name === 'COMMANDS') {
       for (const command of child.children) {
+        if (HintType[command.name as keyof typeof HintType] !== undefined) {
+          const hintEntId = simulation.EntityRegistry.Create()
+          const hintType = HintType[command.name as keyof typeof HintType]
+
+          simulation.SimulationState.HintRepository.CreateComponent(hintEntId)
+          simulation.SimulationState.HintRepository.SetType(hintEntId, hintType)
+          simulation.SimulationState.HintRepository.SetPosition(hintEntId, [
+            command.position.x,
+            command.position.y,
+            command.position.z,
+          ])
+          console.log("Hint created:", command.name, "with entId:", hintEntId, "at position:", command.position)
+
+          command.visible = false
+
+          continue
+        }
+
         for (const commandName in commands) {
           if (command.name.replace(/[0-9]+$/g, '') === commandName) {
             console.log("Command found:", commandName)

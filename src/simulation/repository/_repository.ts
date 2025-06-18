@@ -3,7 +3,7 @@ import { EntId } from "../EntityRegistry"
 export class SimulationComponent {
 }
 
-export abstract class SimulationRepository <TComponent extends SimulationComponent> {
+export abstract class SimulationRepository<TComponent extends SimulationComponent> {
   private __componentConstructor: (new () => TComponent)
 
   protected entities = new Map<EntId, TComponent>()
@@ -18,6 +18,10 @@ export abstract class SimulationRepository <TComponent extends SimulationCompone
 
   public RemoveComponent(entId: EntId) {
     this.entities.delete(entId)
+  }
+
+  public HasComponent(entId: EntId): boolean {
+    return this.entities.has(entId)
   }
 
   constructor(component: SimulationComponent) {

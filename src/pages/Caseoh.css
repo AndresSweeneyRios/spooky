@@ -76,7 +76,7 @@
   color: black;
 }
 
-#caseoh .credits {
+#caseoh .credits, #caseoh-thankyou .credits {
   position: absolute;
   bottom: 3em;
   left: 3em;
@@ -89,17 +89,17 @@
   pointer-events: all;
 }
 
-#caseoh .credits p {
+#caseoh .credits p, #caseoh-thankyou .credits p {
   font-weight: 600;
   color: grey;
 }
 
-#caseoh .credits a {
+#caseoh .credits a, #caseoh-thankyou .credits a {
   color: white;
   text-decoration: none;
 }
 
-#caseoh .credits a:hover {
+#caseoh .credits a:hover, #caseoh-thankyou .credits a:hover {
   text-decoration: underline;
 }
 
@@ -411,7 +411,7 @@
   padding: 1em;
   font-size: 1.5em;
   background-color: rgba(0, 0, 0, 0.95);
-  z-index: 1000;
+  z-index: 1001;
 }
 
 #caseoh-settings h1 {
@@ -557,10 +557,41 @@
   transform: translate(-50%, -50%);
 }
 
-#caseoh .tripshred {
+#caseoh .tripshred, #caseoh-thankyou .tripshred {
   position: absolute;
   z-index: 10;
   bottom: 2rem;
   right: 4rem;
   width: 12rem;
+}
+
+#caseoh-thankyou {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1em;
+  background-color: rgba(0, 0, 0, 1);
+  z-index: 1000;
+}
+
+#caseoh-thankyou > a > h2 {
+  font-size: 1.5em;
+  font-weight: 200;
+  color: rgb(128, 128, 128);
+}
+
+#caseoh-thankyou > a {
+  text-decoration: none;
+  color: unset;
+}
+
+#caseoh-thankyou > a:hover > h2, #caseoh-thankyou > a:focus > h2 {
+  text-decoration: underline;
+  color: white;
 }

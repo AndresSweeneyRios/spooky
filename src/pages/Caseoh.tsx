@@ -587,6 +587,29 @@ export const CrazeOh = () => {
         <h1>Press Any Button</h1>
       </div>
 
+      <div id="caseoh-thankyou" is-hidden="true">
+        <h1>Thank you for playing!</h1>
+
+        <a href="https://tripshred.com" target="_blank" rel="noreferrer">
+          <h2>– TripShred –</h2>
+        </a>
+
+        <div className="credits">
+          <p>made by</p>
+          <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer">
+            <h2>Kemal Albayrak</h2>
+          </a>
+          <a href="https://poisonapple.dev" target="_blank" rel="noreferrer">
+            <h2>Andres Sweeney-Rios</h2>
+          </a>
+        </div>
+        <div className="tripshred">
+          <a href="https://tripshred.com" target="_blank" rel="noreferrer">
+            <SVG src={TripshredSvg} />
+          </a>
+        </div>
+      </div>
+
       {/* Loading overlay */}
       <div id="caseoh-loading" is-hidden="false">
         <img src={TvWebp} alt="TV Loading" />
