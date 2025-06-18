@@ -85,10 +85,6 @@ export const init = async () => {
 
   const { scene, simulation, cleanup, createFlashlight } = await initScene(mapLoader)
 
-  await Promise.all([
-    player.createPlayer(simulation, [2, 0, -6], [0, 0, 0])
-  ])
-
   // Delay music start by 2 seconds
   setTimeout(() => {
     music.then(audio => audio.play())

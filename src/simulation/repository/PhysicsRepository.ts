@@ -215,17 +215,23 @@ export class PhysicsRepository extends SimulationRepository<PhysicsComponent> {
   }
 
   public RemoveComponent(entId: EntId): void {
+    const component = this.entities.get(entId)
+
+    if (!component) {
+      return
+    }
+
     super.RemoveComponent(entId)
 
-    for (const collider of this.entities.get(entId)!.colliders.values()) {
+    for (const collider of component.colliders.values()) {
       this.world.removeCollider(collider, false)
     }
 
-    for (const character of this.entities.get(entId)!.characters.values()) {
+    for (const character of component.characters.values()) {
       this.world.removeCharacterController(character)
     }
 
-    for (const body of this.entities.get(entId)!.bodies.values()) {
+    for (const body of component.bodies.values()) {
       this.world.removeRigidBody(body)
     }
   }

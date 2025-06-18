@@ -422,6 +422,17 @@ export const CrazeOh = () => {
   const [volume, setVolume] = React.useState(getMasterVolumePercentage());
   const [pointerLocked, setPointerLocked] = React.useState(false);
 
+  // Function to handle opening external links in default browser
+  const handleExternalLink = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    e.preventDefault();
+    if ((window as any).openExternalLink) {
+      (window as any).openExternalLink(url);
+    } else {
+      // Fallback to default behavior if not in Electron
+      window.open(url, '_blank');
+    }
+  };
+
   React.useEffect(() => {
     const handlePointerLockChange = () => {
       setPointerLocked(!!document.pointerLockElement);
@@ -457,8 +468,7 @@ export const CrazeOh = () => {
       <Viewport scene={scenes.crazeoh} />
       <DialogueBox />
       
-      {/* Main start screen */}
-      <div id="caseoh" is-hidden="false">
+      {/* Main start screen */}      <div id="caseoh" is-hidden="false">
         <div className="main">
           <img src={TvWebp} alt="TV" />
           <h1>CrazeOh</h1>
@@ -479,15 +489,15 @@ export const CrazeOh = () => {
         </div>
         <div className="credits">
           <p>made by</p>
-          <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer">
+          <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'mailto:contact@tripshred.com')}>
             <h2>Kemal Albayrak</h2>
           </a>
-          <a href="https://poisonapple.dev" target="_blank" rel="noreferrer">
+          <a href="https://poisonapple.dev" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://poisonapple.dev')}>
             <h2>Andres Sweeney-Rios</h2>
           </a>
         </div>
         <div className="tripshred">
-          <a href="https://tripshred.com" target="_blank" rel="noreferrer">
+          <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
             <SVG src={TripshredSvg} />
           </a>
         </div>
@@ -585,6 +595,27 @@ export const CrazeOh = () => {
       {/* "Press Any Button" overlay */}
       <div id="caseoh-anybutton" is-hidden="true">
         <h1>Press Any Button</h1>
+      </div>      <div id="caseoh-thankyou" is-hidden="true">
+        <h1>Thank you for playing!</h1>
+
+        <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
+          <h2>– TripShred –</h2>
+        </a>
+
+        <div className="credits">
+          <p>made by</p>
+          <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'mailto:contact@tripshred.com')}>
+            <h2>Kemal Albayrak</h2>
+          </a>
+          <a href="https://poisonapple.dev" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://poisonapple.dev')}>
+            <h2>Andres Sweeney-Rios</h2>
+          </a>
+        </div>
+        <div className="tripshred">
+          <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
+            <SVG src={TripshredSvg} />
+          </a>
+        </div>
       </div>
 
       {/* Loading overlay */}

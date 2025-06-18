@@ -38,7 +38,7 @@ export class CaseohView extends EntityView {
 
     this.mesh = SkeletonUtils.clone(gltf.scene);
 
-    this.mesh.scale.set(1.5, 1.5, 1.5)
+    this.mesh.scale.set(3, 3, 3)
 
     const bones: THREE.Bone[] = [];
 

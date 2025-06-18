@@ -18,6 +18,7 @@ import oofOgg from '../../assets/audio/sfx/oof.ogg';
 import loudOgg from '../../assets/audio/sfx/loud.ogg';
 import screamOgg from '../../assets/audio/sfx/scream.ogg';
 import outroOgg from '../../assets/audio/sfx/outro.ogg';
+import scratchbeatOgg from '../../assets/audio/music/scratchbeat.ogg';
 import eatChipOgg from '../../assets/audio/sfx/eat_chip.ogg';
 import caseohLiveWebp from '../../assets/screenshots/caseoh_live.webp';
 import { simulationPlayerViews } from "../../views/player"
@@ -277,8 +278,14 @@ const outro = async (simulation: Simulation) => {
     audio.play();
   });
 
-  mesh.position.set(endX, -0.5, -5.7)
+  mesh.position.set(endX - 1.5, -0.3, -5.7)
   mesh.rotation.y = THREE.MathUtils.degToRad(90)
+
+  // hide the "chair" object
+  const chair = simulation.ThreeScene.getObjectByName("chair")
+  if (chair) {
+    chair.visible = false
+  }
 
   // flip the camera 180 degrees
   simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(90), 0, "YXZ"))
@@ -286,7 +293,7 @@ const outro = async (simulation: Simulation) => {
   // move the player position X to 4.0
   simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [4.0, 0.2, -5.7])
 
-  await new Promise(resolve => setTimeout(resolve, 10000))
+  await new Promise(resolve => setTimeout(resolve, 8000))
 
   // stop all sounds
   ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,windAudioPromise,
@@ -305,11 +312,22 @@ const outro = async (simulation: Simulation) => {
 
   renderer.clear()
 
-  document.exitPointerLock()
+  document.querySelectorAll("canvas")!.forEach(canvas => {
+    canvas.style.display = "none"
+  })
 
-  await new Promise(resolve => {})
+  await new Promise(resolve => setTimeout(resolve, 3000))
 
-  // location.assign("/spooky")
+  const thankyou = document.getElementById("caseoh-thankyou")!
+  thankyou.setAttribute("is-hidden", "false")
+
+  loadAudio(scratchbeatOgg, {
+    volume: 0.3,
+    loop: true,
+    positional: false,
+  }).then(audio => {
+    audio.play()
+  })
 }
 
 const winScript: Record<number, typeof intro> = {

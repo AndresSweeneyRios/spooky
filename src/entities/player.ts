@@ -21,7 +21,7 @@ export const setCameraHeight = (value: number) => {
   cameraHeight = value
 }
 
-export const createPlayer = (simulation: Simulation, position: vec3, rotation: vec3): Promise<PlayerView> => {
+export const createPlayer = (simulation: Simulation, position: vec3, rotation: vec3 | undefined = undefined): Promise<PlayerView> => {
   const offset = 0
   const positionAtFeet: vec3 = [position[0], position[1] + size, position[2]]
 
@@ -29,6 +29,8 @@ export const createPlayer = (simulation: Simulation, position: vec3, rotation: v
   simulation.SimulationState.SensorTargetRepository.CreateComponent(entId)
   simulation.SimulationState.PhysicsRepository.CreateComponent(entId)
   simulation.SimulationState.PhysicsRepository.CreateCharacterControllerWithSphere(entId, positionAtFeet, size - offset, offset)
+  simulation.SimulationState.PhysicsRepository.SetPosition(entId, positionAtFeet)
+  simulation.SimulationState.PhysicsRepository.SetPreviousPosition(entId, positionAtFeet)
   simulation.SimulationState.PhysicsRepository.SetAffectedByGravity(entId, true)
   simulation.SimulationState.MovementRepository.CreateComponent(entId)
   simulation.SimulationState.StatRepository.CreateComponent(entId)

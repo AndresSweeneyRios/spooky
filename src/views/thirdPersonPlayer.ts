@@ -89,7 +89,7 @@ export class ThirdPersonPlayerView extends PlayerView {
     this.simulation.ThreeScene.add(this.mesh);
   }
 
-  constructor(entId: EntId, simulation: Simulation, initialRotation: vec3) {
+  constructor(entId: EntId, simulation: Simulation, initialRotation: vec3 | undefined = undefined) {
     super(entId, simulation, initialRotation);
 
     this.cameraOffset = vec3.fromValues(0, 0, DEFAULT_CAMERA_DISTANCE);
