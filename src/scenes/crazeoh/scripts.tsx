@@ -312,8 +312,6 @@ const outro = async (simulation: Simulation) => {
 
   renderer.clear()
 
-  document.exitPointerLock()
-
   document.querySelectorAll("canvas")!.forEach(canvas => {
     canvas.style.display = "none"
   })
@@ -333,9 +331,9 @@ const outro = async (simulation: Simulation) => {
 }
 
 const winScript: Record<number, typeof intro> = {
-  // 0: intro,
+  0: intro,
   1: introNoAnomaly,
-  0: outro,
+  20: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
