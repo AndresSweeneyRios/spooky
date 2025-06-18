@@ -222,6 +222,16 @@ void main() {
 }
 
 export default function Home() {
+  const handleExternalLink = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    e.preventDefault();
+    if ((window as any).openExternalLink) {
+      (window as any).openExternalLink(url);
+    } else {
+      // Fallback to default behavior if not in Electron
+      window.open(url, '_blank');
+    }
+  };
+
   React.useEffect(() => {
     const homeBackground = document.getElementById('home-background');
 
@@ -258,39 +268,36 @@ export default function Home() {
             </div>
           </div>
           <footer>
-            <ul>
-              <li>
-                <a href="https://tripshred.com">
+            <ul>              <li>
+                <a href="https://tripshred.com" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
                   Copyright &copy; TripShred {new Date().getFullYear()}
                 </a>
-              </li>
-              <li>
-                <a href="#">
+              </li>              <li>
+                <a href="https://www.patreon.com/tripshred" onClick={(e) => handleExternalLink(e, 'https://www.patreon.com/tripshred')}>
                   Patreon
                 </a>
               </li>
               <li>
-                <a href="#">
+                <a href="https://store.steampowered.com/developer/tripshred" onClick={(e) => handleExternalLink(e, 'https://store.steampowered.com/developer/tripshred')}>
                   Steam
                 </a>
               </li>
               <li>
-                <a href="#">
+                <a href="https://www.instagram.com/tripshred" onClick={(e) => handleExternalLink(e, 'https://www.instagram.com/tripshred')}>
                   Instagram
                 </a>
               </li>
               <li>
-                <a href="#">
+                <a href="https://discord.gg/tripshred" onClick={(e) => handleExternalLink(e, 'https://discord.gg/tripshred')}>
                   Discord
                 </a>
               </li>
               <li>
-                <a href="#">
+                <a href="https://bsky.app/profile/tripshred.bsky.social" onClick={(e) => handleExternalLink(e, 'https://bsky.app/profile/tripshred.bsky.social')}>
                   Bluesky
                 </a>
-              </li>
-              <li>
-                <a style={{ fontWeight: 600, color: "white" }} href="mailto:contact@tripshred.com">
+              </li><li>
+                <a style={{ fontWeight: 600, color: "white" }} href="mailto:contact@tripshred.com" onClick={(e) => handleExternalLink(e, 'mailto:contact@tripshred.com')}>
                   contact@tripshred.com
                 </a>
               </li>

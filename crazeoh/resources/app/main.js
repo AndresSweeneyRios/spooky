@@ -1,5 +1,5 @@
 // @ts-ignore
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -39,9 +39,13 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-
   ipcMain.on('enable-fullscreen', () => {
     mainWindow.setFullScreen(true);
+  });
+
+  // Handle opening external links in the default browser
+  ipcMain.on('open-external-link', (_, url) => {
+    shell.openExternal(url);
   });
 }
 
