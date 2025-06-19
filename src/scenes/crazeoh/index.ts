@@ -32,6 +32,7 @@ import caseohOgg from '../../assets/audio/music/caseoh.ogg'
 import clockOgg from '../../assets/audio/sfx/clock.ogg';
 import { initScene } from "./initScene"
 import { hideMainMenu } from "../../pages/Caseoh"
+import { until } from "../../utils/defer"
 
 // Cache frequently accessed DOM elements
 const loadingEl = document.getElementById("caseoh-loading")
@@ -400,12 +401,28 @@ export const init = async () => {
       audio.play(0)
     })
 
-    await waitForAction("mainAction1")
+    const startGameJustPressed = (payload: JustPressedEvent) => {
+      if (state.gameStarted) {
+        playerInput.emitter.off("justpressed", startGameJustPressed)
+
+        return
+      }
+
+      if (payload.action !== "mainAction1" || state.inSettings || payload.inputSource !== "gamepad") return
+
+      payload.consume()
+
+      state.setGameStarted(true)
+
+      playerInput.emitter.off("justpressed", startGameJustPressed)
+    }
+
+    playerInput.emitter.on("justpressed", startGameJustPressed)
+
+    await until(() => state.gameStarted)
   }
 
   hideMainMenu()
-
-  state.setGameStarted(true)
 
   // use throttled util for pointer lock
   requestPointerLock(renderer.domElement)

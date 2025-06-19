@@ -226,7 +226,7 @@ export const setAreYouSureVisibility = (visible: boolean) => {
 
 window.addEventListener("click", () => {
   try {
-    if (!state.picking && !state.inSettings && document.pointerLockElement !== renderer.domElement) {
+    if (!state.picking && !state.inSettings && state.gameStarted && document.pointerLockElement !== renderer.domElement) {
       requestFullscreen();
       requestPointerLock(renderer.domElement);
     }
@@ -468,7 +468,8 @@ export const CrazeOh = () => {
       <Viewport scene={scenes.crazeoh} />
       <DialogueBox />
       
-      {/* Main start screen */}      <div id="caseoh" is-hidden="false">
+      {/* Main start screen */}      
+      <div id="caseoh" is-hidden="false">
         <div className="main">
           <img src={TvWebp} alt="TV" />
           <h1>CrazeOh</h1>
@@ -478,7 +479,7 @@ export const CrazeOh = () => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-            {/* <button onClick={startGame}>Play</button> */}
+            <button id="caseoh-start-game" onClick={() => state.setGameStarted(true)}>Play</button>
             {/* <SVG src={DpadSoloIconSvg} style={{
               width: '4em',
               transform: 'rotate(-90deg)',
@@ -487,7 +488,7 @@ export const CrazeOh = () => {
             }} /> */}
           </div>
         </div>
-        <div className="credits">
+        <div className="caseoh-credits">
           <p>made by</p>
           <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'mailto:contact@tripshred.com')}>
             <h2>Kemal Albayrak</h2>
@@ -590,19 +591,35 @@ export const CrazeOh = () => {
             }}>No</button>
           </div>
         </div>
+        <div className="caseoh-credits">
+          <p>made by</p>
+          <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'mailto:contact@tripshred.com')}>
+            <h2>Kemal Albayrak</h2>
+          </a>
+          <a href="https://poisonapple.dev" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://poisonapple.dev')}>
+            <h2>Andres Sweeney-Rios</h2>
+          </a>
+        </div>
+        <div className="tripshred">
+          <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
+            <SVG src={TripshredSvg} />
+          </a>
+        </div>
       </div>
 
       {/* "Press Any Button" overlay */}
       <div id="caseoh-anybutton" is-hidden="true">
         <h1>Press Any Button</h1>
-      </div>      <div id="caseoh-thankyou" is-hidden="true">
+      </div>      
+      
+      <div id="caseoh-thankyou" is-hidden="true">
         <h1>Thank you for playing!</h1>
 
         <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
           <h2>– TripShred –</h2>
         </a>
 
-        <div className="credits">
+        <div className="caseoh-credits">
           <p>made by</p>
           <a href="mailto:contact@tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'mailto:contact@tripshred.com')}>
             <h2>Kemal Albayrak</h2>

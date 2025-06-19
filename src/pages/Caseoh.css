@@ -69,13 +69,13 @@
   font-size: 1.5em;
 }
 
-#caseoh .main button:hover {
+#caseoh .main button:hover, #caseoh .main button:focus {
   --gradient-start-color: white;
   --gradient-end-color: white;
   color: black;
 }
 
-#caseoh .credits, #caseoh-thankyou .credits {
+.caseoh-credits {
   position: absolute;
   bottom: 3em;
   left: 3em;
@@ -88,17 +88,17 @@
   pointer-events: all;
 }
 
-#caseoh .credits p, #caseoh-thankyou .credits p {
+.caseoh-credits p {
   font-weight: 600;
   color: grey;
 }
 
-#caseoh .credits a, #caseoh-thankyou .credits a {
+.caseoh-credits a {
   color: white;
   text-decoration: none;
 }
 
-#caseoh .credits a:hover, #caseoh-thankyou .credits a:hover {
+.caseoh-credits a:hover, .caseoh-credits a:focus {
   text-decoration: underline;
 }
 
