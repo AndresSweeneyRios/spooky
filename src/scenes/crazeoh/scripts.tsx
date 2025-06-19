@@ -119,7 +119,7 @@ export const intro = async (simulation: Simulation) => {
 export const introNoAnomaly = async (simulation: Simulation) => {
   const dialogueTexts = [
     <i>[NOTE: <b>There is no anomaly this round</b>.]</i>,
-    <i>[Examine your surroundings, memorize the room.]</i>,
+    <i>[<b>Examine</b> your surroundings, <b>memorize</b> the room.]</i>,
     <i>[Return to your car when you're ready.]</i>,
   ]
 

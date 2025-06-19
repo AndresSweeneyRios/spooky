@@ -497,7 +497,7 @@ export const CrazeOh = () => {
             <h2>Andres Sweeney-Rios</h2>
           </a>
         </div>
-        <div className="tripshred">
+        <div className="caseoh-tripshred">
           <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
             <SVG src={TripshredSvg} />
           </a>
@@ -600,7 +600,7 @@ export const CrazeOh = () => {
             <h2>Andres Sweeney-Rios</h2>
           </a>
         </div>
-        <div className="tripshred">
+        <div className="caseoh-tripshred">
           <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
             <SVG src={TripshredSvg} />
           </a>
@@ -628,7 +628,7 @@ export const CrazeOh = () => {
             <h2>Andres Sweeney-Rios</h2>
           </a>
         </div>
-        <div className="tripshred">
+        <div className="caseoh-tripshred">
           <a href="https://tripshred.com" target="_blank" rel="noreferrer" onClick={(e) => handleExternalLink(e, 'https://tripshred.com')}>
             <SVG src={TripshredSvg} />
           </a>
@@ -638,7 +638,7 @@ export const CrazeOh = () => {
       {/* Loading overlay */}
       <div id="caseoh-loading" is-hidden="false">
         <img src={TvWebp} alt="TV Loading" />
-        {/* <h1>Randomizing anomaly...</h1> */}
+        <h1>Randomizing anomaly...</h1>
       </div>
 
       <img src={SplashWebp} alt="Explainer" id="caseoh-explainer" is-hidden="true" />
