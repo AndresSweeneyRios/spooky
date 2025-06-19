@@ -316,7 +316,7 @@ const outro = async (simulation: Simulation) => {
     canvas.style.display = "none"
   })
 
-  await new Promise(resolve => setTimeout(resolve, 3000))
+  await new Promise(resolve => setTimeout(resolve, 6000))
 
   const thankyou = document.getElementById("caseoh-thankyou")!
   thankyou.setAttribute("is-hidden", "false")
