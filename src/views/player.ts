@@ -192,9 +192,6 @@ export class PlayerView extends EntityView {
 
         // Immediately make the camera look at the position
         this.simulation.Camera.lookAt(lookHintPosition);
-
-
-        console.log("Look hint position:", lookHintPosition, lookHintEntId);
       }
 
       simulation.SimulationState.Destroy(lookHintEntId);

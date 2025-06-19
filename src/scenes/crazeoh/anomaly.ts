@@ -10,7 +10,6 @@ import type { loadAudio } from "../../graphics/loaders"
 import { getAngle } from "../../utils/math"
 import webaOgg from '../../assets/audio/sfx/weba.ogg';
 import keyboardTypingOgg from '../../assets/audio/sfx/keyboard_typing.ogg';
-import clockOgg from '../../assets/audio/sfx/clock.ogg';
 
 const loaderPromise = import("../../graphics/loaders")
 
@@ -25,14 +24,6 @@ const keyboardAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
   return await loadAudio(keyboardTypingOgg, {
     loop: true,
     positional: true,
-  })
-}).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
-
-export const clockAudioPromise = loaderPromise.then(async ({ loadAudio }) => {
-  return await loadAudio(clockOgg, {
-    loop: true,
-    positional: true,
-    volume: 0.1,
   })
 }).catch(console.error) as Promise<Awaited<ReturnType<typeof loadAudio>>>
 
@@ -157,16 +148,6 @@ const ClockSpinFast: Anomaly = {
     const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh;
     const clock2 = simulation.ThreeScene.getObjectByName('minute_hand_0') as THREE.Mesh;
     const clock3 = simulation.ThreeScene.getObjectByName('second_hand_0') as THREE.Mesh;
-
-    clockAudioPromise.then((audio) => {
-      const now = new Date();
-      const millisecondsUntilNextSecond = 1000 - now.getMilliseconds();
-
-      setTimeout(() => {
-        clock1.add(audio.getPositionalAudio());
-        audio.play();
-      }, millisecondsUntilNextSecond);
-    })
 
     if (clockView) {
       simulation.ViewSync.DestroyAuxiliaryView(simulation, clockView.Symbol)
@@ -1083,6 +1064,13 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
     return
   }
 
+  if (state.winScriptIndex === 1) {
+    disableAllAnomalies(simulation)
+    state.setAnomaly(false)
+    previouslyNoAnomaly = false
+    return
+  }
+
   disableAllAnomalies(simulation)
 
   if (anomalies.length === 0) {
@@ -1110,8 +1098,6 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
   if (!previouslyNoAnomaly && !state.isTutorial && Math.random() < 0.2) {
     state.setAnomaly(false)
 
-    // console.log('No anomaly this time')
-
     previouslyNoAnomaly = true
 
     return
@@ -1133,8 +1119,6 @@ export const pickRandomAnomaly = (simulation: Simulation): void => {
   const position = anomaly.Enable(simulation)
 
   state.setAnomalyPosition(position)
-
-  // console.log('Anomaly:', anomaly.Id)
 }
 
 export const removeCurrentAnomaly = () => {

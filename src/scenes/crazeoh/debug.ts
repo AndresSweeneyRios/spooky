@@ -23,8 +23,6 @@ export const enableLoading = (): void => {
 const mapLoader = Promise.resolve(new THREE.Object3D())
 
 export const init = async () => {
-  console.log("scene init called")
-
   enableLoading()
 
   setGravity(-0.2)

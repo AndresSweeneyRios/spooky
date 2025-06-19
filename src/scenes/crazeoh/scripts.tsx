@@ -4,11 +4,10 @@ import * as state from "./state"
 import { waitForAction } from "../../input/player"
 import { Simulation } from "../../simulation"
 import { createCaseoh } from "../../entities/crazeoh/caseoh"
-import { carIdling, ceilingFanAudioPromise, disableLoading, enableLoading, garageScreamAudioPromise, ventAudioPromise, windAudioPromise } from "."
+import { carIdling, ceilingFanAudioPromise, clockAudioPromise, disableLoading, enableLoading, garageScreamAudioPromise, ventAudioPromise, windAudioPromise } from "."
 import { loadAudio, loadTexture } from "../../graphics/loaders"
 import * as THREE from "three"
 import { fridgeAudioPromise } from "../../entities/crazeoh/fridge"
-import { clockAudioPromise } from "./anomaly"
 import { unloadScene } from ".."
 import { renderer } from "../../components/Viewport"
 
@@ -120,6 +119,7 @@ export const intro = async (simulation: Simulation) => {
 export const introNoAnomaly = async (simulation: Simulation) => {
   const dialogueTexts = [
     <i>[NOTE: <b>There is no anomaly this round</b>.]</i>,
+    <i>[Examine your surroundings, memorize the room.]</i>,
     <i>[Return to your car when you're ready.]</i>,
   ]
 
