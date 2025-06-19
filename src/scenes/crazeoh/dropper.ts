@@ -38,7 +38,7 @@ let eatChipAudioPromise = loadAudio(eatChipOgg, { volume: 0.5 })
 export const init = async () => {
   enableLoading()
 
-  setGravity(-0.2)
+  setGravity(-0.07)
 
   player.setThirdPerson(false)
   player.setCameraHeight(2)
@@ -214,6 +214,7 @@ export const init = async () => {
   })
 
   return () => {
+    setGravity(-1)
     if (musicAudio) musicAudio.stop()
     cleanup()
   }
