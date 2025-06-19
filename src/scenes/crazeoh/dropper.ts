@@ -36,8 +36,6 @@ let musicAudioPromise = loadAudio(worblyOgg, {
 let eatChipAudioPromise = loadAudio(eatChipOgg, { volume: 0.5 })
 
 export const init = async () => {
-  console.log("scene init called")
-
   enableLoading()
 
   setGravity(-0.2)

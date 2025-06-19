@@ -6,7 +6,7 @@ import { View } from '../../simulation/View'
 import { loadAudio, loadGltf } from '../../graphics/loaders'
 import * as player from '../../entities/player'
 import * as state from "./state"
-import { clockAudioPromise, disableAllAnomalies, pickRandomAnomaly } from "./anomaly"
+import { disableAllAnomalies, pickRandomAnomaly } from "./anomaly"
 import { createFridge, fridgeAudioPromise } from "../../entities/crazeoh/fridge"
 import { createStove } from "../../entities/crazeoh/stove"
 import { createMicrowave } from "../../entities/crazeoh/microwave"
@@ -29,6 +29,7 @@ import carIdlingOgg from '../../assets/audio/sfx/car_idling.ogg'
 import windOgg from '../../assets/audio/sfx/wind.ogg'
 import ventOgg from '../../assets/audio/sfx/vent.ogg'
 import caseohOgg from '../../assets/audio/music/caseoh.ogg'
+import clockOgg from '../../assets/audio/sfx/clock.ogg';
 import { initScene } from "./initScene"
 import { hideMainMenu } from "../../pages/Caseoh"
 
@@ -91,6 +92,12 @@ export const ventAudioPromise = loadAudio(ventOgg, {
   positional: true,
 })
 
+export const clockAudioPromise = loadAudio(clockOgg, {
+  loop: true,
+  positional: true,
+  volume: 0.1,
+})
+
 const caseohAudioPromise = loadAudio(caseohOgg, {
   loop: true,
   volume: 0.1,
@@ -124,6 +131,7 @@ export const stopAllSounds = () => {
   fridgeAudioPromise.then(audio => audio.stop())
   eatChipAudioPromise.then(audio => audio.stop())
   burgerkingAudioPromise.then(audio => audio.stop())
+  clockAudioPromise.then(audio => audio.stop())
 }
 
 const winIndexScenes = {
@@ -262,6 +270,20 @@ const setupCarIdling = (simulation: Simulation, scene: THREE.Scene) => {
   })
 }
 
+const setupClockSound = (simulation: Simulation, scene: THREE.Scene) => {
+  const clock1 = simulation.ThreeScene.getObjectByName('hour_hand_0') as THREE.Mesh;
+
+  clockAudioPromise.then((audio) => {
+    const now = new Date();
+    const millisecondsUntilNextSecond = 1000 - now.getMilliseconds();
+
+    setTimeout(() => {
+      clock1.add(audio.getPositionalAudio());
+      audio.play();
+    }, millisecondsUntilNextSecond);
+  })
+}
+
 export const disableLoading = (): void => {
   loadingEl?.setAttribute("is-hidden", "true")
   splashEl?.setAttribute("is-hidden", "true")
@@ -320,6 +342,7 @@ export const init = async () => {
   setupBurgerKing(simulation, scene)
   setupGarageScream(simulation)
   setupCarIdling(simulation, scene)
+  setupClockSound(simulation, scene)
   setupVent(scene)
   playAllAutoplaySounds()
 
