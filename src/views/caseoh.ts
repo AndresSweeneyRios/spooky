@@ -7,7 +7,7 @@ import * as THREE from "three";
 import * as math from "../utils/math";
 import * as shaders from "../graphics/shaders";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
-import { processAttributes } from "../utils/processAttributes";
+// import { processAttributes } from "../utils/processAttributes"; // Not needed since CaseOH doesn't use physics
 import { animationsPromise, getAnimation, playAnimation } from "../animation";
 import { AnimationKey } from "../assets/3d/animations";
 import { EntityView } from "../simulation/EntityView";
@@ -30,7 +30,6 @@ export class CaseohView extends EntityView {
   skinnedMeshes: THREE.SkinnedMesh[] = [];
   isRunning: boolean = false;
   public meshPromise = this.init().catch(console.error) as Promise<THREE.Object3D>;
-
   async init() {
     await animationsPromise
 
@@ -61,7 +60,9 @@ export class CaseohView extends EntityView {
       }
     })
 
-    processAttributes(this.mesh, this.simulation, this.entId, false);
+    // Don't process attributes since CaseOH doesn't have physics components
+    // This prevents the race condition where physics offset interferes with mesh positioning
+    // processAttributes(this.mesh, this.simulation, this.entId, false);
 
     shaders.applyInjectedMaterials(this.mesh);
 

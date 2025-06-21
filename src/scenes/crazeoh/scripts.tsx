@@ -107,7 +107,7 @@ export const intro = async (simulation: Simulation) => {
 
   const dialogueTexts = [
     <i>[<b>Examine your surroundings</b>, they change each round.]</i>,
-    <i>[Then, <b>take a photo</b> of the giant french fries. This is called an <b>anomaly</b>, you will find more later.]</i>,
+    <i>[Then, <b>take a photo</b> of the <b>Giant French Fries</b>. This is called an <b>anomaly</b>, you will find more later.]</i>,
     <i>[When you're done, <b>return to your car</b> to end the round.]</i>,
   ]
 
@@ -145,12 +145,6 @@ const outro = async (simulation: Simulation) => {
 
   ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,windAudioPromise].forEach(promise => promise.then(audio => audio.stop()))
 
-  // await playDialogueWithVoice([
-  //   // <>Why did it have to end like this?</>,
-  //   // <>My neon haven... my last refuge, McDonald's.</>,
-  //   // <i>Now swallowed by the void.</i>,
-  // ])
-
   setDialogue("")
 
   await new Promise(resolve => setTimeout(resolve, 2000))
@@ -159,22 +153,7 @@ const outro = async (simulation: Simulation) => {
 
   mesh.translateZ(6)
 
-  // noisePromise.then(noise => noise.play())
-  // loudPromise.then(loud => loud.play())
-
-  // await new Promise(resolve => setTimeout(resolve, 500))
-
-  // noisePromise.then(noise => noise.stop())
-  // loudPromise.then(loud => loud.stop())
-
   currentCrtPass!.uniforms["noiseIntensity"].value = 0.6
-
-  // await playDialogueWithVoice([
-  //   <>I wandered through the ruins, chasing echoes of a lost past.</>,
-  //   <>In that silence, a presence stirred—a whisper of something both ancient and profound.</>,
-  // ])
-
-  // await new Promise(resolve => setTimeout(resolve, 12000))
 
   mesh.translateZ(5)
   mesh.translateY(-0.3)
@@ -193,42 +172,23 @@ const outro = async (simulation: Simulation) => {
   currentCrtPass!.uniforms["scanlineIntensity"].value = 1.0
   currentCrtPass!.uniforms["rgbOffset"].value.set(0.003, 0.003)
 
-  // await playDialogueWithVoice([
-  //   <span style={{ fontSize: "1em"}}><b>Not salvation, nor damnation... but a call from beyond the mortal veil.</b></span>,
-  //   <>It beckoned me toward shadows where faith and fear entwine.</>,
-  //   <>A new chapter begins, unfolding into realms where every secret is drenched in divine mystery.</>,
-  // ])
-
   setDialogue("")
 
-  // await new Promise(resolve => setTimeout(resolve, 1000))
-
-  // DEFAULT_ANOMALIES.forEach(anomaly => anomaly.Enable(simulation))
-
-  // await new Promise(resolve => setTimeout(resolve, 5000))
-
-  // oofPromise.then(oof => oof.play())
-
   mesh.translateZ(0.5)
-  // currentCrtPass!.uniforms["rgbOffset"].value.set(0.01, 0.01)
-
-  // loudPromise.then(loud => loud.play())
+  
   screamPromise.then(scream => scream.play())
 
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  // bigmonitorscreen
-  const bigScreen = simulation.ThreeScene.getObjectByName("bigmonitorscreen")
-  // Animate player movement from 4.0 to 3.1 on x-axis
+  const bigScreen = simulation.ThreeScene.getObjectByName("bigmonitorscreen");
   const startX = 4.0;
   const endX = 3.1;
-  const duration = 15000; // 15 seconds
+  const duration = 15000;
   const startTime = Date.now();
   
   const animatePosition = () => {
     const elapsed = Date.now() - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    // Applying cubic ease-in: f(t) = t³
     const easedProgress = Math.pow(progress, 3);
     const currentX = startX + (endX - startX) * easedProgress;
     
@@ -244,32 +204,30 @@ const outro = async (simulation: Simulation) => {
   
   animatePosition();
 
-  simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(-90), 0, "YXZ"))
+  simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(-90), 0, "YXZ"));
 
   if (bigScreen instanceof THREE.Mesh) {
-    bigScreen.visible = true
+    bigScreen.visible = true;
 
-    caseohLiveTexture.center.set(0.5, 0.5); // Set rotation center to middle of texture
-    caseohLiveTexture.rotation = -Math.PI / 2;   // Already in radians (180 degrees)
-    caseohLiveTexture.wrapS = THREE.RepeatWrapping; // Repeat the texture in the S direction
+    caseohLiveTexture.center.set(0.5, 0.5);
+    caseohLiveTexture.rotation = -Math.PI / 2;
+    caseohLiveTexture.wrapS = THREE.RepeatWrapping;
     caseohLiveTexture.wrapT = THREE.RepeatWrapping;
-    caseohLiveTexture.repeat.set(-1, 1); // Flip the texture horizontally
-    caseohLiveTexture.needsUpdate = true;   // Ensure the texture updates
+    caseohLiveTexture.repeat.set(-1, 1);
+    caseohLiveTexture.needsUpdate = true;
 
     bigScreen.material = new THREE.MeshBasicMaterial({
       map: caseohLiveTexture,
       side: THREE.DoubleSide,
       color: 0xffffff,
-    })
+    });
 
-    bigScreen.material.needsUpdate = true
+    bigScreen.material.needsUpdate = true;
   }
 
-  currentCrtPass!.uniforms["noiseIntensity"].value = 0.3
-  currentCrtPass!.uniforms["scanlineIntensity"].value = 0.0
-  currentCrtPass!.uniforms["rgbOffset"].value.set(0.000, 0.000)
+  currentCrtPass!.uniforms["noiseIntensity"].value = 0.3;
 
-  await new Promise(resolve => setTimeout(resolve, 15000))
+  await new Promise(resolve => setTimeout(resolve, 15000));
 
   loadAudio(outroOgg, {
     volume: 0.3,
@@ -278,62 +236,60 @@ const outro = async (simulation: Simulation) => {
     audio.play();
   });
 
-  mesh.position.set(endX - 1.5, -0.3, -5.7)
-  mesh.rotation.y = THREE.MathUtils.degToRad(90)
+  mesh.position.set(endX - 1.5, -0.3, -5.7);
+  mesh.rotation.y = THREE.MathUtils.degToRad(90);
 
-  // hide the "chair" object
-  const chair = simulation.ThreeScene.getObjectByName("chair")
+  mesh.updateMatrixWorld(true);
+  mesh.matrixAutoUpdate = false;
+
+  const chair = simulation.ThreeScene.getObjectByName("chair");
   if (chair) {
-    chair.visible = false
+    chair.visible = false;
   }
 
-  // flip the camera 180 degrees
-  simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(90), 0, "YXZ"))
+  simulation.Camera.setRotationFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(-5), THREE.MathUtils.degToRad(90), 0, "YXZ"));
+  simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [4.0, 0.2, -5.7]);
 
-  // move the player position X to 4.0
-  simulation.SimulationState.PhysicsRepository.SetPosition(playerEntId, [4.0, 0.2, -5.7])
+  await new Promise(resolve => setTimeout(resolve, 8000));
 
-  await new Promise(resolve => setTimeout(resolve, 8000))
-
-  // stop all sounds
-  ;[fridgeAudioPromise,garageScreamAudioPromise,carIdling,windAudioPromise,
+  ;[fridgeAudioPromise, garageScreamAudioPromise, carIdling, windAudioPromise,
     ceilingFanAudioPromise, clockAudioPromise, ventAudioPromise,
-  ].forEach(promise => promise.then(audio => audio.stop()))
+  ].forEach(p => p.then(a => a.stop()));
 
   loadAudio(eatChipOgg, {
     volume: 0.3,
     loop: false,
     positional: false,
   }).then(audio => {
-    audio.play()
-  })
+    audio.play();
+  });
 
-  unloadScene()
+  unloadScene();
 
-  renderer.clear()
+  renderer.clear();
 
   document.querySelectorAll("canvas")!.forEach(canvas => {
-    canvas.style.display = "none"
-  })
+    canvas.style.display = "none";
+  });
 
-  await new Promise(resolve => setTimeout(resolve, 6000))
+  await new Promise(resolve => setTimeout(resolve, 6000));
 
-  const thankyou = document.getElementById("caseoh-thankyou")!
-  thankyou.setAttribute("is-hidden", "false")
+  const thankyou = document.getElementById("caseoh-thankyou")!;
+  thankyou.setAttribute("is-hidden", "false");
 
   loadAudio(scratchbeatOgg, {
     volume: 0.3,
     loop: true,
     positional: false,
   }).then(audio => {
-    audio.play()
-  })
-}
+    audio.play();
+  });
+};
 
 const winScript: Record<number, typeof intro> = {
-  0: intro,
+  // 0: intro,
   1: introNoAnomaly,
-  20: outro,
+  0: outro,
 }
 
 export const executeWinScript = async (simulation: Simulation) => {
